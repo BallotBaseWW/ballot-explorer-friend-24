@@ -13,11 +13,20 @@ export const DistrictFilter = ({ form }: DistrictFilterProps) => {
       <FormField
         control={form.control}
         name="assembly_district"
-        render={({ field }) => (
+        render={({ field: { onChange, ...field } }) => (
           <FormItem>
             <FormLabel>Assembly District</FormLabel>
             <FormControl>
-              <Input {...field} type="number" min="1" />
+              <Input 
+                {...field} 
+                type="text" 
+                pattern="[0-9]*"
+                onChange={(e) => {
+                  const value = e.target.value;
+                  // Store as string to match database type
+                  onChange(value ? value : "");
+                }}
+              />
             </FormControl>
           </FormItem>
         )}
@@ -25,11 +34,19 @@ export const DistrictFilter = ({ form }: DistrictFilterProps) => {
       <FormField
         control={form.control}
         name="state_senate_district"
-        render={({ field }) => (
+        render={({ field: { onChange, ...field } }) => (
           <FormItem>
             <FormLabel>Senate District</FormLabel>
             <FormControl>
-              <Input {...field} type="number" min="1" />
+              <Input 
+                {...field} 
+                type="text"
+                pattern="[0-9]*"
+                onChange={(e) => {
+                  const value = e.target.value;
+                  onChange(value ? value : "");
+                }}
+              />
             </FormControl>
           </FormItem>
         )}
@@ -37,11 +54,19 @@ export const DistrictFilter = ({ form }: DistrictFilterProps) => {
       <FormField
         control={form.control}
         name="congressional_district"
-        render={({ field }) => (
+        render={({ field: { onChange, ...field } }) => (
           <FormItem>
             <FormLabel>Congressional District</FormLabel>
             <FormControl>
-              <Input {...field} type="number" min="1" />
+              <Input 
+                {...field} 
+                type="text"
+                pattern="[0-9]*"
+                onChange={(e) => {
+                  const value = e.target.value;
+                  onChange(value ? value : "");
+                }}
+              />
             </FormControl>
           </FormItem>
         )}

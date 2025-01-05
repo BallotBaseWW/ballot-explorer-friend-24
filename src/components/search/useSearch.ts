@@ -57,16 +57,16 @@ export const useSearch = (county: string) => {
         query = query.eq('enrolled_party', data.enrolled_party);
       }
 
-      // District filters - convert to strings for comparison
+      // District filters - ensure we're comparing strings
       if (data.assembly_district) {
         console.log('Applying assembly district filter:', data.assembly_district);
-        query = query.eq('assembly_district', data.assembly_district.toString());
+        query = query.eq('assembly_district', data.assembly_district);
       }
       if (data.state_senate_district) {
-        query = query.eq('state_senate_district', data.state_senate_district.toString());
+        query = query.eq('state_senate_district', data.state_senate_district);
       }
       if (data.congressional_district) {
-        query = query.eq('congressional_district', data.congressional_district.toString());
+        query = query.eq('congressional_district', data.congressional_district);
       }
 
       // Voter status filter - only apply if not "all"
@@ -86,7 +86,7 @@ export const useSearch = (county: string) => {
       if (data.zip_code) query = query.eq('zip_code', data.zip_code);
 
       // Log the final query for debugging
-      console.log('Final query filters:', query);
+      console.log('Final query:', query);
 
       // Execute query with limit and order
       const { data: searchData, error } = await query
@@ -98,7 +98,7 @@ export const useSearch = (county: string) => {
         throw error;
       }
       
-      console.log('Raw search results:', searchData); // Log the actual results
+      console.log('Raw search results:', searchData);
       console.log('Number of results:', searchData?.length);
       
       setSearchResults(searchData || []);
