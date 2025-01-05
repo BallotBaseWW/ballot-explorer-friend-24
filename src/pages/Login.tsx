@@ -58,10 +58,38 @@ const Login = () => {
               variables: {
                 default: {
                   colors: {
-                    brand: "rgb(14 165 233)",
-                    brandAccent: "rgb(3 105 161)",
+                    brand: "#33C3F0",
+                    brandAccent: "#2980b9",
+                    brandButtonText: "white",
+                    defaultButtonBackground: "white",
+                    defaultButtonBackgroundHover: "#f8f9fa",
+                    defaultButtonBorder: "lightgray",
+                    defaultButtonText: "gray",
+                    dividerBackground: "#e9ecef",
+                    inputBackground: "transparent",
+                    inputBorder: "lightgray",
+                    inputBorderHover: "#33C3F0",
+                    inputBorderFocus: "#33C3F0",
+                    inputText: "black",
+                    inputPlaceholder: "darkgray",
+                  },
+                  borderWidths: {
+                    buttonBorderWidth: "1px",
+                    inputBorderWidth: "1px",
+                  },
+                  radii: {
+                    borderRadiusButton: "6px",
+                    buttonBorderRadius: "6px",
+                    inputBorderRadius: "6px",
                   },
                 },
+              },
+              className: {
+                container: "animate-fade-in",
+                button: "hover:shadow-md transition-shadow duration-200",
+                input: "focus:ring-2 focus:ring-primary focus:ring-opacity-50",
+                label: "text-sm font-medium text-gray-700",
+                loader: "border-primary",
               },
             }}
             providers={[]}
