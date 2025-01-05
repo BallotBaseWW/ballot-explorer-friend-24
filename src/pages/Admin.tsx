@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect } from "react";
+import { Profile } from "@/types/profile";
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -46,7 +47,16 @@ const Admin = () => {
         `);
 
       if (error) throw error;
-      return data;
+      
+      // Transform the data to ensure user_roles is always an array
+      return (data as Profile[]).map(user => ({
+        ...user,
+        user_roles: Array.isArray(user.user_roles) 
+          ? user.user_roles 
+          : user.user_roles 
+            ? [user.user_roles]
+            : []
+      }));
     },
   });
 
