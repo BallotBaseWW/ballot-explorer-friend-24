@@ -11,9 +11,15 @@ import { ChevronDown, ChevronUp, Search as SearchIcon } from "lucide-react";
 import { BasicSearch } from "./search/BasicSearch";
 import { AdvancedSearch } from "./search/AdvancedSearch";
 import { SearchFormValues } from "./search/types";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
 
 export const SearchInterface = ({ county }: { county: string }) => {
   const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
+
   const form = useForm<SearchFormValues>({
     defaultValues: {
       basicSearch: "",
@@ -68,8 +74,66 @@ export const SearchInterface = ({ county }: { county: string }) => {
   });
 
   const onSubmit = async (data: SearchFormValues) => {
-    console.log("Search data:", data);
-    // We'll implement the actual search functionality next
+    setIsLoading(true);
+    try {
+      let query = supabase.from(county.toLowerCase());
+
+      // Handle basic search
+      if (data.basicSearch) {
+        query = query
+          .or(
+            `first_name.ilike.%${data.basicSearch}%,last_name.ilike.%${data.basicSearch}%`
+          )
+          .order("last_name", { ascending: true });
+      } else {
+        // Handle advanced search
+        const advancedSearchParams = Object.entries(data).reduce(
+          (acc: Record<string, string>, [key, value]) => {
+            if (value && key !== "basicSearch") {
+              acc[key] = value;
+            }
+            return acc;
+          },
+          {}
+        );
+
+        if (Object.keys(advancedSearchParams).length > 0) {
+          query = query
+            .match(advancedSearchParams)
+            .order("last_name", { ascending: true });
+        }
+      }
+
+      const { data: results, error } = await query.limit(100);
+
+      if (error) {
+        throw error;
+      }
+
+      setSearchResults(results || []);
+      
+      if (results?.length === 0) {
+        toast({
+          title: "No results found",
+          description: "Try adjusting your search criteria",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: `Found ${results.length} results`,
+          description: "Displaying search results below",
+        });
+      }
+    } catch (error) {
+      console.error("Search error:", error);
+      toast({
+        title: "Error performing search",
+        description: "Please try again",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -78,9 +142,9 @@ export const SearchInterface = ({ county }: { county: string }) => {
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <div className="flex gap-4">
             <BasicSearch form={form} />
-            <Button type="submit" className="h-12 px-6">
+            <Button type="submit" className="h-12 px-6" disabled={isLoading}>
               <SearchIcon className="mr-2 h-4 w-4" />
-              Search
+              {isLoading ? "Searching..." : "Search"}
             </Button>
           </div>
 
@@ -108,6 +172,32 @@ export const SearchInterface = ({ county }: { county: string }) => {
           </Collapsible>
         </form>
       </Form>
+
+      {searchResults.length > 0 && (
+        <div className="mt-8">
+          <h2 className="text-xl font-semibold mb-4">Search Results</h2>
+          <div className="space-y-4">
+            {searchResults.map((voter, index) => (
+              <div
+                key={index}
+                className="p-4 border rounded-lg bg-white shadow-sm"
+              >
+                <h3 className="font-medium">
+                  {voter.first_name} {voter.middle} {voter.last_name}{" "}
+                  {voter.suffix}
+                </h3>
+                <p className="text-sm text-gray-600">
+                  {voter.house} {voter.street_name}, {voter.residence_city},{" "}
+                  {voter.zip_code}
+                </p>
+                <p className="text-sm text-gray-600">
+                  Party: {voter.enrolled_party}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
