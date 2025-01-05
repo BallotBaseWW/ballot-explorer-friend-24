@@ -2,6 +2,8 @@ export type County = "bronx" | "brooklyn" | "manhattan" | "queens" | "statenisla
 
 export type SearchFormValues = {
   basicSearch: string;
+  minAge: string;
+  maxAge: string;
   last_name: string;
   first_name: string;
   middle: string;
