@@ -11,9 +11,12 @@ import { DistrictSection } from "./voter-sections/DistrictSection";
 import { VotingSection } from "./voter-sections/VotingSection";
 import { RegistrationSection } from "./voter-sections/RegistrationSection";
 import { Badge } from "@/components/ui/badge";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Printer } from "lucide-react";
 import { formatDate, calculateAge } from "@/lib/utils";
 import { AddToListDialog } from "./AddToListDialog";
+import { Button } from "@/components/ui/button";
+import { printVoterRecord } from "./voter-sections/printUtils";
+import { useToast } from "@/hooks/use-toast";
 
 type VoterRecord = Database["public"]["Tables"]["bronx"]["Row"];
 
@@ -35,7 +38,25 @@ const getPartyColor = (party: string | null) => {
 };
 
 export const SearchResults = ({ results, county }: SearchResultsProps) => {
+  const { toast } = useToast();
+  
   if (results.length === 0) return null;
+
+  const handlePrint = async (voter: VoterRecord) => {
+    try {
+      await printVoterRecord(voter);
+      toast({
+        title: "Success",
+        description: "PDF generated successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to generate PDF",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <div className="mt-8">
@@ -74,6 +95,18 @@ export const SearchResults = ({ results, county }: SearchResultsProps) => {
                             stateVoterId={voter.state_voter_id}
                             county={county}
                           />
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handlePrint(voter);
+                            }}
+                            className="ml-2"
+                          >
+                            <Printer className="h-4 w-4 mr-2" />
+                            Print Record
+                          </Button>
                         </div>
                       </div>
                       <div className="flex items-center gap-2 text-gray-500">
