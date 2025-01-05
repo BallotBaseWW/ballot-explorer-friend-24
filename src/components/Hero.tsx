@@ -26,15 +26,11 @@ export const Hero = () => {
 
     setIsSearching(true);
     try {
-      // First, get the total count
-      const { count, error: countError } = await supabase
+      const { count } = await supabase
         .from('voters')
         .select('*', { count: 'exact', head: true })
         .ilike('last_name', `${query}%`);
 
-      if (countError) throw countError;
-      
-      // Then get the paginated results
       const { data, error } = await supabase
         .from('voters')
         .select()
@@ -42,6 +38,7 @@ export const Hero = () => {
         .range((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE - 1);
 
       if (error) throw error;
+      
       setSearchResults(data || []);
       setTotalCount(count || 0);
     } catch (error) {
@@ -78,27 +75,32 @@ export const Hero = () => {
 
     setIsSearching(true);
     try {
-      let queryBuilder = supabase.from('voters').select('*', { count: 'exact', head: true });
+      let query = supabase.from('voters').select('*', { count: 'exact', head: true });
 
+      // Apply filters
       Object.entries(filters).forEach(([field, value]) => {
         if (value && value.length >= 3) {
-          queryBuilder = queryBuilder.ilike(field, `${value}%`);
+          query = query.ilike(field, `${value}%`);
         }
       });
 
-      // Get total count
-      const { count, error: countError } = await queryBuilder;
+      const { count } = await query;
 
-      if (countError) throw countError;
+      // Separate query for paginated results
+      let resultsQuery = supabase.from('voters').select();
+      
+      // Apply same filters to results query
+      Object.entries(filters).forEach(([field, value]) => {
+        if (value && value.length >= 3) {
+          resultsQuery = resultsQuery.ilike(field, `${value}%`);
+        }
+      });
 
-      // Get paginated results
-      const { data, error } = await supabase
-        .from('voters')
-        .select()
-        .ilike('last_name', filters.last_name ? `${filters.last_name}%` : '%')
+      const { data, error } = await resultsQuery
         .range((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE - 1);
 
       if (error) throw error;
+      
       setSearchResults(data || []);
       setTotalCount(count || 0);
     } catch (error) {
