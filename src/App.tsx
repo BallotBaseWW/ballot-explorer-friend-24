@@ -10,20 +10,41 @@ import Login from "./pages/Login";
 import Search from "./pages/Search";
 import Admin from "./pages/Admin";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+    // Check current session
+    const checkSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
         setIsAuthenticated(!!session);
+      } catch (error) {
+        console.error("Session check error:", error);
+        setIsAuthenticated(false);
+      } finally {
+        setIsLoading(false);
       }
-    );
+    };
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    // Initial session check
+    checkSession();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("Auth state changed:", event, !!session);
       setIsAuthenticated(!!session);
+      setIsLoading(false);
     });
 
     return () => {
@@ -31,8 +52,12 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     };
   }, []);
 
-  if (isAuthenticated === null) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+      </div>
+    );
   }
 
   return isAuthenticated ? children : <Navigate to="/login" replace />;
