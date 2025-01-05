@@ -7,12 +7,13 @@ import { PaginationControls } from "./pagination/PaginationControls";
 import { Button } from "@/components/ui/button";
 import { ArrowUp, ListPlus } from "lucide-react";
 import { AddAllToListDialog } from "./AddAllToListDialog";
+import { County } from "./types";
 
 type VoterRecord = Database["public"]["Tables"]["bronx"]["Row"];
 
 interface SearchResultsProps {
   results: VoterRecord[];
-  county: string;
+  county: County;
   searchQuery: any; // This will be used to fetch all results
 }
 
