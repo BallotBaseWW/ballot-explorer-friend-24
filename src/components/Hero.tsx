@@ -201,7 +201,11 @@ export const Hero = () => {
         <SearchContainer
           selectedCity={selectedCity}
           cities={cities}
-          onCityChange={setSelectedCity}
+          onCityChange={(city) => {
+            setSelectedCity(city);
+            setSearchResults([]);
+            setTotalCount(0);
+          }}
           onBasicSearch={handleBasicSearch}
           onAdvancedSearch={handleAdvancedSearch}
           isLoading={isSearching}
