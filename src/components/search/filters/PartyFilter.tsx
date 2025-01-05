@@ -8,7 +8,7 @@ interface PartyFilterProps {
 }
 
 const PARTY_OPTIONS = [
-  { value: "", label: "All Parties" },
+  { value: "all", label: "All Parties" },
   { value: "DEM", label: "Democratic" },
   { value: "REP", label: "Republican" },
   { value: "CON", label: "Conservative" },
@@ -25,7 +25,7 @@ export const PartyFilter = ({ form }: PartyFilterProps) => {
       render={({ field }) => (
         <FormItem>
           <FormLabel>Party</FormLabel>
-          <Select onValueChange={field.onChange} defaultValue={field.value}>
+          <Select onValueChange={field.onChange} defaultValue={field.value || "all"}>
             <FormControl>
               <SelectTrigger>
                 <SelectValue placeholder="Select a party" />

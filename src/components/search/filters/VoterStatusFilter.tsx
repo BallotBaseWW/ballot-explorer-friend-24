@@ -8,7 +8,7 @@ interface VoterStatusFilterProps {
 }
 
 const STATUS_OPTIONS = [
-  { value: "", label: "All Statuses" },
+  { value: "all", label: "All Statuses" },
   { value: "ACTIVE", label: "Active" },
   { value: "INACTIVE", label: "Inactive" },
   { value: "PURGED", label: "Purged" },
@@ -22,7 +22,7 @@ export const VoterStatusFilter = ({ form }: VoterStatusFilterProps) => {
       render={({ field }) => (
         <FormItem>
           <FormLabel>Voter Status</FormLabel>
-          <Select onValueChange={field.onChange} defaultValue={field.value}>
+          <Select onValueChange={field.onChange} defaultValue={field.value || "all"}>
             <FormControl>
               <SelectTrigger>
                 <SelectValue placeholder="Select status" />
