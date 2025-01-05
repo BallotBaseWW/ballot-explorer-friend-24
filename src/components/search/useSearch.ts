@@ -19,6 +19,9 @@ export const useSearch = (county: string) => {
       const countyTable = county.toLowerCase() as County;
       let query = supabase.from(countyTable).select();
 
+      // Debug log the raw form data
+      console.log('Search form data:', data);
+
       // Basic search handling
       if (data.basicSearch) {
         const searchTerms = data.basicSearch.trim().split(' ');
@@ -50,11 +53,13 @@ export const useSearch = (county: string) => {
 
       // Party filter - only apply if not "all"
       if (data.enrolled_party && data.enrolled_party !== "all") {
+        console.log('Applying party filter:', data.enrolled_party);
         query = query.eq('enrolled_party', data.enrolled_party);
       }
 
       // District filters
       if (data.assembly_district) {
+        console.log('Applying assembly district filter:', data.assembly_district);
         query = query.eq('assembly_district', data.assembly_district);
       }
       if (data.state_senate_district) {
@@ -66,6 +71,7 @@ export const useSearch = (county: string) => {
 
       // Voter status filter - only apply if not "all"
       if (data.voter_status && data.voter_status !== "all") {
+        console.log('Applying voter status filter:', data.voter_status);
         query = query.eq('voter_status', data.voter_status);
       }
 
@@ -79,16 +85,18 @@ export const useSearch = (county: string) => {
       if (data.street_name) query = query.ilike('street_name', `${data.street_name}%`);
       if (data.zip_code) query = query.eq('zip_code', data.zip_code);
 
-      console.log('Query filters:', query); // Debug log
-
       // Execute query with limit and order
       const { data: searchData, error } = await query
         .order('last_name', { ascending: true })
         .limit(100);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Search error:', error);
+        throw error;
+      }
       
-      console.log('Search results:', searchData?.length); // Debug log
+      console.log('Raw search results:', searchData); // Log the actual results
+      console.log('Number of results:', searchData?.length);
       
       setSearchResults(searchData || []);
       
