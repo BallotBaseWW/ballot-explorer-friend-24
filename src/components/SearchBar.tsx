@@ -2,19 +2,21 @@ import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
 interface SearchBarProps {
-  onSearch: (query: string) => void;
+  onSearch: (field: string, value: string) => void;
   placeholder?: string;
   disabled?: boolean;
+  label: string;
 }
 
-export const SearchBar = ({ onSearch, placeholder = "Search voters...", disabled = false }: SearchBarProps) => {
+export const SearchBar = ({ onSearch, placeholder, disabled = false, label }: SearchBarProps) => {
   return (
     <div className="relative w-full">
+      <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
       <div className="relative">
         <Input
           type="text"
           placeholder={placeholder}
-          onChange={(e) => onSearch(e.target.value)}
+          onChange={(e) => onSearch(label.toLowerCase().replace(' ', '_'), e.target.value)}
           className="w-full pl-12 pr-4 py-3 text-lg rounded-full border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200 bg-white shadow-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
           disabled={disabled}
         />
