@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,19 +9,14 @@ import { Form } from "@/components/ui/form";
 import { ChevronDown, ChevronUp, Search as SearchIcon } from "lucide-react";
 import { BasicSearch } from "./search/BasicSearch";
 import { AdvancedSearch } from "./search/AdvancedSearch";
-import { SearchFormValues, County } from "./search/types";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
+import { SearchFormValues } from "./search/types";
 import { SearchResults } from "./search/SearchResults";
-import { Database } from "@/integrations/supabase/types";
-
-type VoterRecord = Database["public"]["Tables"]["bronx"]["Row"];
+import { useState } from "react";
+import { useSearch } from "./search/useSearch";
 
 export const SearchInterface = ({ county }: { county: string }) => {
   const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
-  const [searchResults, setSearchResults] = useState<VoterRecord[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
+  const { searchResults, isLoading, performSearch } = useSearch(county);
 
   const form = useForm<SearchFormValues>({
     defaultValues: {
@@ -77,92 +71,10 @@ export const SearchInterface = ({ county }: { county: string }) => {
     },
   });
 
-  const onSubmit = async (data: SearchFormValues) => {
-    setIsLoading(true);
-    setSearchResults([]);
-    
-    try {
-      const countyTable = county.toLowerCase() as County;
-      let query = supabase.from(countyTable).select();
-
-      if (data.basicSearch) {
-        const searchTerms = data.basicSearch.trim().split(' ');
-        
-        if (searchTerms.length > 1) {
-          // Full name search
-          const firstName = searchTerms[0];
-          const lastName = searchTerms[searchTerms.length - 1];
-          const { data: results, error } = await query
-            .ilike('first_name', `${firstName}%`)
-            .ilike('last_name', `${lastName}%`)
-            .order('last_name', { ascending: true })
-            .limit(100);
-
-          if (error) throw error;
-          setSearchResults(results || []);
-        } else {
-          // Last name only search
-          const { data: results, error } = await query
-            .ilike('last_name', `${data.basicSearch}%`)
-            .order('last_name', { ascending: true })
-            .limit(100);
-
-          if (error) throw error;
-          setSearchResults(results || []);
-        }
-      } else {
-        const advancedSearchParams = Object.entries(data).reduce(
-          (acc: Record<string, string>, [key, value]) => {
-            if (value && key !== "basicSearch") {
-              acc[key] = value;
-            }
-            return acc;
-          },
-          {}
-        );
-
-        if (Object.keys(advancedSearchParams).length > 0) {
-          const { data: results, error } = await query
-            .match(advancedSearchParams)
-            .order('last_name', { ascending: true })
-            .limit(100);
-
-          if (error) throw error;
-          setSearchResults(results || []);
-        }
-      }
-
-      // Only show toast messages after results are set
-      setTimeout(() => {
-        if (searchResults.length === 0) {
-          toast({
-            title: "No results found",
-            description: "Try adjusting your search criteria",
-            variant: "destructive",
-          });
-        } else {
-          toast({
-            title: `Found ${searchResults.length} results`,
-            description: "Displaying search results below",
-          });
-        }
-      }, 0);
-    } catch (error) {
-      console.error("Search error:", error);
-      toast({
-        title: "Error performing search",
-        description: "Please try again",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   return (
     <div className="w-full max-w-4xl mx-auto">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={form.handleSubmit(performSearch)} className="space-y-6">
           <div className="flex gap-4">
             <BasicSearch form={form} />
             <Button type="submit" className="h-12 px-6" disabled={isLoading}>
