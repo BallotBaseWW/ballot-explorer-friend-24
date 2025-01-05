@@ -1,13 +1,11 @@
 import { useState, useCallback, useRef, useEffect } from "react";
-import { SearchBar } from "./SearchBar";
-import { AdvancedSearch } from "./AdvancedSearch";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import debounce from "lodash/debounce";
 import { ChevronUp } from "lucide-react";
 import { SearchResults } from "./SearchResults";
 import { SearchPagination } from "./SearchPagination";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SearchContainer } from "./SearchContainer";
 
 export const Hero = () => {
   const { toast } = useToast();
@@ -20,14 +18,12 @@ export const Hero = () => {
   const searchRef = useRef<HTMLDivElement>(null);
   const ITEMS_PER_PAGE = 20;
 
-  // Fetch unique cities on component mount
   const fetchCities = async () => {
     try {
       const { data, error } = await supabase
         .from('voters')
         .select('city')
-        .order('city')
-        .limit(1000);
+        .order('city');
 
       if (error) throw error;
 
@@ -202,35 +198,14 @@ export const Hero = () => {
         <p className="text-lg md:text-xl text-neutral mb-8 text-center max-w-2xl">
           Search and discover voter information with ease
         </p>
-        <div className="w-full max-w-2xl space-y-4 mb-8">
-          <div className="w-full">
-            <Select
-              value={selectedCity}
-              onValueChange={(value) => {
-                setSelectedCity(value);
-                setSearchResults([]);
-                setTotalCount(0);
-              }}
-            >
-              <SelectTrigger className="w-full mb-4">
-                <SelectValue placeholder="Select a city first..." />
-              </SelectTrigger>
-              <SelectContent>
-                {cities.map((city) => (
-                  <SelectItem key={city} value={city}>
-                    {city}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <SearchBar 
-              onSearch={handleBasicSearch} 
-              placeholder={selectedCity ? "Search by last name (min. 3 characters)..." : "Select a city first..."} 
-              disabled={!selectedCity}
-            />
-          </div>
-          <AdvancedSearch onSearch={handleAdvancedSearch} />
-        </div>
+        <SearchContainer
+          selectedCity={selectedCity}
+          cities={cities}
+          onCityChange={setSelectedCity}
+          onBasicSearch={handleBasicSearch}
+          onAdvancedSearch={handleAdvancedSearch}
+          isLoading={isSearching}
+        />
       </div>
       
       {isSearching ? (
