@@ -26,21 +26,25 @@ export const Hero = () => {
 
     setIsSearching(true);
     try {
-      const { count } = await supabase
+      // Get total count
+      const countQuery = await supabase
         .from('voters')
         .select('*', { count: 'exact', head: true })
         .ilike('last_name', `${query}%`);
 
-      const { data, error } = await supabase
+      // Get paginated results
+      const dataQuery = await supabase
         .from('voters')
         .select()
         .ilike('last_name', `${query}%`)
-        .range((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE - 1);
+        .range((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE - 1)
+        .order('last_name', { ascending: true });
 
-      if (error) throw error;
+      if (countQuery.error) throw countQuery.error;
+      if (dataQuery.error) throw dataQuery.error;
       
-      setSearchResults(data || []);
-      setTotalCount(count || 0);
+      setSearchResults(dataQuery.data || []);
+      setTotalCount(countQuery.count || 0);
     } catch (error) {
       console.error('Search error:', error);
       toast({
@@ -75,34 +79,38 @@ export const Hero = () => {
 
     setIsSearching(true);
     try {
-      let query = supabase.from('voters').select('*', { count: 'exact', head: true });
+      let countQuery = supabase
+        .from('voters')
+        .select('*', { count: 'exact', head: true });
 
-      // Apply filters
+      let dataQuery = supabase
+        .from('voters')
+        .select();
+
+      // Apply filters to both queries
       Object.entries(filters).forEach(([field, value]) => {
         if (value && value.length >= 3) {
-          query = query.ilike(field, `${value}%`);
+          countQuery = countQuery.ilike(field, `${value}%`);
+          dataQuery = dataQuery.ilike(field, `${value}%`);
         }
       });
 
-      const { count } = await query;
+      // Add pagination to data query
+      dataQuery = dataQuery
+        .range((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE - 1)
+        .order('last_name', { ascending: true });
 
-      // Separate query for paginated results
-      let resultsQuery = supabase.from('voters').select();
-      
-      // Apply same filters to results query
-      Object.entries(filters).forEach(([field, value]) => {
-        if (value && value.length >= 3) {
-          resultsQuery = resultsQuery.ilike(field, `${value}%`);
-        }
-      });
+      // Execute both queries
+      const [countResult, dataResult] = await Promise.all([
+        countQuery,
+        dataQuery
+      ]);
 
-      const { data, error } = await resultsQuery
-        .range((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE - 1);
+      if (countResult.error) throw countResult.error;
+      if (dataResult.error) throw dataResult.error;
 
-      if (error) throw error;
-      
-      setSearchResults(data || []);
-      setTotalCount(count || 0);
+      setSearchResults(dataResult.data || []);
+      setTotalCount(countResult.count || 0);
     } catch (error) {
       console.error('Advanced search error:', error);
       toast({
