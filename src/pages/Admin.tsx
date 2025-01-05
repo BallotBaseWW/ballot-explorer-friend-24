@@ -17,7 +17,7 @@ import { Database } from "@/integrations/supabase/types";
 
 type UserRole = Database["public"]["Tables"]["user_roles"]["Row"];
 type Profile = Database["public"]["Tables"]["profiles"]["Row"] & {
-  user_roles: Pick<UserRole, "role">[];
+  user_roles: { role: UserRole["role"] }[];
 };
 
 const Admin = () => {
@@ -96,7 +96,7 @@ const Admin = () => {
     }
   };
 
-  const handleToggleRole = async (userId: string, currentRole: string) => {
+  const handleToggleRole = async (userId: string, currentRole: UserRole["role"]) => {
     const newRole = currentRole === "admin" ? "user" : "admin";
     const { error } = await supabase
       .from("user_roles")
