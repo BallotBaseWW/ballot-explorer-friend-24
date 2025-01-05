@@ -100,42 +100,55 @@ export const ExportDialog = ({ voters, listName }: ExportDialogProps) => {
     document.body.removeChild(link);
   };
 
-  const exportToPdf = () => {
+  const exportToPdf = async () => {
     if (selectedFields.length === 0) return;
 
     const doc = new jsPDF();
     
-    // Add logo
-    const logoImg = new Image();
-    logoImg.src = '/logo.png';
-    doc.addImage(logoImg, 'PNG', 10, 10, 40, 40);
-    
-    // Add title
-    doc.setFontSize(18);
-    doc.text(listName, 60, 30);
-    
-    // Prepare table data
-    const headers = selectedFields.map((field) => {
-      const category = Object.values(EXPORT_FIELDS).find((cat) =>
-        Object.keys(cat.fields).includes(field)
+    try {
+      // Load logo image
+      const logoImg = new Image();
+      logoImg.src = '/logo.png';
+      
+      // Wait for image to load before proceeding
+      await new Promise((resolve, reject) => {
+        logoImg.onload = resolve;
+        logoImg.onerror = reject;
+      });
+      
+      // Add logo once loaded
+      doc.addImage(logoImg, 'PNG', 10, 10, 40, 40);
+      
+      // Add title
+      doc.setFontSize(18);
+      doc.text(listName, 60, 30);
+      
+      // Prepare table data
+      const headers = selectedFields.map((field) => {
+        const category = Object.values(EXPORT_FIELDS).find((cat) =>
+          Object.keys(cat.fields).includes(field)
+        );
+        return category?.fields[field as keyof typeof category.fields];
+      });
+
+      const rows = voters.map((voter) =>
+        selectedFields.map((field) => voter[field as keyof typeof voter] || "")
       );
-      return category?.fields[field as keyof typeof category.fields];
-    });
 
-    const rows = voters.map((voter) =>
-      selectedFields.map((field) => voter[field as keyof typeof voter] || "")
-    );
+      // Add table
+      autoTable(doc, {
+        head: [headers],
+        body: rows,
+        startY: 60,
+        styles: { fontSize: 8 },
+        headStyles: { fillColor: [41, 128, 185] },
+      });
 
-    // Add table
-    autoTable(doc, {
-      head: [headers],
-      body: rows,
-      startY: 60,
-      styles: { fontSize: 8 },
-      headStyles: { fillColor: [41, 128, 185] },
-    });
-
-    doc.save(`${listName}_voters.pdf`);
+      doc.save(`${listName}_voters.pdf`);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      // You might want to show a toast notification here
+    }
   };
 
   return (
