@@ -81,11 +81,10 @@ export const SearchInterface = ({ county }: { county: string }) => {
     setIsLoading(true);
     try {
       const countyTable = county.toLowerCase() as County;
-      let query = supabase.from(countyTable);
+      let query = supabase.from(countyTable).select();
 
       if (data.basicSearch) {
         const { data: results, error } = await query
-          .select()
           .or(`first_name.ilike.%${data.basicSearch}%,last_name.ilike.%${data.basicSearch}%`)
           .order("last_name", { ascending: true })
           .limit(100);
@@ -105,8 +104,7 @@ export const SearchInterface = ({ county }: { county: string }) => {
 
         if (Object.keys(advancedSearchParams).length > 0) {
           const { data: results, error } = await query
-            .select()
-            .eq(advancedSearchParams)
+            .match(advancedSearchParams)
             .order("last_name", { ascending: true })
             .limit(100);
 
