@@ -27,12 +27,12 @@ export const Hero = () => {
     setIsSearching(true);
     try {
       // First, get the total count
-      const countQuery = await supabase
+      const { count, error: countError } = await supabase
         .from('voters')
-        .select('*', { count: 'exact' })
+        .select('*', { count: 'exact', head: true })
         .ilike('last_name', `${query}%`);
 
-      const count = countQuery.count;
+      if (countError) throw countError;
       
       // Then get the paginated results
       const { data, error } = await supabase
@@ -78,7 +78,7 @@ export const Hero = () => {
 
     setIsSearching(true);
     try {
-      let queryBuilder = supabase.from('voters').select();
+      let queryBuilder = supabase.from('voters').select('*', { count: 'exact', head: true });
 
       Object.entries(filters).forEach(([field, value]) => {
         if (value && value.length >= 3) {
@@ -87,14 +87,15 @@ export const Hero = () => {
       });
 
       // Get total count
-      const countQuery = await queryBuilder.select('*', { 
-        count: 'exact'
-      });
+      const { count, error: countError } = await queryBuilder;
 
-      const count = countQuery.count;
+      if (countError) throw countError;
 
       // Get paginated results
-      const { data, error } = await queryBuilder
+      const { data, error } = await supabase
+        .from('voters')
+        .select()
+        .ilike('last_name', filters.last_name ? `${filters.last_name}%` : '%')
         .range((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE - 1);
 
       if (error) throw error;
