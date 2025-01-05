@@ -39,6 +39,22 @@ export const AdvancedSearch = ({ onSearch }: AdvancedSearchProps) => {
               />
             </div>
             <div className="space-y-2">
+              <Label htmlFor="middle">Middle Name</Label>
+              <Input
+                id="middle"
+                placeholder="Enter middle name"
+                onChange={(e) => handleInputChange("middle", e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="suffix">Suffix</Label>
+              <Input
+                id="suffix"
+                placeholder="Enter suffix"
+                onChange={(e) => handleInputChange("suffix", e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="city">City</Label>
               <Input
                 id="city"
@@ -63,11 +79,11 @@ export const AdvancedSearch = ({ onSearch }: AdvancedSearchProps) => {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="assemblyDistrict">Assembly District</Label>
+              <Label htmlFor="electionDistrict">Election District</Label>
               <Input
-                id="assemblyDistrict"
-                placeholder="Enter assembly district"
-                onChange={(e) => handleInputChange("assembly_district", e.target.value)}
+                id="electionDistrict"
+                placeholder="Enter election district"
+                onChange={(e) => handleInputChange("election_district", e.target.value)}
               />
             </div>
             <div className="space-y-2">
@@ -76,6 +92,38 @@ export const AdvancedSearch = ({ onSearch }: AdvancedSearchProps) => {
                 id="congressionalDistrict"
                 placeholder="Enter congressional district"
                 onChange={(e) => handleInputChange("congressional_district", e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="stateSenateDistrict">State Senate District</Label>
+              <Input
+                id="stateSenateDistrict"
+                placeholder="Enter state senate district"
+                onChange={(e) => handleInputChange("state_senate_district", e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="assemblyDistrict">Assembly District</Label>
+              <Input
+                id="assemblyDistrict"
+                placeholder="Enter assembly district"
+                onChange={(e) => handleInputChange("assembly_district", e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="voterStatus">Voter Status</Label>
+              <Input
+                id="voterStatus"
+                placeholder="Enter voter status"
+                onChange={(e) => handleInputChange("voter_status", e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="registrationSource">Registration Source</Label>
+              <Input
+                id="registrationSource"
+                placeholder="Enter registration source"
+                onChange={(e) => handleInputChange("registration_source", e.target.value)}
               />
             </div>
           </div>
