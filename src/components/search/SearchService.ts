@@ -13,18 +13,26 @@ export const performVoterSearch = async (
   const start = (page - 1) * itemsPerPage;
   const end = start + itemsPerPage - 1;
 
-  const { data, count, error } = await supabase
-    .from('voters')
-    .select('*', { count: 'exact' })
-    .ilike('first_name', `${firstName}%`)
-    .ilike('last_name', `${lastName}%`)
-    .range(start, end)
-    .order('last_name', { ascending: true });
+  try {
+    const { data, count, error } = await supabase
+      .from('voters')
+      .select('*', { count: 'exact' })
+      .ilike('first_name', `${firstName}%`)
+      .ilike('last_name', `${lastName}%`)
+      .range(start, end)
+      .order('last_name', { ascending: true });
 
-  if (error) {
+    if (error) {
+      console.error('Search error:', error);
+      throw error;
+    }
+
+    return { 
+      data: data || [], 
+      count: count || 0 
+    };
+  } catch (error) {
     console.error('Search error:', error);
-    throw error;
+    throw new Error('An error occurred while searching. Please try again.');
   }
-
-  return { data: data || [], count: count || 0 };
-};
+}
