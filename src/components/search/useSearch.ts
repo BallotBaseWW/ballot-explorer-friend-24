@@ -57,16 +57,16 @@ export const useSearch = (county: string) => {
         query = query.eq('enrolled_party', data.enrolled_party);
       }
 
-      // District filters
+      // District filters - convert to strings for comparison
       if (data.assembly_district) {
         console.log('Applying assembly district filter:', data.assembly_district);
-        query = query.eq('assembly_district', data.assembly_district);
+        query = query.eq('assembly_district', data.assembly_district.toString());
       }
       if (data.state_senate_district) {
-        query = query.eq('state_senate_district', data.state_senate_district);
+        query = query.eq('state_senate_district', data.state_senate_district.toString());
       }
       if (data.congressional_district) {
-        query = query.eq('congressional_district', data.congressional_district);
+        query = query.eq('congressional_district', data.congressional_district.toString());
       }
 
       // Voter status filter - only apply if not "all"
@@ -84,6 +84,9 @@ export const useSearch = (county: string) => {
       if (data.house) query = query.eq('house', data.house);
       if (data.street_name) query = query.ilike('street_name', `${data.street_name}%`);
       if (data.zip_code) query = query.eq('zip_code', data.zip_code);
+
+      // Log the final query for debugging
+      console.log('Final query filters:', query);
 
       // Execute query with limit and order
       const { data: searchData, error } = await query
