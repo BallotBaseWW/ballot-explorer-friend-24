@@ -23,13 +23,13 @@ export const AdvancedSearch = ({ onSearch }: AdvancedSearchProps) => {
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto mt-4">
+    <div className="w-full">
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-        <CollapsibleTrigger className="flex items-center justify-center w-full gap-2 text-sm text-gray-500 hover:text-gray-700">
+        <CollapsibleTrigger className="flex items-center justify-center w-full gap-2 text-sm text-gray-500 hover:text-gray-700 py-2">
           Advanced Search {isOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
         </CollapsibleTrigger>
-        <CollapsibleContent className="mt-4 space-y-4 animate-fade-in">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <CollapsibleContent className="mt-4 space-y-4 animate-fade-in bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label htmlFor="firstName">First Name</Label>
               <Input
@@ -60,6 +60,22 @@ export const AdvancedSearch = ({ onSearch }: AdvancedSearchProps) => {
                 id="registeredParty"
                 placeholder="Enter registered party"
                 onChange={(e) => handleInputChange("registered_party", e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="assemblyDistrict">Assembly District</Label>
+              <Input
+                id="assemblyDistrict"
+                placeholder="Enter assembly district"
+                onChange={(e) => handleInputChange("assembly_district", e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="congressionalDistrict">Congressional District</Label>
+              <Input
+                id="congressionalDistrict"
+                placeholder="Enter congressional district"
+                onChange={(e) => handleInputChange("congressional_district", e.target.value)}
               />
             </div>
           </div>
