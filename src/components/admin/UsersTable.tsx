@@ -1,12 +1,10 @@
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Profile } from "@/types/profile";
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
+import { CreateUserDialog } from "./CreateUserDialog";
+import { UserTableRow } from "./UserTableRow";
 
 interface UsersTableProps {
   users: Profile[] | undefined;
@@ -86,7 +84,6 @@ export const UsersTable = ({ users, isLoading, refetch }: UsersTableProps) => {
       return;
     }
 
-    // If password is provided, update it
     if (editingUser.password) {
       const { error: passwordError } = await supabase.auth.admin.updateUserById(
         editingUser.id,
@@ -144,44 +141,11 @@ export const UsersTable = ({ users, isLoading, refetch }: UsersTableProps) => {
 
   return (
     <div className="space-y-4">
-      <Dialog>
-        <DialogTrigger asChild>
-          <Button>Create New User</Button>
-        </DialogTrigger>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Create New User</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="new-email">Email</Label>
-              <Input
-                id="new-email"
-                value={newUserData.email}
-                onChange={(e) => setNewUserData(prev => ({ ...prev, email: e.target.value }))}
-              />
-            </div>
-            <div>
-              <Label htmlFor="new-name">Full Name</Label>
-              <Input
-                id="new-name"
-                value={newUserData.full_name}
-                onChange={(e) => setNewUserData(prev => ({ ...prev, full_name: e.target.value }))}
-              />
-            </div>
-            <div>
-              <Label htmlFor="new-password">Password</Label>
-              <Input
-                id="new-password"
-                type="password"
-                value={newUserData.password}
-                onChange={(e) => setNewUserData(prev => ({ ...prev, password: e.target.value }))}
-              />
-            </div>
-            <Button onClick={handleCreateUser}>Create User</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <CreateUserDialog
+        newUserData={newUserData}
+        setNewUserData={setNewUserData}
+        handleCreateUser={handleCreateUser}
+      />
 
       <div className="bg-white rounded-lg shadow">
         <Table>
@@ -196,70 +160,15 @@ export const UsersTable = ({ users, isLoading, refetch }: UsersTableProps) => {
           </TableHeader>
           <TableBody>
             {users?.map((user) => (
-              <TableRow key={user.id}>
-                <TableCell>
-                  {editingUser?.id === user.id ? (
-                    <Input
-                      value={editingUser.full_name || ""}
-                      onChange={(e) => setEditingUser(prev => ({ ...prev!, full_name: e.target.value }))}
-                    />
-                  ) : (
-                    user.full_name || "N/A"
-                  )}
-                </TableCell>
-                <TableCell>
-                  {editingUser?.id === user.id ? (
-                    <Input
-                      value={editingUser.email || ""}
-                      onChange={(e) => setEditingUser(prev => ({ ...prev!, email: e.target.value }))}
-                    />
-                  ) : (
-                    user.email
-                  )}
-                </TableCell>
-                <TableCell>{user.user_roles?.[0]?.role || "user"}</TableCell>
-                <TableCell>{user.approved ? "Approved" : "Pending"}</TableCell>
-                <TableCell className="space-x-2">
-                  {editingUser?.id === user.id ? (
-                    <>
-                      <Button variant="outline" size="sm" onClick={handleUpdateUser}>
-                        Save
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setEditingUser(null)}
-                      >
-                        Cancel
-                      </Button>
-                    </>
-                  ) : (
-                    <>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setEditingUser({ ...user, password: "" })}
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleToggleApproval(user.id, !!user.approved)}
-                      >
-                        {user.approved ? "Revoke" : "Approve"}
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleToggleRole(user.id, user.user_roles?.[0]?.role || "user")}
-                      >
-                        Toggle Admin
-                      </Button>
-                    </>
-                  )}
-                </TableCell>
-              </TableRow>
+              <UserTableRow
+                key={user.id}
+                user={user}
+                editingUser={editingUser}
+                setEditingUser={setEditingUser}
+                handleUpdateUser={handleUpdateUser}
+                handleToggleApproval={handleToggleApproval}
+                handleToggleRole={handleToggleRole}
+              />
             ))}
           </TableBody>
         </Table>

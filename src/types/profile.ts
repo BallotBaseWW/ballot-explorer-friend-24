@@ -5,4 +5,5 @@ type ProfileBase = Database["public"]["Tables"]["profiles"]["Row"];
 
 export interface Profile extends ProfileBase {
   user_roles?: UserRole | UserRole[];
+  password?: string; // Add optional password field for admin editing
 }
