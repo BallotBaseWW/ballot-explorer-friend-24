@@ -134,7 +134,11 @@ export const AddToListDialog = ({ stateVoterId, county }: AddToListDialogProps) 
       if (isOpen) fetchLists();
     }}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
+        <Button 
+          variant="outline" 
+          size="sm"
+          className="md:w-auto w-full text-sm px-2 h-8 whitespace-nowrap"
+        >
           <ListPlus className="h-4 w-4 mr-2" />
           Add to List
         </Button>
