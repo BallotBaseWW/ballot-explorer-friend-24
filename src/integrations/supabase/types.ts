@@ -887,6 +887,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_age: {
+        Args: {
+          dob_str: string
+        }
+        Returns: number
+      }
       gtrgm_compress: {
         Args: {
           "": unknown
