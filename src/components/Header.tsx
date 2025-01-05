@@ -10,6 +10,7 @@ import { User, Home, LogOut, Shield } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { useQuery } from "@tanstack/react-query";
+import { useCallback } from "react";
 
 export const Header = () => {
   const navigate = useNavigate();
@@ -38,7 +39,7 @@ export const Header = () => {
     refetchOnWindowFocus: false,
   });
 
-  const handleLogout = async () => {
+  const handleLogout = useCallback(async () => {
     const { error } = await supabase.auth.signOut();
     if (error) {
       toast({
@@ -54,14 +55,18 @@ export const Header = () => {
       duration: 2000,
     });
     navigate("/login");
-  };
+  }, [navigate, toast]);
+
+  const handleNavigate = useCallback((path: string) => () => {
+    navigate(path);
+  }, [navigate]);
 
   return (
     <header className="border-b bg-white">
       <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
         <div 
           className="text-2xl font-bold cursor-pointer"
-          onClick={() => navigate("/")}
+          onClick={handleNavigate("/")}
         >
           <span className="bg-gradient-to-r from-[#33C3F0] via-[#8E77B5] to-[#ea384c] bg-clip-text text-transparent">
             BallotBase
@@ -72,7 +77,7 @@ export const Header = () => {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => navigate("/")}
+            onClick={handleNavigate("/")}
             className="hidden md:flex"
           >
             <Home className="h-5 w-5" />
@@ -82,7 +87,7 @@ export const Header = () => {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => navigate("/admin")}
+              onClick={handleNavigate("/admin")}
               className="hidden md:flex"
             >
               <Shield className="h-5 w-5" />
@@ -96,12 +101,12 @@ export const Header = () => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => navigate("/")}>
+              <DropdownMenuItem onClick={handleNavigate("/")}>
                 <Home className="mr-2 h-4 w-4" />
                 Home
               </DropdownMenuItem>
               {isAdmin && (
-                <DropdownMenuItem onClick={() => navigate("/admin")}>
+                <DropdownMenuItem onClick={handleNavigate("/admin")}>
                   <Shield className="mr-2 h-4 w-4" />
                   Admin Panel
                 </DropdownMenuItem>
