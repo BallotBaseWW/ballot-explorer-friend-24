@@ -83,17 +83,6 @@ export const Header = () => {
             <Home className="h-5 w-5" />
           </Button>
           
-          {isAdmin && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleNavigate("/admin")}
-              className="hidden md:flex"
-            >
-              <Shield className="h-5 w-5" />
-            </Button>
-          )}
-          
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon">
