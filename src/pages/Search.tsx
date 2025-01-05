@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { SearchInterface } from "@/components/SearchInterface";
 
 const Search = () => {
   const { county } = useParams();
@@ -26,15 +27,7 @@ const Search = () => {
         </nav>
       </header>
       <main className="max-w-7xl mx-auto p-4">
-        {/* We'll implement the search interface in the next step */}
-        <div className="text-center py-12">
-          <h2 className="text-2xl font-semibold mb-4">
-            Search Interface Coming Soon
-          </h2>
-          <p className="text-neutral">
-            The search interface for {county} will be implemented here.
-          </p>
-        </div>
+        <SearchInterface county={county || ""} />
       </main>
     </div>
   );
