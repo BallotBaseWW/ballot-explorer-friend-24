@@ -13,6 +13,12 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
+import { Database } from "@/integrations/supabase/types";
+
+type UserRole = Database["public"]["Tables"]["user_roles"]["Row"];
+type Profile = Database["public"]["Tables"]["profiles"]["Row"] & {
+  user_roles: Pick<UserRole, "role">[];
+};
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -50,7 +56,7 @@ const Admin = () => {
             role
           )
         `);
-      return profiles;
+      return profiles as Profile[] | null;
     },
     enabled: userRole === "admin",
   });
@@ -143,7 +149,7 @@ const Admin = () => {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleToggleApproval(user.id, user.approved)}
+                        onClick={() => handleToggleApproval(user.id, !!user.approved)}
                       >
                         {user.approved ? "Revoke" : "Approve"}
                       </Button>
