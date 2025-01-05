@@ -6,13 +6,30 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { User, Home, LogOut } from "lucide-react";
+import { User, Home, LogOut, Shield } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { useQuery } from "@tanstack/react-query";
 
 export const Header = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  const { data: isAdmin } = useQuery({
+    queryKey: ["isAdmin"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return false;
+      
+      const { data: roleData } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .single();
+      
+      return roleData?.role === "admin";
+    },
+  });
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -45,6 +62,17 @@ export const Header = () => {
             <Home className="h-5 w-5" />
           </Button>
           
+          {isAdmin && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate("/admin")}
+              className="hidden md:flex"
+            >
+              <Shield className="h-5 w-5" />
+            </Button>
+          )}
+          
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon">
@@ -56,6 +84,12 @@ export const Header = () => {
                 <Home className="mr-2 h-4 w-4" />
                 Home
               </DropdownMenuItem>
+              {isAdmin && (
+                <DropdownMenuItem onClick={() => navigate("/admin")}>
+                  <Shield className="mr-2 h-4 w-4" />
+                  Admin Panel
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />
                 Logout
