@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { SearchBar } from "./SearchBar";
 import { AdvancedSearch } from "./AdvancedSearch";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import debounce from "lodash/debounce";
 import {
   Table,
   TableBody,
@@ -17,39 +18,59 @@ export const Hero = () => {
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
 
-  const handleBasicSearch = async (query: string) => {
-    if (query.length >= 3) {
-      setIsSearching(true);
-      try {
-        const { data, error } = await supabase
-          .from('voters')
-          .select()
-          .ilike('last_name', `${query}%`)
-          .limit(50);
-
-        if (error) throw error;
-        setSearchResults(data || []);
-      } catch (error) {
-        toast({
-          title: "Search Error",
-          description: "An error occurred while searching. Please try again.",
-          variant: "destructive",
-        });
-      } finally {
-        setIsSearching(false);
-      }
-    } else {
+  const performSearch = async (query: string) => {
+    if (query.length < 3) {
       setSearchResults([]);
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      const { data, error } = await supabase
+        .from('voters')
+        .select()
+        .ilike('last_name', `${query}%`)
+        .limit(50);
+
+      if (error) throw error;
+      setSearchResults(data || []);
+    } catch (error) {
+      console.error('Search error:', error);
+      toast({
+        title: "Search Error",
+        description: "An error occurred while searching. Please try again.",
+        variant: "destructive",
+      });
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
     }
   };
 
+  // Debounce the search function to prevent too many requests
+  const debouncedSearch = useCallback(
+    debounce((query: string) => performSearch(query), 300),
+    []
+  );
+
+  const handleBasicSearch = (query: string) => {
+    debouncedSearch(query);
+  };
+
   const handleAdvancedSearch = async (filters: Record<string, string>) => {
+    // Only search if at least one filter has 3 or more characters
+    const hasValidFilter = Object.values(filters).some(value => value.length >= 3);
+    if (!hasValidFilter) {
+      setSearchResults([]);
+      return;
+    }
+
     setIsSearching(true);
     try {
       let query = supabase.from('voters').select();
 
       Object.entries(filters).forEach(([field, value]) => {
-        if (value) {
+        if (value && value.length >= 3) {
           query = query.ilike(field, `${value}%`);
         }
       });
@@ -59,11 +80,13 @@ export const Hero = () => {
       if (error) throw error;
       setSearchResults(data || []);
     } catch (error) {
+      console.error('Advanced search error:', error);
       toast({
         title: "Search Error",
         description: "An error occurred while searching. Please try again.",
         variant: "destructive",
       });
+      setSearchResults([]);
     } finally {
       setIsSearching(false);
     }
