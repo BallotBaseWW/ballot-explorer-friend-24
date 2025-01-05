@@ -108,7 +108,7 @@ export const SearchInterface = ({ county }: { county: string }) => {
         </form>
       </Form>
 
-      <SearchResults results={searchResults} />
+      <SearchResults results={searchResults} county={county} />
     </div>
   );
 };

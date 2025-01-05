@@ -13,11 +13,13 @@ import { RegistrationSection } from "./voter-sections/RegistrationSection";
 import { Badge } from "@/components/ui/badge";
 import { ChevronRight } from "lucide-react";
 import { formatDate, calculateAge } from "@/lib/utils";
+import { AddToListDialog } from "./AddToListDialog";
 
 type VoterRecord = Database["public"]["Tables"]["bronx"]["Row"];
 
 interface SearchResultsProps {
   results: VoterRecord[];
+  county: string;
 }
 
 const getPartyColor = (party: string | null) => {
@@ -32,7 +34,7 @@ const getPartyColor = (party: string | null) => {
   return colors[party || "OTH"] || colors["OTH"];
 };
 
-export const SearchResults = ({ results }: SearchResultsProps) => {
+export const SearchResults = ({ results, county }: SearchResultsProps) => {
   if (results.length === 0) return null;
 
   return (
@@ -68,6 +70,10 @@ export const SearchResults = ({ results }: SearchResultsProps) => {
                           >
                             {voter.enrolled_party || "OTH"}
                           </Badge>
+                          <AddToListDialog 
+                            stateVoterId={voter.state_voter_id}
+                            county={county}
+                          />
                         </div>
                       </div>
                       <div className="flex items-center gap-2 text-gray-500">
