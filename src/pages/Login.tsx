@@ -40,17 +40,17 @@ const Login = () => {
   }, [navigate, toast]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 flex flex-col">
-      <div className="flex-1 flex flex-col justify-center px-4 sm:px-6 lg:flex-none lg:px-20">
-        <div className="mx-auto w-full max-w-sm">
-          <div className="text-center mb-8">
-            <h2 className="text-4xl font-bold tracking-tight text-gray-900 mb-2">
-              Welcome to BallotBase
-            </h2>
-            <p className="text-base text-gray-600">
-              Sign in or create an account to continue
-            </p>
-          </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-100 via-white to-blue-50 flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        <div className="text-center mb-8">
+          <h2 className="text-4xl font-bold text-gray-900 mb-3">
+            Welcome to BallotBase
+          </h2>
+          <p className="text-lg text-gray-600">
+            Sign in or create an account to continue
+          </p>
+        </div>
+        <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
           <Auth
             supabaseClient={supabase}
             appearance={{
@@ -73,24 +73,24 @@ const Login = () => {
                     inputText: "#111827",
                     inputPlaceholder: "#6B7280",
                     messageText: "#374151",
-                    anchorTextColor: "#6B7280",
-                    anchorTextHoverColor: "#374151"
+                    anchorTextColor: "#33C3F0",
+                    anchorTextHoverColor: "#2980b9"
                   },
                   borderWidths: {
                     buttonBorderWidth: "1px",
                     inputBorderWidth: "1px",
                   },
                   radii: {
-                    borderRadiusButton: "8px",
-                    buttonBorderRadius: "8px",
-                    inputBorderRadius: "8px",
+                    borderRadiusButton: "0.75rem",
+                    buttonBorderRadius: "0.75rem",
+                    inputBorderRadius: "0.75rem",
                   },
                   space: {
-                    inputPadding: "12px",
-                    buttonPadding: "12px",
-                    spaceSmall: "4px",
-                    spaceMedium: "8px",
-                    spaceLarge: "16px",
+                    inputPadding: "0.75rem",
+                    buttonPadding: "0.75rem",
+                    spaceSmall: "0.5rem",
+                    spaceMedium: "1rem",
+                    spaceLarge: "1.5rem",
                   },
                   fonts: {
                     bodyFontFamily: `ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"`,
@@ -99,12 +99,12 @@ const Login = () => {
                 },
               },
               className: {
-                container: "animate-fade-in space-y-4 bg-white p-8 rounded-xl shadow-lg",
-                button: "shadow-sm hover:shadow-md transition-all duration-200 font-medium hover:bg-blue-50",
-                input: "focus:ring-2 focus:ring-blue-200 focus:ring-opacity-50 transition-all duration-200",
+                container: "space-y-6",
+                button: "w-full font-medium shadow-sm hover:shadow-md transition-all duration-200 bg-gradient-to-r from-[#33C3F0] to-[#2980b9] hover:from-[#2980b9] hover:to-[#33C3F0]",
+                input: "w-full transition-all duration-200 focus:ring-2 focus:ring-[#33C3F0] focus:ring-opacity-50",
                 label: "text-sm font-medium text-gray-700",
-                loader: "border-blue-500",
-                anchor: "text-sm text-blue-600 hover:text-blue-700 transition-colors duration-200",
+                loader: "border-[#33C3F0]",
+                anchor: "text-[#33C3F0] hover:text-[#2980b9] transition-colors duration-200 font-medium",
                 divider: "my-6",
                 message: "text-sm",
               },
