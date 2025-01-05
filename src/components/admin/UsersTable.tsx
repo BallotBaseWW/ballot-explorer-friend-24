@@ -67,72 +67,87 @@ export const UsersTable = ({ users, isLoading, refetch }: UsersTableProps) => {
   const handleUpdateUser = async () => {
     if (!editingUser) return;
 
-    const { error: profileError } = await supabase
-      .from("profiles")
-      .update({
-        full_name: editingUser.full_name,
-        email: editingUser.email,
-      })
-      .eq("id", editingUser.id);
+    try {
+      // Update user data through Edge Function
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/manage-user`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'updateUser',
+          userData: {
+            id: editingUser.id,
+            email: editingUser.email,
+            full_name: editingUser.full_name,
+            password: editingUser.password,
+          },
+        }),
+      });
 
-    if (profileError) {
+      if (!response.ok) {
+        throw new Error('Failed to update user');
+      }
+
+      // Update profile data
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .update({
+          full_name: editingUser.full_name,
+          email: editingUser.email,
+        })
+        .eq("id", editingUser.id);
+
+      if (profileError) throw profileError;
+
+      toast({
+        title: "Success",
+        description: "User information updated successfully.",
+      });
+      setEditingUser(null);
+      refetch();
+    } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to update user information.",
+        description: error.message || "Failed to update user information.",
         variant: "destructive",
       });
-      return;
     }
-
-    if (editingUser.password) {
-      const { error: passwordError } = await supabase.auth.admin.updateUserById(
-        editingUser.id,
-        { password: editingUser.password }
-      );
-
-      if (passwordError) {
-        toast({
-          title: "Error",
-          description: "Failed to update password.",
-          variant: "destructive",
-        });
-        return;
-      }
-    }
-
-    toast({
-      title: "Success",
-      description: "User information updated successfully.",
-    });
-    setEditingUser(null);
-    refetch();
   };
 
   const handleCreateUser = async () => {
-    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-      email: newUserData.email,
-      password: newUserData.password,
-      email_confirm: true,
-      user_metadata: {
-        full_name: newUserData.full_name,
-      },
-    });
+    try {
+      // Create user through Edge Function
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/manage-user`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'createUser',
+          userData: newUserData,
+        }),
+      });
 
-    if (authError) {
+      if (!response.ok) {
+        throw new Error('Failed to create user');
+      }
+
+      toast({
+        title: "Success",
+        description: "User created successfully.",
+      });
+      setNewUserData({ email: "", full_name: "", password: "" });
+      refetch();
+    } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to create user.",
+        description: error.message || "Failed to create user.",
         variant: "destructive",
       });
-      return;
     }
-
-    toast({
-      title: "Success",
-      description: "User created successfully.",
-    });
-    setNewUserData({ email: "", full_name: "", password: "" });
-    refetch();
   };
 
   if (isLoading) {
