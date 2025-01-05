@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { SearchBar } from "./SearchBar";
 import { AdvancedSearch } from "./AdvancedSearch";
 import { useToast } from "@/hooks/use-toast";
@@ -44,7 +44,7 @@ export const Hero = () => {
     }
   };
 
-  useState(() => {
+  useEffect(() => {
     fetchCities();
   }, []);
 
