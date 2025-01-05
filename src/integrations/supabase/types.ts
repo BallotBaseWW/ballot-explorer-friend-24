@@ -9,6 +9,456 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      bronx: {
+        Row: {
+          application_date: string | null
+          application_source: string | null
+          aptunit_type: string | null
+          assembly_district: string | null
+          congressional_district: string | null
+          county_code: string | null
+          county_voter_no: string | null
+          date_of_birth: string | null
+          election_district: string | null
+          enrolled_party: string | null
+          first_name: string | null
+          gender: string | null
+          house: string | null
+          house_suffix: string | null
+          id_met_flag: string | null
+          id_required: string | null
+          inactive_date: string | null
+          last_county_voted: string | null
+          last_date_voted: string | null
+          last_name: string | null
+          last_registered_address: string | null
+          last_registered_name: string | null
+          last_year_voted: string | null
+          legislative_district: string | null
+          mailing_address_four: string | null
+          mailing_address_one: string | null
+          mailing_address_three: string | null
+          mailing_address_two: string | null
+          middle: string | null
+          other_party: string | null
+          post_st_direction: string | null
+          pre_st_direction: string | null
+          purge_date: string | null
+          reason: string | null
+          res_add_not_stated: string | null
+          residence_city: string | null
+          state_senate_district: string | null
+          state_voter_id: string
+          street_name: string | null
+          suffix: string | null
+          town_city: string | null
+          unit_no: string | null
+          voter_history: string | null
+          voter_status: string | null
+          ward: string | null
+          zip_code: string | null
+          zip_four: string | null
+        }
+        Insert: {
+          application_date?: string | null
+          application_source?: string | null
+          aptunit_type?: string | null
+          assembly_district?: string | null
+          congressional_district?: string | null
+          county_code?: string | null
+          county_voter_no?: string | null
+          date_of_birth?: string | null
+          election_district?: string | null
+          enrolled_party?: string | null
+          first_name?: string | null
+          gender?: string | null
+          house?: string | null
+          house_suffix?: string | null
+          id_met_flag?: string | null
+          id_required?: string | null
+          inactive_date?: string | null
+          last_county_voted?: string | null
+          last_date_voted?: string | null
+          last_name?: string | null
+          last_registered_address?: string | null
+          last_registered_name?: string | null
+          last_year_voted?: string | null
+          legislative_district?: string | null
+          mailing_address_four?: string | null
+          mailing_address_one?: string | null
+          mailing_address_three?: string | null
+          mailing_address_two?: string | null
+          middle?: string | null
+          other_party?: string | null
+          post_st_direction?: string | null
+          pre_st_direction?: string | null
+          purge_date?: string | null
+          reason?: string | null
+          res_add_not_stated?: string | null
+          residence_city?: string | null
+          state_senate_district?: string | null
+          state_voter_id: string
+          street_name?: string | null
+          suffix?: string | null
+          town_city?: string | null
+          unit_no?: string | null
+          voter_history?: string | null
+          voter_status?: string | null
+          ward?: string | null
+          zip_code?: string | null
+          zip_four?: string | null
+        }
+        Update: {
+          application_date?: string | null
+          application_source?: string | null
+          aptunit_type?: string | null
+          assembly_district?: string | null
+          congressional_district?: string | null
+          county_code?: string | null
+          county_voter_no?: string | null
+          date_of_birth?: string | null
+          election_district?: string | null
+          enrolled_party?: string | null
+          first_name?: string | null
+          gender?: string | null
+          house?: string | null
+          house_suffix?: string | null
+          id_met_flag?: string | null
+          id_required?: string | null
+          inactive_date?: string | null
+          last_county_voted?: string | null
+          last_date_voted?: string | null
+          last_name?: string | null
+          last_registered_address?: string | null
+          last_registered_name?: string | null
+          last_year_voted?: string | null
+          legislative_district?: string | null
+          mailing_address_four?: string | null
+          mailing_address_one?: string | null
+          mailing_address_three?: string | null
+          mailing_address_two?: string | null
+          middle?: string | null
+          other_party?: string | null
+          post_st_direction?: string | null
+          pre_st_direction?: string | null
+          purge_date?: string | null
+          reason?: string | null
+          res_add_not_stated?: string | null
+          residence_city?: string | null
+          state_senate_district?: string | null
+          state_voter_id?: string
+          street_name?: string | null
+          suffix?: string | null
+          town_city?: string | null
+          unit_no?: string | null
+          voter_history?: string | null
+          voter_status?: string | null
+          ward?: string | null
+          zip_code?: string | null
+          zip_four?: string | null
+        }
+        Relationships: []
+      }
+      brooklyn: {
+        Row: {
+          application_date: string | null
+          application_source: string | null
+          aptunit_type: string | null
+          assembly_district: string | null
+          congressional_district: string | null
+          county_code: string | null
+          county_voter_no: string | null
+          date_of_birth: string | null
+          election_district: string | null
+          enrolled_party: string | null
+          first_name: string | null
+          gender: string | null
+          house: string | null
+          house_suffix: string | null
+          id_met_flag: string | null
+          id_required: string | null
+          inactive_date: string | null
+          last_county_voted: string | null
+          last_date_voted: string | null
+          last_name: string | null
+          last_registered_address: string | null
+          last_registered_name: string | null
+          last_year_voted: string | null
+          legislative_district: string | null
+          mailing_address_four: string | null
+          mailing_address_one: string | null
+          mailing_address_three: string | null
+          mailing_address_two: string | null
+          middle: string | null
+          other_party: string | null
+          post_st_direction: string | null
+          pre_st_direction: string | null
+          purge_date: string | null
+          reason: string | null
+          res_add_not_stated: string | null
+          residence_city: string | null
+          state_senate_district: string | null
+          state_voter_id: string
+          street_name: string | null
+          suffix: string | null
+          town_city: string | null
+          unit_no: string | null
+          voter_history: string | null
+          voter_status: string | null
+          ward: string | null
+          zip_code: string | null
+          zip_four: string | null
+        }
+        Insert: {
+          application_date?: string | null
+          application_source?: string | null
+          aptunit_type?: string | null
+          assembly_district?: string | null
+          congressional_district?: string | null
+          county_code?: string | null
+          county_voter_no?: string | null
+          date_of_birth?: string | null
+          election_district?: string | null
+          enrolled_party?: string | null
+          first_name?: string | null
+          gender?: string | null
+          house?: string | null
+          house_suffix?: string | null
+          id_met_flag?: string | null
+          id_required?: string | null
+          inactive_date?: string | null
+          last_county_voted?: string | null
+          last_date_voted?: string | null
+          last_name?: string | null
+          last_registered_address?: string | null
+          last_registered_name?: string | null
+          last_year_voted?: string | null
+          legislative_district?: string | null
+          mailing_address_four?: string | null
+          mailing_address_one?: string | null
+          mailing_address_three?: string | null
+          mailing_address_two?: string | null
+          middle?: string | null
+          other_party?: string | null
+          post_st_direction?: string | null
+          pre_st_direction?: string | null
+          purge_date?: string | null
+          reason?: string | null
+          res_add_not_stated?: string | null
+          residence_city?: string | null
+          state_senate_district?: string | null
+          state_voter_id: string
+          street_name?: string | null
+          suffix?: string | null
+          town_city?: string | null
+          unit_no?: string | null
+          voter_history?: string | null
+          voter_status?: string | null
+          ward?: string | null
+          zip_code?: string | null
+          zip_four?: string | null
+        }
+        Update: {
+          application_date?: string | null
+          application_source?: string | null
+          aptunit_type?: string | null
+          assembly_district?: string | null
+          congressional_district?: string | null
+          county_code?: string | null
+          county_voter_no?: string | null
+          date_of_birth?: string | null
+          election_district?: string | null
+          enrolled_party?: string | null
+          first_name?: string | null
+          gender?: string | null
+          house?: string | null
+          house_suffix?: string | null
+          id_met_flag?: string | null
+          id_required?: string | null
+          inactive_date?: string | null
+          last_county_voted?: string | null
+          last_date_voted?: string | null
+          last_name?: string | null
+          last_registered_address?: string | null
+          last_registered_name?: string | null
+          last_year_voted?: string | null
+          legislative_district?: string | null
+          mailing_address_four?: string | null
+          mailing_address_one?: string | null
+          mailing_address_three?: string | null
+          mailing_address_two?: string | null
+          middle?: string | null
+          other_party?: string | null
+          post_st_direction?: string | null
+          pre_st_direction?: string | null
+          purge_date?: string | null
+          reason?: string | null
+          res_add_not_stated?: string | null
+          residence_city?: string | null
+          state_senate_district?: string | null
+          state_voter_id?: string
+          street_name?: string | null
+          suffix?: string | null
+          town_city?: string | null
+          unit_no?: string | null
+          voter_history?: string | null
+          voter_status?: string | null
+          ward?: string | null
+          zip_code?: string | null
+          zip_four?: string | null
+        }
+        Relationships: []
+      }
+      manhattan: {
+        Row: {
+          application_date: string | null
+          application_source: string | null
+          aptunit_type: string | null
+          assembly_district: string | null
+          congressional_district: string | null
+          county_code: string | null
+          county_voter_no: string | null
+          date_of_birth: string | null
+          election_district: string | null
+          enrolled_party: string | null
+          first_name: string | null
+          gender: string | null
+          house: string | null
+          house_suffix: string | null
+          id_met_flag: string | null
+          id_required: string | null
+          inactive_date: string | null
+          last_county_voted: string | null
+          last_date_voted: string | null
+          last_name: string | null
+          last_registered_address: string | null
+          last_registered_name: string | null
+          last_year_voted: string | null
+          legislative_district: string | null
+          mailing_address_four: string | null
+          mailing_address_one: string | null
+          mailing_address_three: string | null
+          mailing_address_two: string | null
+          middle: string | null
+          other_party: string | null
+          post_st_direction: string | null
+          pre_st_direction: string | null
+          purge_date: string | null
+          reason: string | null
+          res_add_not_stated: string | null
+          residence_city: string | null
+          state_senate_district: string | null
+          state_voter_id: string
+          street_name: string | null
+          suffix: string | null
+          town_city: string | null
+          unit_no: string | null
+          voter_history: string | null
+          voter_status: string | null
+          ward: string | null
+          zip_code: string | null
+          zip_four: string | null
+        }
+        Insert: {
+          application_date?: string | null
+          application_source?: string | null
+          aptunit_type?: string | null
+          assembly_district?: string | null
+          congressional_district?: string | null
+          county_code?: string | null
+          county_voter_no?: string | null
+          date_of_birth?: string | null
+          election_district?: string | null
+          enrolled_party?: string | null
+          first_name?: string | null
+          gender?: string | null
+          house?: string | null
+          house_suffix?: string | null
+          id_met_flag?: string | null
+          id_required?: string | null
+          inactive_date?: string | null
+          last_county_voted?: string | null
+          last_date_voted?: string | null
+          last_name?: string | null
+          last_registered_address?: string | null
+          last_registered_name?: string | null
+          last_year_voted?: string | null
+          legislative_district?: string | null
+          mailing_address_four?: string | null
+          mailing_address_one?: string | null
+          mailing_address_three?: string | null
+          mailing_address_two?: string | null
+          middle?: string | null
+          other_party?: string | null
+          post_st_direction?: string | null
+          pre_st_direction?: string | null
+          purge_date?: string | null
+          reason?: string | null
+          res_add_not_stated?: string | null
+          residence_city?: string | null
+          state_senate_district?: string | null
+          state_voter_id: string
+          street_name?: string | null
+          suffix?: string | null
+          town_city?: string | null
+          unit_no?: string | null
+          voter_history?: string | null
+          voter_status?: string | null
+          ward?: string | null
+          zip_code?: string | null
+          zip_four?: string | null
+        }
+        Update: {
+          application_date?: string | null
+          application_source?: string | null
+          aptunit_type?: string | null
+          assembly_district?: string | null
+          congressional_district?: string | null
+          county_code?: string | null
+          county_voter_no?: string | null
+          date_of_birth?: string | null
+          election_district?: string | null
+          enrolled_party?: string | null
+          first_name?: string | null
+          gender?: string | null
+          house?: string | null
+          house_suffix?: string | null
+          id_met_flag?: string | null
+          id_required?: string | null
+          inactive_date?: string | null
+          last_county_voted?: string | null
+          last_date_voted?: string | null
+          last_name?: string | null
+          last_registered_address?: string | null
+          last_registered_name?: string | null
+          last_year_voted?: string | null
+          legislative_district?: string | null
+          mailing_address_four?: string | null
+          mailing_address_one?: string | null
+          mailing_address_three?: string | null
+          mailing_address_two?: string | null
+          middle?: string | null
+          other_party?: string | null
+          post_st_direction?: string | null
+          pre_st_direction?: string | null
+          purge_date?: string | null
+          reason?: string | null
+          res_add_not_stated?: string | null
+          residence_city?: string | null
+          state_senate_district?: string | null
+          state_voter_id?: string
+          street_name?: string | null
+          suffix?: string | null
+          town_city?: string | null
+          unit_no?: string | null
+          voter_history?: string | null
+          voter_status?: string | null
+          ward?: string | null
+          zip_code?: string | null
+          zip_four?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           approved: boolean | null
@@ -36,6 +486,306 @@ export type Database = {
         }
         Relationships: []
       }
+      queens: {
+        Row: {
+          application_date: string | null
+          application_source: string | null
+          aptunit_type: string | null
+          assembly_district: string | null
+          congressional_district: string | null
+          county_code: string | null
+          county_voter_no: string | null
+          date_of_birth: string | null
+          election_district: string | null
+          enrolled_party: string | null
+          first_name: string | null
+          gender: string | null
+          house: string | null
+          house_suffix: string | null
+          id_met_flag: string | null
+          id_required: string | null
+          inactive_date: string | null
+          last_county_voted: string | null
+          last_date_voted: string | null
+          last_name: string | null
+          last_registered_address: string | null
+          last_registered_name: string | null
+          last_year_voted: string | null
+          legislative_district: string | null
+          mailing_address_four: string | null
+          mailing_address_one: string | null
+          mailing_address_three: string | null
+          mailing_address_two: string | null
+          middle: string | null
+          other_party: string | null
+          post_st_direction: string | null
+          pre_st_direction: string | null
+          purge_date: string | null
+          reason: string | null
+          res_add_not_stated: string | null
+          residence_city: string | null
+          state_senate_district: string | null
+          state_voter_id: string
+          street_name: string | null
+          suffix: string | null
+          town_city: string | null
+          unit_no: string | null
+          voter_history: string | null
+          voter_status: string | null
+          ward: string | null
+          zip_code: string | null
+          zip_four: string | null
+        }
+        Insert: {
+          application_date?: string | null
+          application_source?: string | null
+          aptunit_type?: string | null
+          assembly_district?: string | null
+          congressional_district?: string | null
+          county_code?: string | null
+          county_voter_no?: string | null
+          date_of_birth?: string | null
+          election_district?: string | null
+          enrolled_party?: string | null
+          first_name?: string | null
+          gender?: string | null
+          house?: string | null
+          house_suffix?: string | null
+          id_met_flag?: string | null
+          id_required?: string | null
+          inactive_date?: string | null
+          last_county_voted?: string | null
+          last_date_voted?: string | null
+          last_name?: string | null
+          last_registered_address?: string | null
+          last_registered_name?: string | null
+          last_year_voted?: string | null
+          legislative_district?: string | null
+          mailing_address_four?: string | null
+          mailing_address_one?: string | null
+          mailing_address_three?: string | null
+          mailing_address_two?: string | null
+          middle?: string | null
+          other_party?: string | null
+          post_st_direction?: string | null
+          pre_st_direction?: string | null
+          purge_date?: string | null
+          reason?: string | null
+          res_add_not_stated?: string | null
+          residence_city?: string | null
+          state_senate_district?: string | null
+          state_voter_id: string
+          street_name?: string | null
+          suffix?: string | null
+          town_city?: string | null
+          unit_no?: string | null
+          voter_history?: string | null
+          voter_status?: string | null
+          ward?: string | null
+          zip_code?: string | null
+          zip_four?: string | null
+        }
+        Update: {
+          application_date?: string | null
+          application_source?: string | null
+          aptunit_type?: string | null
+          assembly_district?: string | null
+          congressional_district?: string | null
+          county_code?: string | null
+          county_voter_no?: string | null
+          date_of_birth?: string | null
+          election_district?: string | null
+          enrolled_party?: string | null
+          first_name?: string | null
+          gender?: string | null
+          house?: string | null
+          house_suffix?: string | null
+          id_met_flag?: string | null
+          id_required?: string | null
+          inactive_date?: string | null
+          last_county_voted?: string | null
+          last_date_voted?: string | null
+          last_name?: string | null
+          last_registered_address?: string | null
+          last_registered_name?: string | null
+          last_year_voted?: string | null
+          legislative_district?: string | null
+          mailing_address_four?: string | null
+          mailing_address_one?: string | null
+          mailing_address_three?: string | null
+          mailing_address_two?: string | null
+          middle?: string | null
+          other_party?: string | null
+          post_st_direction?: string | null
+          pre_st_direction?: string | null
+          purge_date?: string | null
+          reason?: string | null
+          res_add_not_stated?: string | null
+          residence_city?: string | null
+          state_senate_district?: string | null
+          state_voter_id?: string
+          street_name?: string | null
+          suffix?: string | null
+          town_city?: string | null
+          unit_no?: string | null
+          voter_history?: string | null
+          voter_status?: string | null
+          ward?: string | null
+          zip_code?: string | null
+          zip_four?: string | null
+        }
+        Relationships: []
+      }
+      statenisland: {
+        Row: {
+          application_date: string | null
+          application_source: string | null
+          aptunit_type: string | null
+          assembly_district: string | null
+          congressional_district: string | null
+          county_code: string | null
+          county_voter_no: string | null
+          date_of_birth: string | null
+          election_district: string | null
+          enrolled_party: string | null
+          first_name: string | null
+          gender: string | null
+          house: string | null
+          house_suffix: string | null
+          id_met_flag: string | null
+          id_required: string | null
+          inactive_date: string | null
+          last_county_voted: string | null
+          last_date_voted: string | null
+          last_name: string | null
+          last_registered_address: string | null
+          last_registered_name: string | null
+          last_year_voted: string | null
+          legislative_district: string | null
+          mailing_address_four: string | null
+          mailing_address_one: string | null
+          mailing_address_three: string | null
+          mailing_address_two: string | null
+          middle: string | null
+          other_party: string | null
+          post_st_direction: string | null
+          pre_st_direction: string | null
+          purge_date: string | null
+          reason: string | null
+          res_add_not_stated: string | null
+          residence_city: string | null
+          state_senate_district: string | null
+          state_voter_id: string
+          street_name: string | null
+          suffix: string | null
+          town_city: string | null
+          unit_no: string | null
+          voter_history: string | null
+          voter_status: string | null
+          ward: string | null
+          zip_code: string | null
+          zip_four: string | null
+        }
+        Insert: {
+          application_date?: string | null
+          application_source?: string | null
+          aptunit_type?: string | null
+          assembly_district?: string | null
+          congressional_district?: string | null
+          county_code?: string | null
+          county_voter_no?: string | null
+          date_of_birth?: string | null
+          election_district?: string | null
+          enrolled_party?: string | null
+          first_name?: string | null
+          gender?: string | null
+          house?: string | null
+          house_suffix?: string | null
+          id_met_flag?: string | null
+          id_required?: string | null
+          inactive_date?: string | null
+          last_county_voted?: string | null
+          last_date_voted?: string | null
+          last_name?: string | null
+          last_registered_address?: string | null
+          last_registered_name?: string | null
+          last_year_voted?: string | null
+          legislative_district?: string | null
+          mailing_address_four?: string | null
+          mailing_address_one?: string | null
+          mailing_address_three?: string | null
+          mailing_address_two?: string | null
+          middle?: string | null
+          other_party?: string | null
+          post_st_direction?: string | null
+          pre_st_direction?: string | null
+          purge_date?: string | null
+          reason?: string | null
+          res_add_not_stated?: string | null
+          residence_city?: string | null
+          state_senate_district?: string | null
+          state_voter_id: string
+          street_name?: string | null
+          suffix?: string | null
+          town_city?: string | null
+          unit_no?: string | null
+          voter_history?: string | null
+          voter_status?: string | null
+          ward?: string | null
+          zip_code?: string | null
+          zip_four?: string | null
+        }
+        Update: {
+          application_date?: string | null
+          application_source?: string | null
+          aptunit_type?: string | null
+          assembly_district?: string | null
+          congressional_district?: string | null
+          county_code?: string | null
+          county_voter_no?: string | null
+          date_of_birth?: string | null
+          election_district?: string | null
+          enrolled_party?: string | null
+          first_name?: string | null
+          gender?: string | null
+          house?: string | null
+          house_suffix?: string | null
+          id_met_flag?: string | null
+          id_required?: string | null
+          inactive_date?: string | null
+          last_county_voted?: string | null
+          last_date_voted?: string | null
+          last_name?: string | null
+          last_registered_address?: string | null
+          last_registered_name?: string | null
+          last_year_voted?: string | null
+          legislative_district?: string | null
+          mailing_address_four?: string | null
+          mailing_address_one?: string | null
+          mailing_address_three?: string | null
+          mailing_address_two?: string | null
+          middle?: string | null
+          other_party?: string | null
+          post_st_direction?: string | null
+          pre_st_direction?: string | null
+          purge_date?: string | null
+          reason?: string | null
+          res_add_not_stated?: string | null
+          residence_city?: string | null
+          state_senate_district?: string | null
+          state_voter_id?: string
+          street_name?: string | null
+          suffix?: string | null
+          town_city?: string | null
+          unit_no?: string | null
+          voter_history?: string | null
+          voter_status?: string | null
+          ward?: string | null
+          zip_code?: string | null
+          zip_four?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -54,96 +804,6 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"] | null
           user_id?: string | null
-        }
-        Relationships: []
-      }
-      voters: {
-        Row: {
-          application_date: string | null
-          assembly_district: string | null
-          city: string
-          congressional_district: string | null
-          date_of_birth: string | null
-          election_district: string | null
-          first_name: string
-          gender: string | null
-          house: string | null
-          house_suffix: string | null
-          id_required: boolean | null
-          inactive_date: string | null
-          last_date_voted: string | null
-          last_name: string
-          middle: string | null
-          nys_state_voter_id: string
-          ps_direction: string | null
-          reason: string | null
-          registered_party: string | null
-          registration_source: string | null
-          state_senate_district: string | null
-          street_name: string | null
-          suffix: string | null
-          unit_number: string | null
-          voter_history: string | null
-          voter_status: string | null
-          zip_code: string | null
-        }
-        Insert: {
-          application_date?: string | null
-          assembly_district?: string | null
-          city: string
-          congressional_district?: string | null
-          date_of_birth?: string | null
-          election_district?: string | null
-          first_name: string
-          gender?: string | null
-          house?: string | null
-          house_suffix?: string | null
-          id_required?: boolean | null
-          inactive_date?: string | null
-          last_date_voted?: string | null
-          last_name: string
-          middle?: string | null
-          nys_state_voter_id: string
-          ps_direction?: string | null
-          reason?: string | null
-          registered_party?: string | null
-          registration_source?: string | null
-          state_senate_district?: string | null
-          street_name?: string | null
-          suffix?: string | null
-          unit_number?: string | null
-          voter_history?: string | null
-          voter_status?: string | null
-          zip_code?: string | null
-        }
-        Update: {
-          application_date?: string | null
-          assembly_district?: string | null
-          city?: string
-          congressional_district?: string | null
-          date_of_birth?: string | null
-          election_district?: string | null
-          first_name?: string
-          gender?: string | null
-          house?: string | null
-          house_suffix?: string | null
-          id_required?: boolean | null
-          inactive_date?: string | null
-          last_date_voted?: string | null
-          last_name?: string
-          middle?: string | null
-          nys_state_voter_id?: string
-          ps_direction?: string | null
-          reason?: string | null
-          registered_party?: string | null
-          registration_source?: string | null
-          state_senate_district?: string | null
-          street_name?: string | null
-          suffix?: string | null
-          unit_number?: string | null
-          voter_history?: string | null
-          voter_status?: string | null
-          zip_code?: string | null
         }
         Relationships: []
       }

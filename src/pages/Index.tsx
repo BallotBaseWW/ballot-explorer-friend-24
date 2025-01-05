@@ -1,11 +1,8 @@
-import { useState } from "react";
-import { useToast } from "@/hooks/use-toast";
+import { CountySelector } from "@/components/CountySelector";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
-import { Hero } from "@/components/Hero";
 
 const Index = () => {
-  const { toast } = useToast();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -29,7 +26,17 @@ const Index = () => {
         </nav>
       </header>
       <main className="max-w-7xl mx-auto px-4">
-        <Hero />
+        <div className="text-center mb-12">
+          <h1 className="text-4xl md:text-6xl font-bold mb-4">
+            <span className="bg-gradient-to-r from-[#33C3F0] via-[#8E77B5] to-[#ea384c] bg-clip-text text-transparent">
+              BallotBase
+            </span>
+          </h1>
+          <p className="text-lg md:text-xl text-neutral">
+            Modern Voter Information Platform
+          </p>
+        </div>
+        <CountySelector />
       </main>
       <footer className="py-8 text-center text-neutral text-sm">
         <p>© 2024 BallotBase. All rights reserved.</p>
