@@ -59,7 +59,11 @@ const Admin = () => {
           )
         `);
       
-      return data as Profile[] | null;
+      // Transform the data to match our expected type
+      return (data as any[])?.map(user => ({
+        ...user,
+        user_roles: Array.isArray(user.user_roles) ? user.user_roles : [user.user_roles]
+      })) as Profile[];
     },
     enabled: userRole === "admin",
   });
