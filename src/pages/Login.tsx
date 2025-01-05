@@ -40,14 +40,14 @@ const Login = () => {
   }, [navigate, toast]);
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 flex flex-col">
       <div className="flex-1 flex flex-col justify-center px-4 sm:px-6 lg:flex-none lg:px-20">
         <div className="mx-auto w-full max-w-sm">
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold tracking-tight text-gray-900">
+            <h2 className="text-4xl font-bold tracking-tight text-gray-900 mb-2">
               Welcome to BallotBase
             </h2>
-            <p className="mt-2 text-sm text-gray-600">
+            <p className="text-base text-gray-600">
               Sign in or create an account to continue
             </p>
           </div>
@@ -81,9 +81,9 @@ const Login = () => {
                     inputBorderWidth: "1px",
                   },
                   radii: {
-                    borderRadiusButton: "6px",
-                    buttonBorderRadius: "6px",
-                    inputBorderRadius: "6px",
+                    borderRadiusButton: "8px",
+                    buttonBorderRadius: "8px",
+                    inputBorderRadius: "8px",
                   },
                   space: {
                     inputPadding: "12px",
@@ -99,13 +99,13 @@ const Login = () => {
                 },
               },
               className: {
-                container: "animate-fade-in space-y-4",
-                button: "shadow-sm hover:shadow-md transition-shadow duration-200 font-medium",
-                input: "focus:ring-2 focus:ring-primary focus:ring-opacity-50",
+                container: "animate-fade-in space-y-4 bg-white p-8 rounded-xl shadow-lg",
+                button: "shadow-sm hover:shadow-md transition-all duration-200 font-medium hover:bg-blue-50",
+                input: "focus:ring-2 focus:ring-blue-200 focus:ring-opacity-50 transition-all duration-200",
                 label: "text-sm font-medium text-gray-700",
-                loader: "border-primary",
-                anchor: "text-sm hover:text-gray-700 transition-colors duration-200",
-                divider: "my-4",
+                loader: "border-blue-500",
+                anchor: "text-sm text-blue-600 hover:text-blue-700 transition-colors duration-200",
+                divider: "my-6",
                 message: "text-sm",
               },
             }}
