@@ -15,24 +15,40 @@ export const Header = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const { data: isAdmin } = useQuery({
+  const { data: isAdmin, isError } = useQuery({
     queryKey: ["isAdmin"],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return false;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return false;
       
-      const { data: roleData } = await supabase
+      const { data: roleData, error } = await supabase
         .from("user_roles")
         .select("role")
-        .eq("user_id", user.id)
+        .eq("user_id", session.user.id)
         .single();
+      
+      if (error) {
+        console.error("Error fetching user role:", error);
+        return false;
+      }
       
       return roleData?.role === "admin";
     },
+    retry: false,
+    refetchOnWindowFocus: false,
   });
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast({
+        title: "Error logging out",
+        description: error.message,
+        variant: "destructive",
+      });
+      return;
+    }
+    
     toast({
       title: "Logged out successfully",
       duration: 2000,
