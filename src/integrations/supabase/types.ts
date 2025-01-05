@@ -57,6 +57,105 @@ export type Database = {
         }
         Relationships: []
       }
+      voters: {
+        Row: {
+          application_date: string | null
+          assembly_district: string | null
+          city: string
+          congressional_district: string | null
+          created_at: string | null
+          date_of_birth: string | null
+          election_district: string | null
+          first_name: string
+          gender: Database["public"]["Enums"]["gender_type"] | null
+          house: string | null
+          house_suffix: string | null
+          id: string
+          id_required: boolean | null
+          inactive_date: string | null
+          last_date_voted: string | null
+          last_name: string
+          middle: string | null
+          nys_state_voter_id: string | null
+          ps_direction: string | null
+          reason: string | null
+          registered_party: string | null
+          registration_source: string | null
+          state_senate_district: string | null
+          street_name: string | null
+          suffix: string | null
+          unit_number: string | null
+          updated_at: string | null
+          voter_history: Json | null
+          voter_status: Database["public"]["Enums"]["voter_status_type"] | null
+          zip_code: string | null
+        }
+        Insert: {
+          application_date?: string | null
+          assembly_district?: string | null
+          city: string
+          congressional_district?: string | null
+          created_at?: string | null
+          date_of_birth?: string | null
+          election_district?: string | null
+          first_name: string
+          gender?: Database["public"]["Enums"]["gender_type"] | null
+          house?: string | null
+          house_suffix?: string | null
+          id?: string
+          id_required?: boolean | null
+          inactive_date?: string | null
+          last_date_voted?: string | null
+          last_name: string
+          middle?: string | null
+          nys_state_voter_id?: string | null
+          ps_direction?: string | null
+          reason?: string | null
+          registered_party?: string | null
+          registration_source?: string | null
+          state_senate_district?: string | null
+          street_name?: string | null
+          suffix?: string | null
+          unit_number?: string | null
+          updated_at?: string | null
+          voter_history?: Json | null
+          voter_status?: Database["public"]["Enums"]["voter_status_type"] | null
+          zip_code?: string | null
+        }
+        Update: {
+          application_date?: string | null
+          assembly_district?: string | null
+          city?: string
+          congressional_district?: string | null
+          created_at?: string | null
+          date_of_birth?: string | null
+          election_district?: string | null
+          first_name?: string
+          gender?: Database["public"]["Enums"]["gender_type"] | null
+          house?: string | null
+          house_suffix?: string | null
+          id?: string
+          id_required?: boolean | null
+          inactive_date?: string | null
+          last_date_voted?: string | null
+          last_name?: string
+          middle?: string | null
+          nys_state_voter_id?: string | null
+          ps_direction?: string | null
+          reason?: string | null
+          registered_party?: string | null
+          registration_source?: string | null
+          state_senate_district?: string | null
+          street_name?: string | null
+          suffix?: string | null
+          unit_number?: string | null
+          updated_at?: string | null
+          voter_history?: Json | null
+          voter_status?: Database["public"]["Enums"]["voter_status_type"] | null
+          zip_code?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -66,6 +165,8 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "user"
+      gender_type: "M" | "F" | "X" | "U"
+      voter_status_type: "ACTIVE" | "INACTIVE" | "PURGED" | "OTHER"
     }
     CompositeTypes: {
       [_ in never]: never
