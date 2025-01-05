@@ -17,6 +17,7 @@ import { useSearch } from "./search/useSearch";
 export const SearchInterface = ({ county }: { county: string }) => {
   const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
   const { searchResults, isLoading, performSearch } = useSearch(county);
+  const [currentSearchQuery, setCurrentSearchQuery] = useState<any>(null);
 
   const form = useForm<SearchFormValues>({
     defaultValues: {
@@ -84,6 +85,7 @@ export const SearchInterface = ({ county }: { county: string }) => {
       state_senate_district: "",
       congressional_district: "",
     };
+    setCurrentSearchQuery(basicSearchData);
     performSearch(basicSearchData);
   });
 
@@ -93,6 +95,7 @@ export const SearchInterface = ({ county }: { county: string }) => {
       ...data,
       basicSearch: "",
     };
+    setCurrentSearchQuery(advancedSearchData);
     performSearch(advancedSearchData);
   });
 
@@ -141,7 +144,11 @@ export const SearchInterface = ({ county }: { county: string }) => {
         </div>
       </Form>
 
-      <SearchResults results={searchResults} county={county} />
+      <SearchResults 
+        results={searchResults} 
+        county={county} 
+        searchQuery={currentSearchQuery}
+      />
     </div>
   );
 };

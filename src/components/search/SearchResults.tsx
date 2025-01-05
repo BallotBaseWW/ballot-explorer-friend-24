@@ -5,18 +5,20 @@ import { printVoterRecord } from "./voter-sections/printUtils";
 import { VoterCard } from "./voter-card/VoterCard";
 import { PaginationControls } from "./pagination/PaginationControls";
 import { Button } from "@/components/ui/button";
-import { ArrowUp } from "lucide-react";
+import { ArrowUp, ListPlus } from "lucide-react";
+import { AddAllToListDialog } from "./AddAllToListDialog";
 
 type VoterRecord = Database["public"]["Tables"]["bronx"]["Row"];
 
 interface SearchResultsProps {
   results: VoterRecord[];
   county: string;
+  searchQuery: any; // This will be used to fetch all results
 }
 
 const ITEMS_PER_PAGE = 20;
 
-export const SearchResults = ({ results, county }: SearchResultsProps) => {
+export const SearchResults = ({ results, county, searchQuery }: SearchResultsProps) => {
   const { toast } = useToast();
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -52,14 +54,18 @@ export const SearchResults = ({ results, county }: SearchResultsProps) => {
 
   return (
     <div className="mt-8">
-      <h2 className="text-xl font-semibold mb-4">
-        Search Results
-        {results.length >= 100 && (
-          <span className="text-sm font-normal text-muted-foreground ml-2">
-            (Showing first 100 matches)
-          </span>
-        )}
-      </h2>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-semibold">
+          Search Results
+          {results.length >= 100 && (
+            <span className="text-sm font-normal text-muted-foreground ml-2">
+              (Showing first 100 matches)
+            </span>
+          )}
+        </h2>
+        <AddAllToListDialog searchQuery={searchQuery} county={county} />
+      </div>
+
       <div className="space-y-4">
         {currentResults.map((voter, index) => (
           <VoterCard
