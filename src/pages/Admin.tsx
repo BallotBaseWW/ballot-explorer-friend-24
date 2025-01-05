@@ -16,17 +16,34 @@ import { useToast } from "@/hooks/use-toast";
 import { Database } from "@/integrations/supabase/types";
 
 type UserRole = Database["public"]["Tables"]["user_roles"]["Row"];
-type Profile = Database["public"]["Tables"]["profiles"]["Row"] & {
+interface Profile extends Database["public"]["Tables"]["profiles"]["Row"] {
   user_roles: { role: UserRole["role"] }[];
-};
+}
 
 const Admin = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  // Check authentication first
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({
+          title: "Authentication Required",
+          description: "Please log in to access the admin panel.",
+          variant: "destructive",
+        });
+        navigate("/login");
+      }
+    };
+    
+    checkAuth();
+  }, [navigate, toast]);
+
   // Check if user is admin
   const { data: userRole, isLoading: isCheckingRole } = useQuery({
-    queryKey: ["userRole"],
+    queryKey: ["isAdmin"],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return null;
@@ -59,7 +76,7 @@ const Admin = () => {
           )
         `);
       
-      // Transform the data to match our expected type
+      // Transform the data to ensure user_roles is always an array
       return (data as any[])?.map(user => ({
         ...user,
         user_roles: Array.isArray(user.user_roles) ? user.user_roles : [user.user_roles]
