@@ -4,6 +4,8 @@ import { useState } from "react";
 import { printVoterRecord } from "./voter-sections/printUtils";
 import { VoterCard } from "./voter-card/VoterCard";
 import { PaginationControls } from "./pagination/PaginationControls";
+import { Button } from "@/components/ui/button";
+import { ArrowUp } from "lucide-react";
 
 type VoterRecord = Database["public"]["Tables"]["bronx"]["Row"];
 
@@ -41,9 +43,23 @@ export const SearchResults = ({ results, county }: SearchResultsProps) => {
     }
   };
 
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth"
+    });
+  };
+
   return (
     <div className="mt-8">
-      <h2 className="text-xl font-semibold mb-4">Search Results</h2>
+      <h2 className="text-xl font-semibold mb-4">
+        Search Results
+        {results.length >= 100 && (
+          <span className="text-sm font-normal text-muted-foreground ml-2">
+            (Showing first 100 matches)
+          </span>
+        )}
+      </h2>
       <div className="space-y-4">
         {currentResults.map((voter, index) => (
           <VoterCard
@@ -55,11 +71,25 @@ export const SearchResults = ({ results, county }: SearchResultsProps) => {
         ))}
       </div>
 
-      <PaginationControls
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={setCurrentPage}
-      />
+      <div className="mt-8 space-y-4">
+        <PaginationControls
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
+        
+        <div className="flex justify-center pt-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={scrollToTop}
+            className="flex items-center gap-2"
+          >
+            <ArrowUp className="h-4 w-4" />
+            Return to Top
+          </Button>
+        </div>
+      </div>
     </div>
   );
 };
