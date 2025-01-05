@@ -68,14 +68,10 @@ export const UsersTable = ({ users, isLoading, refetch }: UsersTableProps) => {
     if (!editingUser) return;
 
     try {
+      const { VITE_SUPABASE_URL } = import.meta.env;
       // Update user data through Edge Function
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/manage-user`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      const response = await supabase.functions.invoke('manage-user', {
+        body: {
           action: 'updateUser',
           userData: {
             id: editingUser.id,
@@ -83,11 +79,11 @@ export const UsersTable = ({ users, isLoading, refetch }: UsersTableProps) => {
             full_name: editingUser.full_name,
             password: editingUser.password,
           },
-        }),
+        },
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to update user');
+      if (response.error) {
+        throw new Error(response.error.message || 'Failed to update user');
       }
 
       // Update profile data
@@ -119,20 +115,15 @@ export const UsersTable = ({ users, isLoading, refetch }: UsersTableProps) => {
   const handleCreateUser = async () => {
     try {
       // Create user through Edge Function
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/manage-user`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      const response = await supabase.functions.invoke('manage-user', {
+        body: {
           action: 'createUser',
           userData: newUserData,
-        }),
+        },
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to create user');
+      if (response.error) {
+        throw new Error(response.error.message || 'Failed to create user');
       }
 
       toast({
