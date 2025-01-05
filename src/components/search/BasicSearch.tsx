@@ -16,7 +16,7 @@ export const BasicSearch = ({ form }: BasicSearchProps) => {
         <FormItem className="flex-1">
           <FormControl>
             <Input
-              placeholder="Search by name..."
+              placeholder="Search by last name or full name (e.g. 'Smith' or 'John Smith')"
               {...field}
               className="h-12"
             />

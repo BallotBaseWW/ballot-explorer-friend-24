@@ -79,18 +79,37 @@ export const SearchInterface = ({ county }: { county: string }) => {
 
   const onSubmit = async (data: SearchFormValues) => {
     setIsLoading(true);
+    setSearchResults([]);
+    
     try {
       const countyTable = county.toLowerCase() as County;
       let query = supabase.from(countyTable).select();
 
       if (data.basicSearch) {
-        const { data: results, error } = await query
-          .or(`first_name.ilike.%${data.basicSearch}%,last_name.ilike.%${data.basicSearch}%`)
-          .order("last_name", { ascending: true })
-          .limit(100);
+        const searchTerms = data.basicSearch.trim().split(' ');
+        
+        if (searchTerms.length > 1) {
+          // Full name search
+          const firstName = searchTerms[0];
+          const lastName = searchTerms[searchTerms.length - 1];
+          const { data: results, error } = await query
+            .ilike('first_name', `${firstName}%`)
+            .ilike('last_name', `${lastName}%`)
+            .order('last_name', { ascending: true })
+            .limit(100);
 
-        if (error) throw error;
-        setSearchResults(results || []);
+          if (error) throw error;
+          setSearchResults(results || []);
+        } else {
+          // Last name only search
+          const { data: results, error } = await query
+            .ilike('last_name', `${data.basicSearch}%`)
+            .order('last_name', { ascending: true })
+            .limit(100);
+
+          if (error) throw error;
+          setSearchResults(results || []);
+        }
       } else {
         const advancedSearchParams = Object.entries(data).reduce(
           (acc: Record<string, string>, [key, value]) => {
@@ -105,7 +124,7 @@ export const SearchInterface = ({ county }: { county: string }) => {
         if (Object.keys(advancedSearchParams).length > 0) {
           const { data: results, error } = await query
             .match(advancedSearchParams)
-            .order("last_name", { ascending: true })
+            .order('last_name', { ascending: true })
             .limit(100);
 
           if (error) throw error;
@@ -113,18 +132,21 @@ export const SearchInterface = ({ county }: { county: string }) => {
         }
       }
 
-      if (searchResults.length === 0) {
-        toast({
-          title: "No results found",
-          description: "Try adjusting your search criteria",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: `Found ${searchResults.length} results`,
-          description: "Displaying search results below",
-        });
-      }
+      // Only show toast messages after results are set
+      setTimeout(() => {
+        if (searchResults.length === 0) {
+          toast({
+            title: "No results found",
+            description: "Try adjusting your search criteria",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: `Found ${searchResults.length} results`,
+            description: "Displaying search results below",
+          });
+        }
+      }, 0);
     } catch (error) {
       console.error("Search error:", error);
       toast({
