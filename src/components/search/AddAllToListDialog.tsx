@@ -15,14 +15,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ListPlus } from "lucide-react";
-import { VoterList } from "@/types/voter-list";
+import { VoterList, ListDialogProps } from "./list-utils/types";
+import { addVotersToList, createNewList } from "./list-utils/listOperations";
 
-interface AddAllToListDialogProps {
-  searchQuery: any;
-  county: string;
-}
-
-export const AddAllToListDialog = ({ searchQuery, county }: AddAllToListDialogProps) => {
+export const AddAllToListDialog = ({ searchQuery, county }: ListDialogProps) => {
   const [open, setOpen] = useState(false);
   const [lists, setLists] = useState<VoterList[]>([]);
   const [newListName, setNewListName] = useState("");
@@ -48,129 +44,47 @@ export const AddAllToListDialog = ({ searchQuery, county }: AddAllToListDialogPr
     setLists(data || []);
   };
 
-  const fetchAllVoters = async () => {
-    // Remove the limit to get all results
-    const query = supabase.from(county.toLowerCase()).select('state_voter_id');
-    
-    // Apply all the search filters from the original query
-    Object.entries(searchQuery).forEach(([key, value]) => {
-      if (value && key !== 'basicSearch') {
-        query.eq(key, value);
-      }
+  const handleSuccess = () => {
+    toast({
+      title: "Success",
+      description: "Voters added to list successfully",
     });
-
-    if (searchQuery.basicSearch) {
-      const searchTerms = searchQuery.basicSearch.trim().split(' ');
-      if (searchTerms.length > 1) {
-        const firstName = searchTerms[0];
-        const lastName = searchTerms[searchTerms.length - 1];
-        query.ilike('first_name', `${firstName}%`)
-             .ilike('last_name', `${lastName}%`);
-      } else {
-        query.ilike('last_name', `${searchQuery.basicSearch}%`);
-      }
-    }
-
-    const { data, error } = await query;
-    if (error) throw error;
-    return data.map(v => v.state_voter_id);
+    setOpen(false);
   };
 
-  const createList = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      toast({
-        title: "Error",
-        description: "You must be logged in to create lists",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      // Create new list
-      const { data: list, error: listError } = await supabase
-        .from("voter_lists")
-        .insert({
-          name: newListName,
-          description: newListDescription || null,
-          user_id: user.id,
-        })
-        .select()
-        .single();
-
-      if (listError) throw listError;
-
-      // Fetch all voter IDs from search results
-      const voterIds = await fetchAllVoters();
-
-      // Prepare batch insert data
-      const batchData = voterIds.map(voterId => ({
-        list_id: list.id,
-        state_voter_id: voterId,
-        county: county,
-      }));
-
-      // Insert all voters into the list
-      const { error: itemError } = await supabase
-        .from("voter_list_items")
-        .insert(batchData);
-
-      if (itemError) throw itemError;
-
-      toast({
-        title: "Success",
-        description: `Added ${voterIds.length} voters to new list`,
-      });
-      setOpen(false);
-    } catch (error) {
-      console.error("Error creating list:", error);
-      toast({
-        title: "Error",
-        description: "Failed to create list",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+  const handleError = (error: Error) => {
+    console.error("Error:", error);
+    toast({
+      title: "Error",
+      description: "Failed to add voters to list",
+      variant: "destructive",
+    });
   };
 
-  const addToExistingList = async (listId: string) => {
+  const handleAddToExistingList = async (listId: string) => {
     setIsLoading(true);
-    try {
-      // Fetch all voter IDs from search results
-      const voterIds = await fetchAllVoters();
+    await addVotersToList({
+      county,
+      searchQuery,
+      listId,
+      onSuccess: handleSuccess,
+      onError: handleError,
+    });
+    setIsLoading(false);
+  };
 
-      // Prepare batch insert data
-      const batchData = voterIds.map(voterId => ({
-        list_id: listId,
-        state_voter_id: voterId,
-        county: county,
-      }));
-
-      // Insert all voters into the list
-      const { error } = await supabase
-        .from("voter_list_items")
-        .insert(batchData);
-
-      if (error) throw error;
-
-      toast({
-        title: "Success",
-        description: `Added ${voterIds.length} voters to list`,
-      });
-      setOpen(false);
-    } catch (error) {
-      console.error("Error adding to list:", error);
-      toast({
-        title: "Error",
-        description: "Failed to add voters to list",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+  const handleCreateList = async () => {
+    setIsLoading(true);
+    await createNewList({
+      county,
+      searchQuery,
+      listName: newListName,
+      description: newListDescription,
+      listId: "", // Not used for creation
+      onSuccess: handleSuccess,
+      onError: handleError,
+    });
+    setIsLoading(false);
   };
 
   return (
@@ -203,7 +117,7 @@ export const AddAllToListDialog = ({ searchQuery, county }: AddAllToListDialogPr
                 <Button
                   key={list.id}
                   variant="outline"
-                  onClick={() => addToExistingList(list.id)}
+                  onClick={() => handleAddToExistingList(list.id)}
                   disabled={isLoading}
                 >
                   {list.name}
@@ -229,7 +143,7 @@ export const AddAllToListDialog = ({ searchQuery, county }: AddAllToListDialogPr
 
         <DialogFooter>
           <Button
-            onClick={createList}
+            onClick={handleCreateList}
             disabled={!newListName || isLoading}
           >
             Create & Add All

@@ -13,8 +13,9 @@ import { SearchFormValues } from "./search/types";
 import { SearchResults } from "./search/SearchResults";
 import { useState } from "react";
 import { useSearch } from "./search/useSearch";
+import { County } from "./search/list-utils/types";
 
-export const SearchInterface = ({ county }: { county: string }) => {
+export const SearchInterface = ({ county }: { county: County }) => {
   const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
   const { searchResults, isLoading, performSearch } = useSearch(county);
   const [currentSearchQuery, setCurrentSearchQuery] = useState<any>(null);
