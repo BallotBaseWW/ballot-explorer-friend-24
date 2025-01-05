@@ -12,7 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { Database } from "@/integrations/supabase/types";
 
 type UserRole = Database["public"]["Tables"]["user_roles"]["Row"];
@@ -45,18 +45,21 @@ const Admin = () => {
   const { data: users, isLoading: isLoadingUsers } = useQuery({
     queryKey: ["users"],
     queryFn: async () => {
-      const { data: profiles } = await supabase
+      const { data } = await supabase
         .from("profiles")
         .select(`
           id,
           email,
           full_name,
           approved,
+          created_at,
+          updated_at,
           user_roles (
             role
           )
         `);
-      return profiles as Profile[] | null;
+      
+      return data as Profile[] | null;
     },
     enabled: userRole === "admin",
   });
