@@ -50,12 +50,12 @@ export const SearchResults = ({ results }: SearchResultsProps) => {
                 <AccordionItem value="details" className="border-none">
                   <AccordionTrigger className="hover:no-underline w-full px-4 py-4 [&[data-state=open]>div>div>.chevron]:rotate-90">
                     <div className="flex items-center justify-between w-full">
-                      <div className="flex flex-col items-start text-left">
-                        <div className="font-medium">
+                      <div>
+                        <h3 className="font-medium text-left">
                           {voter.first_name} {voter.middle} {voter.last_name}{" "}
                           {voter.suffix} {age && <span className="font-bold">({age})</span>}
-                        </div>
-                        <p className="text-sm text-gray-600">
+                        </h3>
+                        <p className="text-sm text-gray-600 text-left">
                           {voter.house} {voter.street_name}, {voter.residence_city},{" "}
                           {voter.zip_code}
                         </p>
@@ -76,7 +76,7 @@ export const SearchResults = ({ results }: SearchResultsProps) => {
                       </div>
                     </div>
                   </AccordionTrigger>
-                  <AccordionContent className="px-4 pb-4 space-y-8 border-t">
+                  <AccordionContent className="px-4 pb-4 space-y-8 bg-gray-50 border-t">
                     <PersonalSection voter={voter} />
                     <AddressSection voter={voter} />
                     <DistrictSection voter={voter} />
