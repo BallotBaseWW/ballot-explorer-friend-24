@@ -71,17 +71,42 @@ export const SearchInterface = ({ county }: { county: string }) => {
     },
   });
 
+  const handleBasicSearch = form.handleSubmit((data) => {
+    // Clear advanced search fields before performing basic search
+    const basicSearchData = {
+      ...form.getValues(),
+      last_name: "",
+      first_name: "",
+      middle: "",
+      enrolled_party: "",
+      voter_status: "",
+      assembly_district: "",
+      state_senate_district: "",
+      congressional_district: "",
+    };
+    performSearch(basicSearchData);
+  });
+
+  const handleAdvancedSearch = form.handleSubmit((data) => {
+    // Clear basic search field before performing advanced search
+    const advancedSearchData = {
+      ...data,
+      basicSearch: "",
+    };
+    performSearch(advancedSearchData);
+  });
+
   return (
     <div className="w-full max-w-4xl mx-auto">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(performSearch)} className="space-y-6">
-          <div className="flex gap-4">
+        <div className="space-y-6">
+          <form onSubmit={handleBasicSearch} className="flex gap-4">
             <BasicSearch form={form} />
             <Button type="submit" className="h-12 px-6" disabled={isLoading}>
               <SearchIcon className="mr-2 h-4 w-4" />
-              {isLoading ? "Searching..." : "Search"}
+              {isLoading ? "Searching..." : "Quick Search"}
             </Button>
-          </div>
+          </form>
 
           <Collapsible
             open={isAdvancedOpen}
@@ -102,10 +127,18 @@ export const SearchInterface = ({ county }: { county: string }) => {
               </Button>
             </CollapsibleTrigger>
             <CollapsibleContent className="space-y-4">
-              <AdvancedSearch form={form} />
+              <form onSubmit={handleAdvancedSearch}>
+                <AdvancedSearch form={form} />
+                <div className="mt-6 flex justify-end">
+                  <Button type="submit" className="px-6" disabled={isLoading}>
+                    <SearchIcon className="mr-2 h-4 w-4" />
+                    {isLoading ? "Searching..." : "Advanced Search"}
+                  </Button>
+                </div>
+              </form>
             </CollapsibleContent>
           </Collapsible>
-        </form>
+        </div>
       </Form>
 
       <SearchResults results={searchResults} county={county} />
