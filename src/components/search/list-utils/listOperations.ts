@@ -13,19 +13,24 @@ export const addVotersToList = async ({
     // Fetch all voter IDs from search results
     const voterIds = await fetchVoterIds(county, searchQuery);
 
-    // Prepare batch insert data
-    const batchData = voterIds.map(voterId => ({
-      list_id: listId,
-      state_voter_id: voterId,
-      county: county.toUpperCase(),
-    }));
+    // Split into chunks of 1000 for batch insertion
+    const CHUNK_SIZE = 1000;
+    for (let i = 0; i < voterIds.length; i += CHUNK_SIZE) {
+      const chunk = voterIds.slice(i, i + CHUNK_SIZE);
+      const batchData = chunk.map(voterId => ({
+        list_id: listId,
+        state_voter_id: voterId,
+        county: county.toUpperCase(),
+      }));
 
-    // Insert all voters into the list
-    const { error } = await supabase
-      .from("voter_list_items")
-      .insert(batchData);
+      // Insert chunk of voters into the list
+      const { error } = await supabase
+        .from("voter_list_items")
+        .insert(batchData);
 
-    if (error) throw error;
+      if (error) throw error;
+    }
+
     onSuccess();
   } catch (error) {
     onError(error as Error);
