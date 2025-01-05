@@ -1,25 +1,22 @@
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import debounce from "lodash/debounce";
 import { ChevronUp } from "lucide-react";
 import { SearchResults } from "./SearchResults";
 import { SearchPagination } from "./SearchPagination";
 import { SearchContainer } from "./SearchContainer";
+import { performVoterSearch } from "./search/SearchService";
+import { useSearchStore } from "./search/SearchState";
 
 export const Hero = () => {
   const { toast } = useToast();
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const searchRef = useRef<HTMLDivElement>(null);
   const ITEMS_PER_PAGE = 20;
   
-  const [searchCriteria, setSearchCriteria] = useState({
-    first_name: '',
-    last_name: ''
-  });
+  const { searchCriteria, setSearchCriteria, currentPage, setCurrentPage } = useSearchStore();
 
   const performSearch = async () => {
     if (searchCriteria.first_name.length < 3 || searchCriteria.last_name.length < 3) {
@@ -32,29 +29,17 @@ export const Hero = () => {
     try {
       console.log('Performing search:', searchCriteria);
       
-      // Get total count
-      const countQuery = await supabase
-        .from('voters')
-        .select('*', { count: 'exact', head: true })
-        .ilike('first_name', `${searchCriteria.first_name}%`)
-        .ilike('last_name', `${searchCriteria.last_name}%`);
-
-      // Get paginated results
-      const dataQuery = await supabase
-        .from('voters')
-        .select()
-        .ilike('first_name', `${searchCriteria.first_name}%`)
-        .ilike('last_name', `${searchCriteria.last_name}%`)
-        .range((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE - 1)
-        .order('last_name', { ascending: true });
-
-      if (countQuery.error) throw countQuery.error;
-      if (dataQuery.error) throw dataQuery.error;
+      const { data, count } = await performVoterSearch(
+        searchCriteria.first_name,
+        searchCriteria.last_name,
+        currentPage,
+        ITEMS_PER_PAGE
+      );
       
-      console.log('Search results:', dataQuery.data?.length, 'total:', countQuery.count);
+      console.log('Search results:', data?.length, 'total:', count);
       
-      setSearchResults(dataQuery.data || []);
-      setTotalCount(countQuery.count || 0);
+      setSearchResults(data);
+      setTotalCount(count);
     } catch (error) {
       console.error('Search error:', error);
       toast({
@@ -76,64 +61,8 @@ export const Hero = () => {
 
   const handleBasicSearch = (field: string, value: string) => {
     setCurrentPage(1);
-    setSearchCriteria(prev => ({ ...prev, [field]: value }));
+    setSearchCriteria({ [field]: value });
     debouncedSearch();
-  };
-
-  const handleAdvancedSearch = async (filters: Record<string, string>) => {
-    const hasValidFilter = Object.values(filters).some(value => value.length >= 3);
-    if (!hasValidFilter) {
-      setSearchResults([]);
-      setTotalCount(0);
-      return;
-    }
-
-    setIsSearching(true);
-    try {
-      let countQuery = supabase
-        .from('voters')
-        .select('*', { count: 'exact', head: true });
-
-      let dataQuery = supabase
-        .from('voters')
-        .select();
-
-      // Apply filters to both queries
-      Object.entries(filters).forEach(([field, value]) => {
-        if (value && value.length >= 3) {
-          countQuery = countQuery.ilike(field, `${value}%`);
-          dataQuery = dataQuery.ilike(field, `${value}%`);
-        }
-      });
-
-      // Add pagination to data query
-      dataQuery = dataQuery
-        .range((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE - 1)
-        .order('last_name', { ascending: true });
-
-      // Execute both queries
-      const [countResult, dataResult] = await Promise.all([
-        countQuery,
-        dataQuery
-      ]);
-
-      if (countResult.error) throw countResult.error;
-      if (dataResult.error) throw dataResult.error;
-
-      setSearchResults(dataResult.data || []);
-      setTotalCount(countResult.count || 0);
-    } catch (error) {
-      console.error('Advanced search error:', error);
-      toast({
-        title: "Search Error",
-        description: "An error occurred while searching. Please try again.",
-        variant: "destructive",
-      });
-      setSearchResults([]);
-      setTotalCount(0);
-    } finally {
-      setIsSearching(false);
-    }
   };
 
   const scrollToTop = () => {
@@ -162,7 +91,7 @@ export const Hero = () => {
         </p>
         <SearchContainer
           onBasicSearch={handleBasicSearch}
-          onAdvancedSearch={handleAdvancedSearch}
+          onAdvancedSearch={() => {}}
           isLoading={isSearching}
           searchCriteria={searchCriteria}
         />
