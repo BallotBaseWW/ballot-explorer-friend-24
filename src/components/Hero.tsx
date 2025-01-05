@@ -7,6 +7,7 @@ import debounce from "lodash/debounce";
 import { ChevronUp } from "lucide-react";
 import { SearchResults } from "./SearchResults";
 import { SearchPagination } from "./SearchPagination";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export const Hero = () => {
   const { toast } = useToast();
@@ -14,10 +15,49 @@ export const Hero = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
+  const [selectedCity, setSelectedCity] = useState<string>("");
+  const [cities, setCities] = useState<string[]>([]);
   const searchRef = useRef<HTMLDivElement>(null);
   const ITEMS_PER_PAGE = 20;
 
+  // Fetch unique cities on component mount
+  const fetchCities = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('voters')
+        .select('city')
+        .order('city')
+        .limit(1000);
+
+      if (error) throw error;
+
+      // Get unique cities
+      const uniqueCities = Array.from(new Set(data.map(item => item.city))).filter(Boolean);
+      setCities(uniqueCities);
+    } catch (error) {
+      console.error('Error fetching cities:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load cities. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  useState(() => {
+    fetchCities();
+  }, []);
+
   const performSearch = async (query: string) => {
+    if (!selectedCity) {
+      toast({
+        title: "City Required",
+        description: "Please select a city before searching by name.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (query.length < 3) {
       setSearchResults([]);
       setTotalCount(0);
@@ -26,16 +66,18 @@ export const Hero = () => {
 
     setIsSearching(true);
     try {
-      // Get total count
+      // Get total count with city filter
       const countQuery = await supabase
         .from('voters')
         .select('*', { count: 'exact', head: true })
+        .eq('city', selectedCity)
         .ilike('last_name', `${query}%`);
 
-      // Get paginated results
+      // Get paginated results with city filter
       const dataQuery = await supabase
         .from('voters')
         .select()
+        .eq('city', selectedCity)
         .ilike('last_name', `${query}%`)
         .range((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE - 1)
         .order('last_name', { ascending: true });
@@ -61,7 +103,7 @@ export const Hero = () => {
 
   const debouncedSearch = useCallback(
     debounce((query: string) => performSearch(query), 300),
-    [currentPage]
+    [currentPage, selectedCity]
   );
 
   const handleBasicSearch = (query: string) => {
@@ -70,6 +112,15 @@ export const Hero = () => {
   };
 
   const handleAdvancedSearch = async (filters: Record<string, string>) => {
+    if (!selectedCity) {
+      toast({
+        title: "City Required",
+        description: "Please select a city before using advanced search.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const hasValidFilter = Object.values(filters).some(value => value.length >= 3);
     if (!hasValidFilter) {
       setSearchResults([]);
@@ -81,11 +132,13 @@ export const Hero = () => {
     try {
       let countQuery = supabase
         .from('voters')
-        .select('*', { count: 'exact', head: true });
+        .select('*', { count: 'exact', head: true })
+        .eq('city', selectedCity);
 
       let dataQuery = supabase
         .from('voters')
-        .select();
+        .select()
+        .eq('city', selectedCity);
 
       // Apply filters to both queries
       Object.entries(filters).forEach(([field, value]) => {
@@ -150,7 +203,32 @@ export const Hero = () => {
           Search and discover voter information with ease
         </p>
         <div className="w-full max-w-2xl space-y-4 mb-8">
-          <SearchBar onSearch={handleBasicSearch} placeholder="Search by last name (min. 3 characters)..." />
+          <div className="w-full">
+            <Select
+              value={selectedCity}
+              onValueChange={(value) => {
+                setSelectedCity(value);
+                setSearchResults([]);
+                setTotalCount(0);
+              }}
+            >
+              <SelectTrigger className="w-full mb-4">
+                <SelectValue placeholder="Select a city first..." />
+              </SelectTrigger>
+              <SelectContent>
+                {cities.map((city) => (
+                  <SelectItem key={city} value={city}>
+                    {city}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <SearchBar 
+              onSearch={handleBasicSearch} 
+              placeholder={selectedCity ? "Search by last name (min. 3 characters)..." : "Select a city first..."} 
+              disabled={!selectedCity}
+            />
+          </div>
           <AdvancedSearch onSearch={handleAdvancedSearch} />
         </div>
       </div>
@@ -164,7 +242,7 @@ export const Hero = () => {
           <div className="bg-white rounded-lg shadow-lg overflow-hidden">
             <div className="p-4 border-b border-gray-200">
               <h2 className="text-lg font-semibold text-gray-800">
-                Found {totalCount} results
+                Found {totalCount} results in {selectedCity}
               </h2>
             </div>
             <div className="overflow-x-auto">
