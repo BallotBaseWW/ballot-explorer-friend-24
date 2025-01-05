@@ -1,82 +1,83 @@
-import { useQuery } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/Header";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
-import { useAuthCheck } from "@/hooks/useAuthCheck";
 import { UsersTable } from "@/components/admin/UsersTable";
-import type { Profile } from "@/types/profile";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
+import { useEffect } from "react";
 
 const Admin = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  
-  // Use the auth check hook
-  useAuthCheck();
 
   // Check if user is admin
-  const { data: userRole, isLoading: isCheckingRole } = useQuery({
+  const { data: isAdmin, isLoading: isCheckingAdmin } = useQuery({
     queryKey: ["isAdmin"],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return null;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return false;
       
-      const { data: roleData } = await supabase
+      const { data: roleData, error } = await supabase
         .from("user_roles")
         .select("role")
-        .eq("user_id", user.id)
+        .eq("user_id", session.user.id)
         .single();
       
-      return roleData?.role;
+      if (error) {
+        console.error("Error fetching user role:", error);
+        return false;
+      }
+      
+      return roleData?.role === "admin";
     },
   });
 
-  // Fetch all users with their roles
+  // Fetch users data
   const { data: users, isLoading: isLoadingUsers, refetch } = useQuery({
     queryKey: ["users"],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("profiles")
         .select(`
-          id,
-          email,
-          full_name,
-          approved,
-          created_at,
-          updated_at,
+          *,
           user_roles (
             role
           )
         `);
-      
-      return (data as any[])?.map(user => ({
-        ...user,
-        user_roles: Array.isArray(user.user_roles) ? user.user_roles : [user.user_roles]
-      })) as Profile[];
+
+      if (error) throw error;
+      return data;
     },
-    enabled: userRole === "admin",
   });
 
-  // Redirect non-admin users
-  if (!isCheckingRole && userRole !== "admin") {
-    toast({
-      title: "Access Denied",
-      description: "You don't have permission to access the admin panel.",
-      variant: "destructive",
-    });
-    navigate("/");
-    return null;
-  }
+  // Handle non-admin access
+  useEffect(() => {
+    if (!isCheckingAdmin && !isAdmin) {
+      toast({
+        title: "Access Denied",
+        description: "You must be an admin to access this page.",
+        variant: "destructive",
+      });
+      navigate("/");
+    }
+  }, [isAdmin, isCheckingAdmin, navigate, toast]);
 
-  if (isCheckingRole) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  if (isCheckingAdmin) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gray-50">
       <Header />
       <main className="max-w-7xl mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold mb-6">Admin Panel</h1>
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold">Admin Panel</h1>
+          <p className="text-gray-600">Manage users and their permissions</p>
+        </div>
         <UsersTable 
           users={users} 
           isLoading={isLoadingUsers}
