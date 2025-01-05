@@ -20,18 +20,26 @@ export const Hero = () => {
 
   const fetchCities = async () => {
     try {
+      console.log('Fetching cities...');
       const { data, error } = await supabase
         .from('voters')
         .select('city')
         .order('city');
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching cities:', error);
+        throw error;
+      }
 
-      // Get unique cities
-      const uniqueCities = Array.from(new Set(data.map(item => item.city))).filter(Boolean);
+      // Get unique cities and filter out any empty values
+      const uniqueCities = Array.from(new Set(data.map(item => item.city)))
+        .filter(Boolean)
+        .filter(city => ['BROOKLYN', 'MANHATTAN', 'QUEENS', 'BRONX', 'STATEN ISLAND'].includes(city.toUpperCase()));
+
+      console.log('Unique cities:', uniqueCities);
       setCities(uniqueCities);
     } catch (error) {
-      console.error('Error fetching cities:', error);
+      console.error('Error in fetchCities:', error);
       toast({
         title: "Error",
         description: "Failed to load cities. Please try again.",
@@ -62,6 +70,8 @@ export const Hero = () => {
 
     setIsSearching(true);
     try {
+      console.log('Performing search for city:', selectedCity, 'query:', query);
+      
       // Get total count with city filter
       const countQuery = await supabase
         .from('voters')
@@ -80,6 +90,8 @@ export const Hero = () => {
 
       if (countQuery.error) throw countQuery.error;
       if (dataQuery.error) throw dataQuery.error;
+      
+      console.log('Search results:', dataQuery.data?.length, 'total:', countQuery.count);
       
       setSearchResults(dataQuery.data || []);
       setTotalCount(countQuery.count || 0);
@@ -202,6 +214,7 @@ export const Hero = () => {
           selectedCity={selectedCity}
           cities={cities}
           onCityChange={(city) => {
+            console.log('City changed to:', city);
             setSelectedCity(city);
             setSearchResults([]);
             setTotalCount(0);
