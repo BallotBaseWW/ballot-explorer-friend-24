@@ -5,22 +5,8 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import debounce from "lodash/debounce";
 import { ChevronUp } from "lucide-react";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { SearchResults } from "./SearchResults";
+import { SearchPagination } from "./SearchPagination";
 
 export const Hero = () => {
   const { toast } = useToast();
@@ -41,12 +27,12 @@ export const Hero = () => {
     setIsSearching(true);
     try {
       // First, get the total count
-      const { count, error: countError } = await supabase
+      const countQuery = await supabase
         .from('voters')
-        .select('*', { count: 'exact', head: true })
+        .select('*', { count: 'exact' })
         .ilike('last_name', `${query}%`);
 
-      if (countError) throw countError;
+      const count = countQuery.count;
       
       // Then get the paginated results
       const { data, error } = await supabase
@@ -74,11 +60,11 @@ export const Hero = () => {
 
   const debouncedSearch = useCallback(
     debounce((query: string) => performSearch(query), 300),
-    [currentPage] // Add currentPage as dependency to re-create when page changes
+    [currentPage]
   );
 
   const handleBasicSearch = (query: string) => {
-    setCurrentPage(1); // Reset to first page on new search
+    setCurrentPage(1);
     debouncedSearch(query);
   };
 
@@ -101,12 +87,11 @@ export const Hero = () => {
       });
 
       // Get total count
-      const { count, error: countError } = await queryBuilder.select('*', { 
-        count: 'exact',
-        head: true 
+      const countQuery = await queryBuilder.select('*', { 
+        count: 'exact'
       });
 
-      if (countError) throw countError;
+      const count = countQuery.count;
 
       // Get paginated results
       const { data, error } = await queryBuilder
@@ -137,7 +122,7 @@ export const Hero = () => {
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    performSearch(searchResults[0]?.last_name || ''); // Re-run search with current query
+    performSearch(searchResults[0]?.last_name || '');
     scrollToTop();
   };
 
@@ -172,90 +157,15 @@ export const Hero = () => {
               </h2>
             </div>
             <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Address</TableHead>
-                    <TableHead>Party</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Districts</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {searchResults.map((voter, index) => (
-                    <TableRow key={`${voter.nys_state_voter_id}-${index}`}>
-                      <TableCell className="font-medium">
-                        {voter.first_name} {voter.middle} {voter.last_name} {voter.suffix}
-                      </TableCell>
-                      <TableCell>
-                        {[
-                          voter.house,
-                          voter.street_name,
-                          voter.city,
-                          voter.zip_code
-                        ].filter(Boolean).join(' ')}
-                      </TableCell>
-                      <TableCell>{voter.registered_party || 'N/A'}</TableCell>
-                      <TableCell>
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                          voter.voter_status === 'ACTIVE' 
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-gray-100 text-gray-800'
-                        }`}>
-                          {voter.voter_status || 'UNKNOWN'}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-sm">
-                          <div>ED: {voter.election_district || 'N/A'}</div>
-                          <div>CD: {voter.congressional_district || 'N/A'}</div>
-                          <div>AD: {voter.assembly_district || 'N/A'}</div>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <SearchResults results={searchResults} />
             </div>
             {totalPages > 1 && (
               <div className="p-4 border-t border-gray-200">
-                <Pagination>
-                  <PaginationContent>
-                    {currentPage > 1 && (
-                      <PaginationItem>
-                        <PaginationPrevious onClick={() => handlePageChange(currentPage - 1)} />
-                      </PaginationItem>
-                    )}
-                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                      let pageNumber;
-                      if (totalPages <= 5) {
-                        pageNumber = i + 1;
-                      } else if (currentPage <= 3) {
-                        pageNumber = i + 1;
-                      } else if (currentPage >= totalPages - 2) {
-                        pageNumber = totalPages - 4 + i;
-                      } else {
-                        pageNumber = currentPage - 2 + i;
-                      }
-                      return (
-                        <PaginationItem key={pageNumber}>
-                          <PaginationLink
-                            isActive={currentPage === pageNumber}
-                            onClick={() => handlePageChange(pageNumber)}
-                          >
-                            {pageNumber}
-                          </PaginationLink>
-                        </PaginationItem>
-                      );
-                    })}
-                    {currentPage < totalPages && (
-                      <PaginationItem>
-                        <PaginationNext onClick={() => handlePageChange(currentPage + 1)} />
-                      </PaginationItem>
-                    )}
-                  </PaginationContent>
-                </Pagination>
+                <SearchPagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={handlePageChange}
+                />
               </div>
             )}
           </div>
