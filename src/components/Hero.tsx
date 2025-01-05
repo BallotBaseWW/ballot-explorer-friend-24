@@ -18,7 +18,7 @@ export const Hero = () => {
   
   const { searchCriteria, setSearchCriteria, currentPage, setCurrentPage } = useSearchStore();
 
-  const performSearch = async () => {
+  const performSearch = useCallback(async () => {
     if (searchCriteria.first_name.length < 3 || searchCriteria.last_name.length < 3) {
       setSearchResults([]);
       setTotalCount(0);
@@ -52,18 +52,19 @@ export const Hero = () => {
     } finally {
       setIsSearching(false);
     }
-  };
+  }, [currentPage, searchCriteria, toast]);
 
+  // Create a stable debounced search function
   const debouncedSearch = useCallback(
-    debounce(() => performSearch(), 300),
-    [currentPage, searchCriteria]
+    debounce((fn: () => Promise<void>) => fn(), 300),
+    []
   );
 
-  const handleBasicSearch = (field: string, value: string) => {
+  const handleBasicSearch = useCallback((field: string, value: string) => {
     setCurrentPage(1);
     setSearchCriteria({ [field]: value });
-    debouncedSearch();
-  };
+    debouncedSearch(performSearch);
+  }, [debouncedSearch, performSearch, setCurrentPage, setSearchCriteria]);
 
   const scrollToTop = () => {
     searchRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -71,11 +72,11 @@ export const Hero = () => {
 
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
 
-  const handlePageChange = (page: number) => {
+  const handlePageChange = useCallback((page: number) => {
     setCurrentPage(page);
     performSearch();
     scrollToTop();
-  };
+  }, [performSearch, setCurrentPage]);
 
   return (
     <div className="relative min-h-screen flex flex-col items-center px-4 py-12 animate-fade-in">
