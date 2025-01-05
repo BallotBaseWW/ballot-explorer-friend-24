@@ -48,8 +48,8 @@ export const useSearch = (county: string) => {
         }
       }
 
-      // Party filter
-      if (data.enrolled_party) {
+      // Party filter - only apply if not "all"
+      if (data.enrolled_party && data.enrolled_party !== "all") {
         query = query.eq('enrolled_party', data.enrolled_party);
       }
 
@@ -64,8 +64,8 @@ export const useSearch = (county: string) => {
         query = query.eq('congressional_district', data.congressional_district);
       }
 
-      // Voter status filter
-      if (data.voter_status) {
+      // Voter status filter - only apply if not "all"
+      if (data.voter_status && data.voter_status !== "all") {
         query = query.eq('voter_status', data.voter_status);
       }
 
@@ -79,12 +79,16 @@ export const useSearch = (county: string) => {
       if (data.street_name) query = query.ilike('street_name', `${data.street_name}%`);
       if (data.zip_code) query = query.eq('zip_code', data.zip_code);
 
+      console.log('Query filters:', query); // Debug log
+
       // Execute query with limit and order
       const { data: searchData, error } = await query
         .order('last_name', { ascending: true })
         .limit(100);
 
       if (error) throw error;
+      
+      console.log('Search results:', searchData?.length); // Debug log
       
       setSearchResults(searchData || []);
       
