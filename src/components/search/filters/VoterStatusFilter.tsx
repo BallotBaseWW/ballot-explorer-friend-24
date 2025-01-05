@@ -9,9 +9,9 @@ interface VoterStatusFilterProps {
 
 const STATUS_OPTIONS = [
   { value: "all", label: "All Statuses" },
-  { value: "ACTIVE", label: "Active" },
-  { value: "INACTIVE", label: "Inactive" },
-  { value: "PURGED", label: "Purged" },
+  { value: "A", label: "Active" },
+  { value: "I", label: "Inactive" },
+  { value: "P", label: "Purged" },
 ];
 
 export const VoterStatusFilter = ({ form }: VoterStatusFilterProps) => {

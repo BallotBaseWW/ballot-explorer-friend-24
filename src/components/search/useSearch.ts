@@ -54,28 +54,12 @@ export const useSearch = (county: string) => {
       // Party filter - only apply if not "all"
       if (data.enrolled_party && data.enrolled_party !== "all") {
         console.log('Applying party filter:', data.enrolled_party);
-        // First, let's check what values exist in the database for this field
-        const { data: partyValues } = await supabase
-          .from(countyTable)
-          .select('enrolled_party')
-          .eq('enrolled_party', data.enrolled_party)
-          .limit(1);
-        console.log('Sample party values in DB:', partyValues);
-        
         query = query.eq('enrolled_party', data.enrolled_party);
       }
 
       // District filters
       if (data.assembly_district) {
         console.log('Applying assembly district filter:', data.assembly_district);
-        // Check what values exist in the database for this field
-        const { data: districtValues } = await supabase
-          .from(countyTable)
-          .select('assembly_district')
-          .eq('assembly_district', data.assembly_district)
-          .limit(1);
-        console.log('Sample assembly district values in DB:', districtValues);
-        
         query = query.eq('assembly_district', data.assembly_district);
       }
       if (data.state_senate_district) {
@@ -88,14 +72,6 @@ export const useSearch = (county: string) => {
       // Voter status filter - only apply if not "all"
       if (data.voter_status && data.voter_status !== "all") {
         console.log('Applying voter status filter:', data.voter_status);
-        // Check what values exist in the database for this field
-        const { data: statusValues } = await supabase
-          .from(countyTable)
-          .select('voter_status')
-          .eq('voter_status', data.voter_status)
-          .limit(1);
-        console.log('Sample voter status values in DB:', statusValues);
-        
         query = query.eq('voter_status', data.voter_status);
       }
 
