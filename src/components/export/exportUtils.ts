@@ -1,6 +1,6 @@
 import { jsPDF } from "jspdf";
 import autoTable from 'jspdf-autotable';
-import { VoterRecord } from "./types";
+import { VoterRecord } from "@/components/export/types";
 
 export const exportToCsv = (
   selectedFields: string[],
