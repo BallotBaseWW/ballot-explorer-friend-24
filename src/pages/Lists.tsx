@@ -24,11 +24,11 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { List, ListPlus, Trash2 } from "lucide-react";
-import { VoterList } from "@/types/voter-list";
+import { List, ListPlus, Trash2, Users } from "lucide-react";
+import { VoterListWithCount } from "@/types/voter-list";
 
 const Lists = () => {
-  const [lists, setLists] = useState<VoterList[]>([]);
+  const [lists, setLists] = useState<VoterListWithCount[]>([]);
   const [newListName, setNewListName] = useState("");
   const [newListDescription, setNewListDescription] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -39,18 +39,28 @@ const Lists = () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
+    // Fetch lists with voter counts using a join
     const { data, error } = await supabase
-      .from("voter_lists")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false });
+      .from('voter_lists')
+      .select(`
+        *,
+        voter_count:voter_list_items(count)
+      `)
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
 
     if (error) {
       console.error("Error fetching lists:", error);
       return;
     }
 
-    setLists(data || []);
+    // Transform the data to include the count
+    const listsWithCount = (data || []).map(list => ({
+      ...list,
+      voter_count: list.voter_count?.[0]?.count || 0
+    }));
+
+    setLists(listsWithCount);
   };
 
   useEffect(() => {
@@ -176,7 +186,13 @@ const Lists = () => {
           {lists.map((list) => (
             <Card key={list.id}>
               <CardHeader>
-                <CardTitle>{list.name}</CardTitle>
+                <CardTitle className="flex justify-between items-center">
+                  <span>{list.name}</span>
+                  <div className="flex items-center text-sm text-muted-foreground">
+                    <Users className="h-4 w-4 mr-1" />
+                    {list.voter_count}
+                  </div>
+                </CardTitle>
                 {list.description && (
                   <CardDescription>{list.description}</CardDescription>
                 )}

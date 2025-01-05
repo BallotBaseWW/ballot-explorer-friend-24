@@ -7,6 +7,10 @@ export interface VoterList {
   updated_at: string;
 }
 
+export interface VoterListWithCount extends VoterList {
+  voter_count: number;
+}
+
 export interface VoterListItem {
   id: string;
   list_id: string;
