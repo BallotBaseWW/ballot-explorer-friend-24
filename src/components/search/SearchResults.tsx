@@ -46,38 +46,37 @@ export const SearchResults = ({ results }: SearchResultsProps) => {
               key={index}
               className="border rounded-lg bg-white shadow-sm overflow-hidden"
             >
-              <div className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-medium">
-                      {voter.first_name} {voter.middle} {voter.last_name}{" "}
-                      {voter.suffix} {age && <span className="font-bold">({age})</span>}
-                    </h3>
-                    <p className="text-sm text-gray-600">
-                      {voter.house} {voter.street_name}, {voter.residence_city},{" "}
-                      {voter.zip_code}
-                    </p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="text-sm text-gray-600">Party:</span>
-                      <Badge
-                        className={`${getPartyColor(
-                          voter.enrolled_party
-                        )} text-white`}
-                      >
-                        {voter.enrolled_party || "OTH"}
-                      </Badge>
+              <Accordion type="single" collapsible>
+                <AccordionItem value="details" className="border-none">
+                  <AccordionTrigger className="hover:no-underline w-full px-4 py-4 [&[data-state=open]>div>div>.chevron]:rotate-90">
+                    <div className="flex items-center justify-between w-full">
+                      <div className="flex flex-col items-start text-left">
+                        <div className="font-medium">
+                          {voter.first_name} {voter.middle} {voter.last_name}{" "}
+                          {voter.suffix} {age && <span className="font-bold">({age})</span>}
+                        </div>
+                        <p className="text-sm text-gray-600">
+                          {voter.house} {voter.street_name}, {voter.residence_city},{" "}
+                          {voter.zip_code}
+                        </p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-sm text-gray-600">Party:</span>
+                          <Badge
+                            className={`${getPartyColor(
+                              voter.enrolled_party
+                            )} text-white`}
+                          >
+                            {voter.enrolled_party || "OTH"}
+                          </Badge>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 text-gray-500">
+                        <span className="text-sm">View Details</span>
+                        <ChevronRight className="h-5 w-5 chevron transition-transform duration-200" />
+                      </div>
                     </div>
-                  </div>
-                  <ChevronRight className="h-6 w-6 text-gray-400" />
-                </div>
-              </div>
-
-              <Accordion type="single" collapsible className="border-t">
-                <AccordionItem value="details">
-                  <AccordionTrigger className="px-4">
-                    Voter Details
                   </AccordionTrigger>
-                  <AccordionContent className="px-4 pb-4 space-y-8">
+                  <AccordionContent className="px-4 pb-4 space-y-8 border-t">
                     <PersonalSection voter={voter} />
                     <AddressSection voter={voter} />
                     <DistrictSection voter={voter} />
