@@ -48,7 +48,7 @@ const ListDetail = () => {
       const voterDetails = await Promise.all(
         (items || []).map(async (item) => {
           const { data, error } = await supabase
-            .from(item.county.toLowerCase())
+            .from(item.county.toLowerCase() as "bronx" | "brooklyn" | "manhattan" | "queens" | "statenisland")
             .select("*")
             .eq("state_voter_id", item.state_voter_id)
             .single();

@@ -36,9 +36,13 @@ const Lists = () => {
   const navigate = useNavigate();
 
   const fetchLists = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
     const { data, error } = await supabase
       .from("voter_lists")
       .select("*")
+      .eq("user_id", user.id)
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -54,11 +58,22 @@ const Lists = () => {
   }, []);
 
   const createList = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to create lists",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
     try {
       const { error } = await supabase.from("voter_lists").insert({
         name: newListName,
         description: newListDescription || null,
+        user_id: user.id,
       });
 
       if (error) throw error;

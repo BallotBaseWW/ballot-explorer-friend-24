@@ -31,9 +31,13 @@ export const AddToListDialog = ({ stateVoterId, county }: AddToListDialogProps) 
   const { toast } = useToast();
 
   const fetchLists = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
     const { data, error } = await supabase
       .from("voter_lists")
       .select("*")
+      .eq("user_id", user.id)
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -45,6 +49,16 @@ export const AddToListDialog = ({ stateVoterId, county }: AddToListDialogProps) 
   };
 
   const createList = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to create lists",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
     try {
       const { data: list, error: listError } = await supabase
@@ -52,6 +66,7 @@ export const AddToListDialog = ({ stateVoterId, county }: AddToListDialogProps) 
         .insert({
           name: newListName,
           description: newListDescription || null,
+          user_id: user.id,
         })
         .select()
         .single();
