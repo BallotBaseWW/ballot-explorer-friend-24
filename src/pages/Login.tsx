@@ -40,11 +40,11 @@ const Login = () => {
   }, [navigate, toast]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-sky-50 to-white flex flex-col">
+    <div className="min-h-screen bg-white flex flex-col">
       <div className="flex-1 flex flex-col justify-center px-4 sm:px-6 lg:flex-none lg:px-20">
         <div className="mx-auto w-full max-w-sm">
-          <div className="mb-10">
-            <h2 className="mt-6 text-3xl font-bold tracking-tight text-gray-900">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold tracking-tight text-gray-900">
               Welcome to BallotBase
             </h2>
             <p className="mt-2 text-sm text-gray-600">
@@ -63,15 +63,18 @@ const Login = () => {
                     brandButtonText: "white",
                     defaultButtonBackground: "white",
                     defaultButtonBackgroundHover: "#f8f9fa",
-                    defaultButtonBorder: "lightgray",
-                    defaultButtonText: "gray",
-                    dividerBackground: "#e9ecef",
-                    inputBackground: "transparent",
-                    inputBorder: "lightgray",
+                    defaultButtonBorder: "#e5e7eb",
+                    defaultButtonText: "#374151",
+                    dividerBackground: "#e5e7eb",
+                    inputBackground: "white",
+                    inputBorder: "#e5e7eb",
                     inputBorderHover: "#33C3F0",
                     inputBorderFocus: "#33C3F0",
-                    inputText: "black",
-                    inputPlaceholder: "darkgray",
+                    inputText: "#111827",
+                    inputPlaceholder: "#6B7280",
+                    messageText: "#374151",
+                    anchorTextColor: "#6B7280",
+                    anchorTextHoverColor: "#374151"
                   },
                   borderWidths: {
                     buttonBorderWidth: "1px",
@@ -82,14 +85,28 @@ const Login = () => {
                     buttonBorderRadius: "6px",
                     inputBorderRadius: "6px",
                   },
+                  space: {
+                    inputPadding: "12px",
+                    buttonPadding: "12px",
+                    spaceSmall: "4px",
+                    spaceMedium: "8px",
+                    spaceLarge: "16px",
+                  },
+                  fonts: {
+                    bodyFontFamily: `ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"`,
+                    buttonFontFamily: `ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"`,
+                  },
                 },
               },
               className: {
-                container: "animate-fade-in",
-                button: "hover:shadow-md transition-shadow duration-200",
+                container: "animate-fade-in space-y-4",
+                button: "shadow-sm hover:shadow-md transition-shadow duration-200 font-medium",
                 input: "focus:ring-2 focus:ring-primary focus:ring-opacity-50",
                 label: "text-sm font-medium text-gray-700",
                 loader: "border-primary",
+                anchor: "text-sm hover:text-gray-700 transition-colors duration-200",
+                divider: "my-4",
+                message: "text-sm",
               },
             }}
             providers={[]}
