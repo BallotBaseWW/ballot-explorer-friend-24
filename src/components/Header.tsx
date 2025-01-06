@@ -6,7 +6,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { User, Home, LogOut, Shield, ListTodo, Tags } from "lucide-react";
+import { User, Home, LogOut, Shield, ListTodo, Tags, Link } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { useQuery } from "@tanstack/react-query";
@@ -81,6 +81,16 @@ export const Header = () => {
             className="hidden md:flex"
           >
             <Home className="h-5 w-5" />
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleNavigate("/tags")}
+            className="hidden md:flex"
+            title="Connects"
+          >
+            <Link className="h-5 w-5" />
           </Button>
           
           <DropdownMenu>
