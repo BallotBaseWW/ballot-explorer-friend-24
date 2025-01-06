@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AddToListDialog } from "../AddToListDialog";
 import { TagManager } from "./TagManager";
-import { Printer, User, MapPin, Calendar, ChevronDown } from "lucide-react";
+import { Printer, User, MapPin, Calendar, ChevronDown, Tag } from "lucide-react";
 import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
 import { County } from "../types";
 import {
@@ -95,11 +95,10 @@ export const VoterCard = ({ voter, county, onPrint }: VoterCardProps) => {
         <Button
           variant="outline"
           size="sm"
-          onClick={() => onPrint(voter)}
-          className="h-8"
+          className="md:w-auto w-full text-sm px-2 h-8 whitespace-nowrap"
         >
-          <Printer className="h-4 w-4 mr-2" />
-          Print Record
+          <Tag className="h-4 w-4 mr-2" />
+          Add Tags
         </Button>
         <Collapsible open={isOpen} onOpenChange={setIsOpen} className="w-full">
           <CollapsibleTrigger asChild>
@@ -125,6 +124,17 @@ export const VoterCard = ({ voter, county, onPrint }: VoterCardProps) => {
                 <span className="font-medium">Senate District:</span>
                 <p>{voter.state_senate_district}</p>
               </div>
+            </div>
+            <div className="flex justify-end">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onPrint(voter)}
+                className="h-8"
+              >
+                <Printer className="h-4 w-4 mr-2" />
+                Print Record
+              </Button>
             </div>
           </CollapsibleContent>
         </Collapsible>
