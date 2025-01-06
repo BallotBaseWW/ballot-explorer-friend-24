@@ -40,21 +40,41 @@ export const Header = () => {
   });
 
   const handleLogout = useCallback(async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
+    try {
+      // First check if we have a valid session
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        // If no session exists, just redirect to login
+        navigate("/login");
+        return;
+      }
+
+      // Proceed with logout
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error("Logout error:", error);
+        toast({
+          title: "Error logging out",
+          description: error.message,
+          variant: "destructive",
+        });
+        return;
+      }
+      
       toast({
-        title: "Error logging out",
-        description: error.message,
+        title: "Logged out successfully",
+        duration: 2000,
+      });
+      navigate("/login");
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast({
+        title: "Error during logout",
+        description: "Please try again",
         variant: "destructive",
       });
-      return;
     }
-    
-    toast({
-      title: "Logged out successfully",
-      duration: 2000,
-    });
-    navigate("/login");
   }, [navigate, toast]);
 
   const handleNavigate = useCallback((path: string) => () => {
