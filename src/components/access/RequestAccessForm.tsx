@@ -65,7 +65,7 @@ export function RequestAccessForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormSection
           form={form}
           name="full_name"
@@ -97,7 +97,7 @@ export function RequestAccessForm() {
           label="Address"
           placeholder="123 Main St"
         />
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <FormSection
             form={form}
             name="city"
@@ -119,7 +119,7 @@ export function RequestAccessForm() {
         </div>
         <Button 
           type="submit" 
-          className="w-full bg-primary hover:bg-primary/90" 
+          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground" 
           disabled={isLoading}
         >
           {isLoading ? "Submitting..." : "Submit Request"}
