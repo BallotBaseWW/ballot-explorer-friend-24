@@ -17,25 +17,40 @@ export const useInteractionMutation = (onSuccess: () => void) => {
 
   return useMutation({
     mutationFn: async ({ userId, selectedVoter, type, notes }: CreateInteractionData) => {
-      console.log('Creating interaction with data:', { userId, selectedVoter, type, notes });
+      console.log('Starting interaction mutation with data:', { userId, selectedVoter, type, notes });
 
-      if (!userId || !selectedVoter) {
-        throw new Error("Missing required data: user ID or voter information");
+      if (!userId) {
+        throw new Error("User ID is required");
       }
 
-      const { error } = await supabase.from("voter_interactions").insert({
+      if (!selectedVoter) {
+        throw new Error("Voter information is required");
+      }
+
+      const interactionData = {
         user_id: userId,
         state_voter_id: selectedVoter.state_voter_id,
         county: selectedVoter.county,
         type,
         notes,
         interaction_date: new Date().toISOString(),
-      });
+      };
+
+      console.log('Inserting interaction with data:', interactionData);
+
+      const { data, error } = await supabase
+        .from("voter_interactions")
+        .insert(interactionData)
+        .select()
+        .single();
 
       if (error) {
         console.error('Supabase error:', error);
         throw error;
       }
+
+      console.log('Interaction created successfully:', data);
+      return data;
     },
     onSuccess: () => {
       toast({ title: "Interaction recorded successfully" });

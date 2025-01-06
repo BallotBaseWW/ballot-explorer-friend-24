@@ -90,29 +90,54 @@ export const CreateInteractionDialog = ({
     setActiveTab("create");
   };
 
-  const handleCreateInteraction = () => {
-    if (!session?.user?.id || !selectedVoter) {
+  const handleCreateInteraction = async () => {
+    console.log('Session state:', session);
+    console.log('Selected voter state:', selectedVoter);
+    console.log('Type state:', type);
+    console.log('Notes state:', notes);
+
+    if (!session?.user?.id) {
+      console.error('No user ID found in session');
       toast({
-        title: "Error creating interaction",
-        description: "Please ensure you are logged in and have selected a voter.",
+        title: "Authentication Error",
+        description: "You must be logged in to create interactions.",
         variant: "destructive",
       });
       return;
     }
-    
-    console.log('Creating interaction:', {
-      userId: session.user.id,
-      selectedVoter,
-      type,
-      notes
-    });
 
-    createInteractionMutation.mutate({
-      userId: session.user.id,
-      selectedVoter,
-      type,
-      notes,
-    });
+    if (!selectedVoter) {
+      console.error('No voter selected');
+      toast({
+        title: "Validation Error",
+        description: "Please select a voter before creating an interaction.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      console.log('Creating interaction with data:', {
+        userId: session.user.id,
+        selectedVoter,
+        type,
+        notes
+      });
+
+      createInteractionMutation.mutate({
+        userId: session.user.id,
+        selectedVoter,
+        type,
+        notes,
+      });
+    } catch (error) {
+      console.error('Error in handleCreateInteraction:', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred while creating the interaction.",
+        variant: "destructive",
+      });
+    }
   };
 
   const resetForm = () => {
