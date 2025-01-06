@@ -1,7 +1,7 @@
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus } from "lucide-react";
-import { useState } from "react";
 
 interface CreateTagFormProps {
   onCreateTag: (name: string, color: string, category: string) => void;

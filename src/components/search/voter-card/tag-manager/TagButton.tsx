@@ -1,3 +1,4 @@
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { Tag } from "lucide-react";
 
@@ -6,11 +7,10 @@ interface TagButtonProps {
 }
 
 export const TagButton = ({ onClick }: TagButtonProps) => (
-  <Button
-    variant="outline"
-    size="sm"
+  <Button 
     onClick={onClick}
-    className="h-8"
+    variant="outline"
+    className="w-full"
   >
     <Tag className="h-4 w-4 mr-2" />
     Manage Tags
