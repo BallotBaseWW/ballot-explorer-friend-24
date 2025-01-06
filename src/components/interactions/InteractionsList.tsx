@@ -35,12 +35,17 @@ const getInteractionLabel = (type: string) => {
 };
 
 const getVoterName = (interaction: Interaction) => {
-  const voter = interaction[interaction.county.toLowerCase() as keyof Interaction] as { first_name?: string; last_name?: string } | undefined;
-  if (!voter) return "Unknown Voter";
-  return `${voter.first_name || ""} ${voter.last_name || ""}`.trim() || "Unknown Voter";
+  const voterData = interaction[interaction.county];
+  if (!voterData) {
+    console.warn(`No voter data found for county ${interaction.county}`);
+    return "Unknown Voter";
+  }
+  return `${voterData.first_name || ""} ${voterData.last_name || ""}`.trim() || "Unknown Voter";
 };
 
 export const InteractionsList = ({ interactions }: { interactions: Interaction[] }) => {
+  console.log("Rendering interactions list with:", interactions);
+
   if (!interactions || interactions.length === 0) {
     return (
       <Card className="p-4">

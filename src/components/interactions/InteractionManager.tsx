@@ -26,7 +26,14 @@ export const InteractionManager = () => {
       
       const { data, error } = await supabase
         .from("voter_interactions")
-        .select("*, bronx(*), brooklyn(*), manhattan(*), queens(*), statenisland(*)")
+        .select(`
+          *,
+          bronx:bronx(first_name, last_name),
+          brooklyn:brooklyn(first_name, last_name),
+          manhattan:manhattan(first_name, last_name),
+          queens:queens(first_name, last_name),
+          statenisland:statenisland(first_name, last_name)
+        `)
         .eq("user_id", session.user.id)
         .order("interaction_date", { ascending: false });
 
@@ -40,13 +47,22 @@ export const InteractionManager = () => {
         return [];
       }
 
-      console.log("Fetched interactions:", data);
+      console.log("Raw interactions data:", data);
 
       // Ensure county is of type County and convert to lowercase
-      return data.map(interaction => ({
+      const formattedInteractions = data.map(interaction => ({
         ...interaction,
-        county: interaction.county.toLowerCase() as County
+        county: interaction.county.toLowerCase() as County,
+        // Ensure voter data is properly structured
+        bronx: interaction.bronx?.[0] || null,
+        brooklyn: interaction.brooklyn?.[0] || null,
+        manhattan: interaction.manhattan?.[0] || null,
+        queens: interaction.queens?.[0] || null,
+        statenisland: interaction.statenisland?.[0] || null
       })) as Interaction[];
+
+      console.log("Formatted interactions:", formattedInteractions);
+      return formattedInteractions;
     },
     enabled: !!session?.user?.id,
   });
@@ -68,7 +84,7 @@ export const InteractionManager = () => {
         <Card className="p-4">
           <p className="text-muted-foreground">Loading interactions...</p>
         </Card>
-      ) : interactions?.length === 0 ? (
+      ) : !interactions || interactions.length === 0 ? (
         <Card className="p-4">
           <p className="text-muted-foreground">No interactions recorded yet.</p>
         </Card>
