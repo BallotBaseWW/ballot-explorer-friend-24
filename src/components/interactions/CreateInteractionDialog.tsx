@@ -10,8 +10,17 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { County } from "@/components/search/list-utils/types";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card } from "@/components/ui/card";
 
 type InteractionType = "call" | "email" | "meeting" | "door_knock" | "other";
+
+interface VoterInfo {
+  state_voter_id: string;
+  first_name: string;
+  last_name: string;
+  county: County;
+}
 
 interface CreateInteractionDialogProps {
   open: boolean;
@@ -26,30 +35,73 @@ export const CreateInteractionDialog = ({
 }: CreateInteractionDialogProps) => {
   const session = useSession();
   const { toast } = useToast();
-  const [voterId, setVoterId] = useState("");
-  const [county, setCounty] = useState<County>("bronx");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedVoter, setSelectedVoter] = useState<VoterInfo | null>(null);
+  const [searchResults, setSearchResults] = useState<VoterInfo[]>([]);
   const [type, setType] = useState<InteractionType>("call");
   const [notes, setNotes] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
+
+  const searchVoter = async (query: string) => {
+    setIsSearching(true);
+    try {
+      // Try to find by NYS Voter ID first
+      const counties: County[] = ["bronx", "brooklyn", "manhattan", "queens", "statenisland"];
+      let found = false;
+
+      for (const county of counties) {
+        const { data, error } = await supabase
+          .from(county)
+          .select('state_voter_id, first_name, last_name')
+          .eq('state_voter_id', query)
+          .single();
+
+        if (data && !error) {
+          setSearchResults([{ ...data, county }]);
+          found = true;
+          break;
+        }
+      }
+
+      // If not found by ID, search by name
+      if (!found) {
+        const allResults = await Promise.all(
+          counties.map(async (county) => {
+            const { data, error } = await supabase
+              .from(county)
+              .select('state_voter_id, first_name, last_name')
+              .ilike('last_name', `${query}%`)
+              .limit(5);
+
+            if (data && !error) {
+              return data.map(voter => ({ ...voter, county }));
+            }
+            return [];
+          })
+        );
+
+        setSearchResults(allResults.flat());
+      }
+    } catch (error) {
+      console.error('Error searching voter:', error);
+      toast({
+        title: "Error searching voter",
+        description: "Please try again",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSearching(false);
+    }
+  };
 
   const createInteractionMutation = useMutation({
     mutationFn: async () => {
-      if (!session?.user?.id) throw new Error("Not authenticated");
-
-      // First verify the voter exists
-      const { data: voterExists, error: voterCheckError } = await supabase
-        .from(county)
-        .select("state_voter_id")
-        .eq("state_voter_id", voterId)
-        .single();
-
-      if (voterCheckError || !voterExists) {
-        throw new Error("Voter not found in selected county");
-      }
+      if (!session?.user?.id || !selectedVoter) throw new Error("Not authenticated or no voter selected");
 
       const { error } = await supabase.from("voter_interactions").insert({
         user_id: session.user.id,
-        state_voter_id: voterId,
-        county: county.toUpperCase(),
+        state_voter_id: selectedVoter.state_voter_id,
+        county: selectedVoter.county.toUpperCase(),
         type,
         notes,
         interaction_date: new Date().toISOString(),
@@ -73,94 +125,126 @@ export const CreateInteractionDialog = ({
   });
 
   const resetForm = () => {
-    setVoterId("");
-    setCounty("bronx");
+    setSearchQuery("");
+    setSelectedVoter(null);
+    setSearchResults([]);
     setType("call");
     setNotes("");
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>Record New Interaction</DialogTitle>
         </DialogHeader>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            createInteractionMutation.mutate();
-          }}
-          className="space-y-4"
-        >
-          <div className="space-y-2">
-            <Label htmlFor="voterId">NYS Voter ID</Label>
-            <Input
-              id="voterId"
-              value={voterId}
-              onChange={(e) => setVoterId(e.target.value)}
-              required
-            />
-          </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="county">County</Label>
-            <Select value={county} onValueChange={(value: County) => setCounty(value)}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="bronx">Bronx</SelectItem>
-                <SelectItem value="brooklyn">Brooklyn</SelectItem>
-                <SelectItem value="manhattan">Manhattan</SelectItem>
-                <SelectItem value="queens">Queens</SelectItem>
-                <SelectItem value="statenisland">Staten Island</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+        <Tabs defaultValue="search" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="search" disabled={!!selectedVoter}>
+              Find Voter
+            </TabsTrigger>
+            <TabsTrigger value="create" disabled={!selectedVoter}>
+              Create Interaction
+            </TabsTrigger>
+          </TabsList>
 
-          <div className="space-y-2">
-            <Label htmlFor="type">Interaction Type</Label>
-            <Select value={type} onValueChange={(value: InteractionType) => setType(value)}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="call">Phone Call</SelectItem>
-                <SelectItem value="email">Email</SelectItem>
-                <SelectItem value="meeting">Meeting</SelectItem>
-                <SelectItem value="door_knock">Door Knock</SelectItem>
-                <SelectItem value="other">Other</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          <TabsContent value="search">
+            <div className="space-y-4">
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Enter NYS Voter ID or last name"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                <Button 
+                  onClick={() => searchVoter(searchQuery)}
+                  disabled={!searchQuery || isSearching}
+                >
+                  {isSearching ? "Searching..." : "Search"}
+                </Button>
+              </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="notes">Notes</Label>
-            <Textarea
-              id="notes"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Enter any additional notes about the interaction..."
-              className="min-h-[100px]"
-            />
-          </div>
+              <div className="space-y-2">
+                {searchResults.map((voter) => (
+                  <Card
+                    key={`${voter.county}-${voter.state_voter_id}`}
+                    className="p-4 cursor-pointer hover:bg-gray-50"
+                    onClick={() => setSelectedVoter(voter)}
+                  >
+                    <p className="font-medium">
+                      {voter.first_name} {voter.last_name}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      ID: {voter.state_voter_id} | County: {voter.county}
+                    </p>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          </TabsContent>
 
-          <div className="flex justify-end gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={createInteractionMutation.isPending}
-            >
-              Save Interaction
-            </Button>
-          </div>
-        </form>
+          <TabsContent value="create">
+            {selectedVoter && (
+              <div className="space-y-4">
+                <Card className="p-4">
+                  <p className="font-medium">
+                    Selected Voter: {selectedVoter.first_name} {selectedVoter.last_name}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    ID: {selectedVoter.state_voter_id} | County: {selectedVoter.county}
+                  </p>
+                </Card>
+
+                <div className="space-y-2">
+                  <Label htmlFor="type">Interaction Type</Label>
+                  <Select value={type} onValueChange={(value: InteractionType) => setType(value)}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="call">Phone Call</SelectItem>
+                      <SelectItem value="email">Email</SelectItem>
+                      <SelectItem value="meeting">Meeting</SelectItem>
+                      <SelectItem value="door_knock">Door Knock</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="notes">Notes</Label>
+                  <Textarea
+                    id="notes"
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    placeholder="Enter any additional notes about the interaction..."
+                    className="min-h-[100px]"
+                  />
+                </div>
+
+                <div className="flex justify-end gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setSelectedVoter(null);
+                      setSearchResults([]);
+                    }}
+                  >
+                    Back to Search
+                  </Button>
+                  <Button
+                    onClick={() => createInteractionMutation.mutate()}
+                    disabled={createInteractionMutation.isPending}
+                  >
+                    Save Interaction
+                  </Button>
+                </div>
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );
