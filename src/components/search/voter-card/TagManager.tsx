@@ -1,22 +1,11 @@
 import { useState } from "react";
-import { Tag } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useSession } from "@supabase/auth-helpers-react";
-import { TagList } from "./tag-manager/TagList";
-import { TagSelector } from "./tag-manager/TagSelector";
-import { CreateTagForm } from "./tag-manager/CreateTagForm";
-import { Tag as TagType } from "./tag-manager/types";
+import { TagButton } from "./tag-manager/TagButton";
+import { TagDialog } from "./tag-manager/TagDialog";
+import { Tag } from "./tag-manager/types";
 
 interface TagManagerProps {
   stateVoterId: string;
@@ -43,7 +32,7 @@ export const TagManager = ({ stateVoterId, county }: TagManagerProps) => {
         .order("name");
       
       if (error) throw error;
-      return data as TagType[];
+      return data as Tag[];
     },
     enabled: !!userId,
   });
@@ -66,7 +55,6 @@ export const TagManager = ({ stateVoterId, county }: TagManagerProps) => {
     enabled: !!userId,
   });
 
-  // Create new tag
   const createTag = useMutation({
     mutationFn: async (data: { name: string; color: string; category: string }) => {
       if (!userId) throw new Error("User not authenticated");
@@ -87,20 +75,10 @@ export const TagManager = ({ stateVoterId, county }: TagManagerProps) => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["voter-tags"] });
-      toast({
-        title: "Tag created successfully",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Error creating tag",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast({ title: "Tag created successfully" });
     },
   });
 
-  // Assign tag to voter
   const assignTag = useMutation({
     mutationFn: async (tagId: string) => {
       if (!userId) throw new Error("User not authenticated");
@@ -120,28 +98,20 @@ export const TagManager = ({ stateVoterId, county }: TagManagerProps) => {
       queryClient.invalidateQueries({ 
         queryKey: ["voter-tag-assignments", stateVoterId] 
       });
-      toast({
-        title: "Tag assigned successfully",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Error assigning tag",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast({ title: "Tag assigned successfully" });
     },
   });
 
-  // Remove tag from voter
   const removeTag = useMutation({
-    mutationFn: async (assignmentId: string) => {
+    mutationFn: async (tagId: string) => {
       if (!userId) throw new Error("User not authenticated");
       
       const { error } = await supabase
         .from("voter_tag_assignments")
         .delete()
-        .eq("id", assignmentId);
+        .eq("tag_id", tagId)
+        .eq("state_voter_id", stateVoterId)
+        .eq("user_id", userId);
 
       if (error) throw error;
     },
@@ -149,92 +119,34 @@ export const TagManager = ({ stateVoterId, county }: TagManagerProps) => {
       queryClient.invalidateQueries({ 
         queryKey: ["voter-tag-assignments", stateVoterId] 
       });
-      toast({
-        title: "Tag removed successfully",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Error removing tag",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast({ title: "Tag removed successfully" });
     },
   });
+
+  if (!userId) return null;
 
   const assignedTags = tags?.filter(tag => 
     assignments?.some(assignment => assignment.tag_id === tag.id)
   ) || [];
 
-  const handleCreateTag = (name: string, color: string, category: string) => {
-    createTag.mutate({ name, color, category });
-  };
-
-  const handleAssignTag = (tagId: string) => {
-    assignTag.mutate(tagId);
-  };
-
-  const handleRemoveTag = (tagId: string) => {
-    const assignment = assignments?.find(a => a.tag_id === tagId);
-    if (assignment) {
-      removeTag.mutate(assignment.id);
-    }
-  };
-
-  if (!userId) {
-    return null;
-  }
+  const availableTags = tags?.filter(tag => 
+    !assignments?.some(assignment => assignment.tag_id === tag.id)
+  ) || [];
 
   return (
     <div className="space-y-2">
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogTrigger asChild>
-          <Button variant="outline" size="sm" className="h-8">
-            <Tag className="h-4 w-4 mr-2" />
-            Manage Tags
-          </Button>
-        </DialogTrigger>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Manage Tags</DialogTitle>
-          </DialogHeader>
-          
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <h4 className="text-sm font-medium">Current Tags</h4>
-              <TagList tags={assignedTags} onRemoveTag={handleRemoveTag} />
-            </div>
-
-            <div className="space-y-2">
-              <h4 className="text-sm font-medium">Add Existing Tag</h4>
-              <TagSelector 
-                availableTags={tags?.filter(tag => 
-                  !assignments?.some(assignment => 
-                    assignment.tag_id === tag.id
-                  )
-                ) || []}
-                onSelectTag={handleAssignTag}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <h4 className="text-sm font-medium">Create New Tag</h4>
-              <CreateTagForm onCreateTag={handleCreateTag} />
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      <div className="flex flex-wrap gap-1">
-        {assignedTags.map((tag) => (
-          <Badge
-            key={tag.id}
-            style={{ backgroundColor: tag.color }}
-          >
-            {tag.name}
-          </Badge>
-        ))}
-      </div>
+      <TagButton onClick={() => setIsOpen(true)} />
+      <TagDialog
+        isOpen={isOpen}
+        onOpenChange={setIsOpen}
+        assignedTags={assignedTags}
+        availableTags={availableTags}
+        onAssignTag={(tagId) => assignTag.mutate(tagId)}
+        onRemoveTag={(tagId) => removeTag.mutate(tagId)}
+        onCreateTag={(name, color, category) => 
+          createTag.mutate({ name, color, category })
+        }
+      />
     </div>
   );
 };

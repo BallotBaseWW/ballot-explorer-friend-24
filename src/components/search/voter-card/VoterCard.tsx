@@ -5,12 +5,13 @@ import { AddToListDialog } from "../AddToListDialog";
 import { TagManager } from "./TagManager";
 import { Printer, User, MapPin, Calendar } from "lucide-react";
 import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
+import { County } from "../types";
 
 type VoterRecord = Database["public"]["Tables"]["bronx"]["Row"];
 
 interface VoterCardProps {
   voter: VoterRecord;
-  county: string;
+  county: County;
   onPrint: (voter: VoterRecord) => void;
 }
 
