@@ -39,6 +39,14 @@ const getVoterName = (interaction: any) => {
 };
 
 export const InteractionsList = ({ interactions }: { interactions: any[] }) => {
+  if (!interactions || interactions.length === 0) {
+    return (
+      <Card className="p-4">
+        <p className="text-muted-foreground">No interactions recorded yet.</p>
+      </Card>
+    );
+  }
+
   return (
     <div className="space-y-4">
       {interactions.map((interaction) => (

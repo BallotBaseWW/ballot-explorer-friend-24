@@ -11,6 +11,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { County } from "@/components/search/list-utils/types";
 
+type InteractionType = "call" | "email" | "meeting" | "door_knock" | "other";
+
 interface CreateInteractionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -26,7 +28,7 @@ export const CreateInteractionDialog = ({
   const { toast } = useToast();
   const [voterId, setVoterId] = useState("");
   const [county, setCounty] = useState<County>("bronx");
-  const [type, setType] = useState<string>("call");
+  const [type, setType] = useState<InteractionType>("call");
   const [notes, setNotes] = useState("");
 
   const createInteractionMutation = useMutation({
@@ -118,7 +120,7 @@ export const CreateInteractionDialog = ({
 
           <div className="space-y-2">
             <Label htmlFor="type">Interaction Type</Label>
-            <Select value={type} onValueChange={setType}>
+            <Select value={type} onValueChange={(value: InteractionType) => setType(value)}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
