@@ -42,7 +42,9 @@ export const CreateInteractionDialog = ({
     
     setIsSearching(true);
     try {
-      const query = supabase.from(selectedCounty).select('state_voter_id, first_name, last_name');
+      const query = supabase
+        .from(selectedCounty)
+        .select('state_voter_id, first_name, last_name, date_of_birth');
       
       if (searchQuery.match(/^NY\d+$/)) {
         query.eq('state_voter_id', searchQuery);
