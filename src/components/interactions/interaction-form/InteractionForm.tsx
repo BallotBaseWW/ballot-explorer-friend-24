@@ -48,9 +48,12 @@ export const InteractionForm = ({
 
       <div className="space-y-2">
         <Label htmlFor="type">Interaction Type</Label>
-        <Select value={type} onValueChange={onTypeChange}>
-          <SelectTrigger>
-            <SelectValue />
+        <Select 
+          value={type} 
+          onValueChange={(value) => onTypeChange(value as InteractionType)}
+        >
+          <SelectTrigger id="type">
+            <SelectValue placeholder="Select interaction type" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="call">Phone Call</SelectItem>
@@ -69,7 +72,7 @@ export const InteractionForm = ({
           value={notes}
           onChange={(e) => onNotesChange(e.target.value)}
           placeholder="Enter any additional notes about the interaction..."
-          className="min-h-[100px]"
+          className="min-h-[100px] resize-none"
         />
       </div>
 
@@ -78,6 +81,7 @@ export const InteractionForm = ({
           type="button"
           variant="outline"
           onClick={onBack}
+          disabled={isSubmitting}
         >
           Back to Search
         </Button>
@@ -85,7 +89,7 @@ export const InteractionForm = ({
           onClick={onSubmit}
           disabled={isSubmitting}
         >
-          Save Interaction
+          {isSubmitting ? "Saving..." : "Save Interaction"}
         </Button>
       </div>
     </div>
