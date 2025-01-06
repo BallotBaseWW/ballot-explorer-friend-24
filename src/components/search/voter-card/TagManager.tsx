@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Tag, X } from "lucide-react";
+import { Tag } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -11,7 +12,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@supabase/auth-helpers-react";
+import { useSession } from "@supabase/auth-helpers-react";
 import { TagList } from "./tag-manager/TagList";
 import { TagSelector } from "./tag-manager/TagSelector";
 import { CreateTagForm } from "./tag-manager/CreateTagForm";
@@ -26,9 +27,9 @@ export const TagManager = ({ stateVoterId, county }: TagManagerProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const auth = useAuth();
+  const session = useSession();
 
-  const userId = auth?.user()?.id;
+  const userId = session?.user?.id;
 
   console.log('Current user ID:', userId);
 
