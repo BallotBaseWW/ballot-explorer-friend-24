@@ -7,10 +7,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Trash2, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { CreateListDialog } from "@/components/search/voter-lists/CreateListDialog";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const Lists = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [selectedList, setSelectedList] = useState<string | null>(null);
 
   const { data: lists, refetch: refetchLists } = useQuery({
@@ -55,6 +56,10 @@ const Lists = () => {
     }
   };
 
+  const handleCardClick = (listId: string) => {
+    navigate(`/lists/${listId}`);
+  };
+
   return (
     <div className="min-h-screen bg-white">
       <Header />
@@ -66,48 +71,48 @@ const Lists = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {lists?.map((list) => (
-            <Link key={list.id} to={`/lists/${list.id}`}>
-              <Card className="hover:shadow-md transition-shadow">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-lg font-semibold">
-                    {list.name}
-                  </CardTitle>
-                  <Button
-                    variant="ghost"
-                    size="icon"
+            <Card 
+              key={list.id} 
+              className="hover:shadow-md transition-shadow cursor-pointer"
+              onClick={() => handleCardClick(list.id)}
+            >
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-lg font-semibold">
+                  {list.name}
+                </CardTitle>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent card click when clicking delete
+                    handleDeleteList(list.id);
+                  }}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground mb-4">
+                  {list.description || "No description"}
+                </p>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">
+                    {list.voter_list_items?.[0]?.count || 0} voters
+                  </span>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
                     onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      handleDeleteList(list.id);
+                      e.stopPropagation(); // Prevent card click when clicking export
+                      // Handle export
                     }}
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <Download className="h-4 w-4 mr-2" />
+                    Export
                   </Button>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    {list.description || "No description"}
-                  </p>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm">
-                      {list.voter_list_items?.[0]?.count || 0} voters
-                    </span>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        // Handle export
-                      }}
-                    >
-                      <Download className="h-4 w-4 mr-2" />
-                      Export
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
+                </div>
+              </CardContent>
+            </Card>
           ))}
         </div>
 
