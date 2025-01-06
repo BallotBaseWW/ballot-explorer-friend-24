@@ -28,11 +28,11 @@ export const InteractionManager = () => {
         .from("voter_interactions")
         .select(`
           *,
-          bronx:bronx(first_name, last_name),
-          brooklyn:brooklyn(first_name, last_name),
-          manhattan:manhattan(first_name, last_name),
-          queens:queens(first_name, last_name),
-          statenisland:statenisland(first_name, last_name)
+          bronx(first_name, last_name),
+          brooklyn(first_name, last_name),
+          manhattan(first_name, last_name),
+          queens(first_name, last_name),
+          statenisland(first_name, last_name)
         `)
         .eq("user_id", session.user.id)
         .order("interaction_date", { ascending: false });
@@ -49,17 +49,17 @@ export const InteractionManager = () => {
 
       console.log("Raw interactions data:", data);
 
-      // Ensure county is of type County and convert to lowercase
-      const formattedInteractions = data.map(interaction => ({
-        ...interaction,
-        county: interaction.county.toLowerCase() as County,
-        // Ensure voter data is properly structured
-        bronx: interaction.bronx?.[0] || null,
-        brooklyn: interaction.brooklyn?.[0] || null,
-        manhattan: interaction.manhattan?.[0] || null,
-        queens: interaction.queens?.[0] || null,
-        statenisland: interaction.statenisland?.[0] || null
-      })) as Interaction[];
+      // Transform the data to match the expected structure
+      const formattedInteractions = data.map(interaction => {
+        const county = interaction.county.toLowerCase() as County;
+        const voterData = interaction[county]?.[0] || null;
+        
+        return {
+          ...interaction,
+          county,
+          [county]: voterData
+        };
+      }) as Interaction[];
 
       console.log("Formatted interactions:", formattedInteractions);
       return formattedInteractions;
