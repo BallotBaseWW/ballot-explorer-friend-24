@@ -41,28 +41,12 @@ export const Header = () => {
 
   const handleLogout = useCallback(async () => {
     try {
-      // Get current session
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
-      if (sessionError) {
-        console.error("Session error:", sessionError);
-        navigate("/login");
-        return;
-      }
-
-      if (!session) {
-        navigate("/login");
-        return;
-      }
-
-      // Clear any existing auth listeners
+      // First clear any existing auth listeners
       const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {});
       if (subscription) subscription.unsubscribe();
 
-      // Attempt signout
-      const { error } = await supabase.auth.signOut({
-        scope: 'local'  // Changed from 'global' to 'local'
-      });
+      // Simple signout without scope
+      const { error } = await supabase.auth.signOut();
 
       if (error) {
         console.error("Logout error:", error);
@@ -71,15 +55,12 @@ export const Header = () => {
           description: "Please try again",
           variant: "destructive",
         });
-        return;
+      } else {
+        toast({
+          title: "Logged out successfully",
+          duration: 2000,
+        });
       }
-
-      toast({
-        title: "Logged out successfully",
-        duration: 2000,
-      });
-      
-      navigate("/login");
     } catch (error) {
       console.error("Logout error:", error);
       toast({
@@ -87,6 +68,8 @@ export const Header = () => {
         description: "Please try again",
         variant: "destructive",
       });
+    } finally {
+      // Always navigate to login page
       navigate("/login");
     }
   }, [navigate, toast]);
