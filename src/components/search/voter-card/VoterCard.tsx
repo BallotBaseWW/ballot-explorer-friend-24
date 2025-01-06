@@ -3,9 +3,15 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AddToListDialog } from "../AddToListDialog";
 import { TagManager } from "./TagManager";
-import { Printer, User, MapPin, Calendar } from "lucide-react";
+import { Printer, User, MapPin, Calendar, ChevronDown } from "lucide-react";
 import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
 import { County } from "../types";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { useState } from "react";
 
 type VoterRecord = Database["public"]["Tables"]["bronx"]["Row"];
 
@@ -16,6 +22,8 @@ interface VoterCardProps {
 }
 
 export const VoterCard = ({ voter, county, onPrint }: VoterCardProps) => {
+  const [isOpen, setIsOpen] = useState(false);
+
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) return "N/A";
     return new Date(
@@ -93,6 +101,33 @@ export const VoterCard = ({ voter, county, onPrint }: VoterCardProps) => {
           <Printer className="h-4 w-4 mr-2" />
           Print Record
         </Button>
+        <Collapsible open={isOpen} onOpenChange={setIsOpen} className="w-full">
+          <CollapsibleTrigger asChild>
+            <Button variant="ghost" size="sm" className="w-full mt-2">
+              View Details <ChevronDown className="h-4 w-4 ml-2" />
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="mt-4 space-y-4">
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <span className="font-medium">Election District:</span>
+                <p>{voter.election_district}</p>
+              </div>
+              <div>
+                <span className="font-medium">Assembly District:</span>
+                <p>{voter.assembly_district}</p>
+              </div>
+              <div>
+                <span className="font-medium">Congressional District:</span>
+                <p>{voter.congressional_district}</p>
+              </div>
+              <div>
+                <span className="font-medium">Senate District:</span>
+                <p>{voter.state_senate_district}</p>
+              </div>
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
       </CardFooter>
     </Card>
   );
