@@ -109,6 +109,7 @@ const Login = () => {
                 message: "text-sm",
               },
             }}
+            providers={[]}
           />
         </div>
       </div>
