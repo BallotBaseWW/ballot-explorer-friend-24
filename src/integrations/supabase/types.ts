@@ -815,6 +815,94 @@ export type Database = {
           },
         ]
       }
+      voter_contributions: {
+        Row: {
+          amount: number
+          county: string
+          created_at: string
+          date: string
+          id: string
+          notes: string | null
+          state_voter_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          county: string
+          created_at?: string
+          date: string
+          id?: string
+          notes?: string | null
+          state_voter_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          county?: string
+          created_at?: string
+          date?: string
+          id?: string
+          notes?: string | null
+          state_voter_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "voter_contributions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      voter_interactions: {
+        Row: {
+          county: string
+          created_at: string
+          id: string
+          interaction_date: string
+          notes: string | null
+          state_voter_id: string
+          type: Database["public"]["Enums"]["interaction_type"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          county: string
+          created_at?: string
+          id?: string
+          interaction_date: string
+          notes?: string | null
+          state_voter_id: string
+          type: Database["public"]["Enums"]["interaction_type"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          county?: string
+          created_at?: string
+          id?: string
+          interaction_date?: string
+          notes?: string | null
+          state_voter_id?: string
+          type?: Database["public"]["Enums"]["interaction_type"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "voter_interactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       voter_list_items: {
         Row: {
           added_at: string
@@ -875,6 +963,133 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "voter_lists_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      voter_scheduled_interactions: {
+        Row: {
+          county: string
+          created_at: string
+          id: string
+          notes: string | null
+          scheduled_date: string
+          state_voter_id: string
+          status: string
+          type: Database["public"]["Enums"]["interaction_type"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          county: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          scheduled_date: string
+          state_voter_id: string
+          status?: string
+          type: Database["public"]["Enums"]["interaction_type"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          county?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          scheduled_date?: string
+          state_voter_id?: string
+          status?: string
+          type?: Database["public"]["Enums"]["interaction_type"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "voter_scheduled_interactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      voter_tag_assignments: {
+        Row: {
+          county: string
+          created_at: string
+          id: string
+          state_voter_id: string
+          tag_id: string
+          user_id: string
+        }
+        Insert: {
+          county: string
+          created_at?: string
+          id?: string
+          state_voter_id: string
+          tag_id: string
+          user_id: string
+        }
+        Update: {
+          county?: string
+          created_at?: string
+          id?: string
+          state_voter_id?: string
+          tag_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "voter_tag_assignments_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "voter_tags"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "voter_tag_assignments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      voter_tags: {
+        Row: {
+          category: string | null
+          color: string
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category?: string | null
+          color?: string
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string | null
+          color?: string
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "voter_tags_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -943,6 +1158,7 @@ export type Database = {
     Enums: {
       app_role: "admin" | "user"
       gender_type: "M" | "F" | "X" | "U"
+      interaction_type: "call" | "email" | "meeting" | "door_knock" | "other"
       voter_status_type: "ACTIVE" | "INACTIVE" | "PURGED" | "OTHER"
     }
     CompositeTypes: {
