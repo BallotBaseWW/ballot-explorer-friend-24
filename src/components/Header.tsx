@@ -10,11 +10,27 @@ import { User, Home, LogOut, Shield, ListTodo, UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { useQuery } from "@tanstack/react-query";
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export const Header = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setIsAuthenticated(!!session);
+    };
+
+    checkAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setIsAuthenticated(!!session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const { data: isAdmin, isError } = useQuery({
     queryKey: ["isAdmin"],
@@ -35,6 +51,7 @@ export const Header = () => {
       
       return roleData?.role === "admin";
     },
+    enabled: isAuthenticated,
     retry: false,
     refetchOnWindowFocus: false,
   });
@@ -83,46 +100,46 @@ export const Header = () => {
             <Home className="h-5 w-5" />
           </Button>
           
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleNavigate("/request-access")}
-            className="hidden md:flex"
-          >
-            <UserPlus className="h-5 w-5" />
-          </Button>
+          {!isAuthenticated && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleNavigate("/request-access")}
+              className="hidden md:flex"
+            >
+              <UserPlus className="h-5 w-5" />
+            </Button>
+          )}
           
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <User className="h-5 w-5" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={handleNavigate("/")}>
-                <Home className="mr-2 h-4 w-4" />
-                Home
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleNavigate("/lists")}>
-                <ListTodo className="mr-2 h-4 w-4" />
-                My Lists
-              </DropdownMenuItem>
-              {isAdmin && (
-                <DropdownMenuItem onClick={handleNavigate("/admin")}>
-                  <Shield className="mr-2 h-4 w-4" />
-                  Admin Panel
+          {isAuthenticated && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <User className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={handleNavigate("/")}>
+                  <Home className="mr-2 h-4 w-4" />
+                  Home
                 </DropdownMenuItem>
-              )}
-              <DropdownMenuItem onClick={handleNavigate("/request-access")}>
-                <UserPlus className="mr-2 h-4 w-4" />
-                Request Access
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleLogout}>
-                <LogOut className="mr-2 h-4 w-4" />
-                Logout
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                <DropdownMenuItem onClick={handleNavigate("/lists")}>
+                  <ListTodo className="mr-2 h-4 w-4" />
+                  My Lists
+                </DropdownMenuItem>
+                {isAdmin && (
+                  <DropdownMenuItem onClick={handleNavigate("/admin")}>
+                    <Shield className="mr-2 h-4 w-4" />
+                    Admin Panel
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuItem onClick={handleLogout}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Logout
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
       </div>
     </header>
