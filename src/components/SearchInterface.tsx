@@ -9,12 +9,12 @@ import { Form } from "@/components/ui/form";
 import { ChevronDown, ChevronUp, Search as SearchIcon } from "lucide-react";
 import { BasicSearch } from "./search/BasicSearch";
 import { AdvancedSearch } from "./search/AdvancedSearch";
-import { SearchFormValues } from "./search/types";
+import { SearchFormValues, County } from "./search/types";
 import { SearchResults } from "./search/SearchResults";
 import { useState } from "react";
 import { useSearch } from "./search/useSearch";
 
-export const SearchInterface = ({ county }: { county: string }) => {
+export const SearchInterface = ({ county }: { county: County }) => {
   const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
   const { searchResults, isLoading, performSearch } = useSearch(county);
   const [currentSearchQuery, setCurrentSearchQuery] = useState<any>(null);
@@ -25,6 +25,8 @@ export const SearchInterface = ({ county }: { county: string }) => {
   const form = useForm<SearchFormValues>({
     defaultValues: {
       basicSearch: "",
+      minAge: "",
+      maxAge: "",
       last_name: "",
       first_name: "",
       middle: "",
