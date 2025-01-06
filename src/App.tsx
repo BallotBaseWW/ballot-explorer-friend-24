@@ -7,6 +7,7 @@ import Lists from "@/pages/Lists";
 import ListDetails from "@/pages/ListDetails";
 import Login from "@/pages/Login";
 import Admin from "@/pages/Admin";
+import RequestAccess from "@/pages/RequestAccess";
 import { AuthContainer } from "@/components/auth/AuthContainer";
 
 const queryClient = new QueryClient();
@@ -17,6 +18,7 @@ function App() {
       <Router>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/request-access" element={<RequestAccess />} />
           <Route path="/login" element={<Login />} />
           <Route
             path="/search/:county"
