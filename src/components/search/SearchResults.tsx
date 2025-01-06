@@ -6,7 +6,6 @@ import { VoterCard } from "./voter-card/VoterCard";
 import { PaginationControls } from "./pagination/PaginationControls";
 import { Button } from "@/components/ui/button";
 import { ArrowUp } from "lucide-react";
-import { AddAllToListDialog } from "./AddAllToListDialog";
 import { County } from "./types";
 
 type VoterRecord = Database["public"]["Tables"]["bronx"]["Row"];
@@ -72,7 +71,6 @@ export const SearchResults = ({ results, county, searchQuery }: SearchResultsPro
             </span>
           )}
         </h2>
-        <AddAllToListDialog searchQuery={searchQuery} county={county} />
       </div>
 
       {currentResults.length > 0 ? (

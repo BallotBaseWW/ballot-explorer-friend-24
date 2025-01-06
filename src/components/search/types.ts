@@ -1,9 +1,9 @@
+import { UseFormReturn } from "react-hook-form";
+
 export type County = "bronx" | "brooklyn" | "manhattan" | "queens" | "statenisland";
 
-export type SearchFormValues = {
+export interface SearchFormValues {
   basicSearch: string;
-  minAge: string;
-  maxAge: string;
   last_name: string;
   first_name: string;
   middle: string;
@@ -51,4 +51,8 @@ export type SearchFormValues = {
   purge_date: string;
   state_voter_id: string;
   voter_history: string;
-};
+}
+
+export interface SearchFormProps {
+  form: UseFormReturn<SearchFormValues>;
+}
