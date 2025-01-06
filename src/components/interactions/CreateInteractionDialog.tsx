@@ -40,6 +40,7 @@ export const CreateInteractionDialog = ({
   const [type, setType] = useState<InteractionType>("call");
   const [notes, setNotes] = useState("");
   const [isSearching, setIsSearching] = useState(false);
+  const [activeTab, setActiveTab] = useState("search");
 
   const searchVoter = async () => {
     if (!selectedCounty || !searchQuery) return;
@@ -97,6 +98,11 @@ export const CreateInteractionDialog = ({
     }
   };
 
+  const handleVoterSelect = (voter: VoterInfo) => {
+    setSelectedVoter(voter);
+    setActiveTab("create");
+  };
+
   const createInteractionMutation = useMutation({
     mutationFn: async () => {
       if (!session?.user?.id || !selectedVoter) throw new Error("Not authenticated or no voter selected");
@@ -134,6 +140,7 @@ export const CreateInteractionDialog = ({
     setSearchResults([]);
     setType("call");
     setNotes("");
+    setActiveTab("search");
   };
 
   return (
@@ -143,7 +150,7 @@ export const CreateInteractionDialog = ({
           <DialogTitle>Record New Interaction</DialogTitle>
         </DialogHeader>
 
-        <Tabs defaultValue="search" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="search" disabled={!!selectedVoter}>
               Find Voter
@@ -171,7 +178,7 @@ export const CreateInteractionDialog = ({
               {searchResults.length > 0 && (
                 <VoterSearchResults
                   results={searchResults}
-                  onVoterSelect={setSelectedVoter}
+                  onVoterSelect={handleVoterSelect}
                 />
               )}
             </div>
@@ -186,7 +193,10 @@ export const CreateInteractionDialog = ({
                 onTypeChange={setType}
                 onNotesChange={setNotes}
                 onSubmit={() => createInteractionMutation.mutate()}
-                onBack={() => setSelectedVoter(null)}
+                onBack={() => {
+                  setSelectedVoter(null);
+                  setActiveTab("search");
+                }}
                 isSubmitting={createInteractionMutation.isPending}
               />
             )}
