@@ -46,11 +46,28 @@ export const CreateInteractionDialog = ({
     
     setIsSearching(true);
     try {
-      const { data, error } = await supabase
-        .from(selectedCounty)
-        .select('state_voter_id, first_name, last_name')
-        .or(`state_voter_id.eq.${searchQuery},last_name.ilike.${searchQuery}%`)
-        .limit(5);
+      const query = supabase.from(selectedCounty).select('state_voter_id, first_name, last_name');
+      
+      // Check if the search query looks like a voter ID
+      if (searchQuery.match(/^NY\d+$/)) {
+        query.eq('state_voter_id', searchQuery);
+      } else {
+        // Split the search query into potential first and last names
+        const terms = searchQuery.trim().split(/\s+/);
+        if (terms.length > 1) {
+          // If multiple terms, assume first and last name
+          const firstName = terms[0];
+          const lastName = terms[terms.length - 1];
+          query
+            .ilike('first_name', `${firstName}%`)
+            .ilike('last_name', `${lastName}%`);
+        } else {
+          // If single term, search in last name only
+          query.ilike('last_name', `${searchQuery}%`);
+        }
+      }
+
+      const { data, error } = await query.limit(5);
 
       if (error) throw error;
 
@@ -60,6 +77,14 @@ export const CreateInteractionDialog = ({
           county: selectedCounty
         }))
       );
+
+      if (data.length === 0) {
+        toast({
+          title: "No voters found",
+          description: "Try adjusting your search terms",
+          variant: "destructive",
+        });
+      }
     } catch (error) {
       console.error('Error searching voter:', error);
       toast({

@@ -18,19 +18,24 @@ export const VoterSearchForm = ({
   selectedCounty
 }: VoterSearchFormProps) => {
   return (
-    <div className="flex gap-2">
-      <Input
-        placeholder={selectedCounty ? "Enter NYS Voter ID or last name" : "Please select a county first"}
-        value={searchQuery}
-        onChange={(e) => onSearchQueryChange(e.target.value)}
-        disabled={!selectedCounty || isSearching}
-      />
-      <Button 
-        onClick={onSearch}
-        disabled={!searchQuery || !selectedCounty || isSearching}
-      >
-        {isSearching ? "Searching..." : "Search"}
-      </Button>
+    <div className="space-y-2">
+      <p className="text-sm text-muted-foreground">
+        Search by voter ID (e.g., NY123456789) or enter first and last name
+      </p>
+      <div className="flex gap-2">
+        <Input
+          placeholder={selectedCounty ? "Enter NYS Voter ID or full name" : "Please select a county first"}
+          value={searchQuery}
+          onChange={(e) => onSearchQueryChange(e.target.value)}
+          disabled={!selectedCounty || isSearching}
+        />
+        <Button 
+          onClick={onSearch}
+          disabled={!searchQuery || !selectedCounty || isSearching}
+        >
+          {isSearching ? "Searching..." : "Search"}
+        </Button>
+      </div>
     </div>
   );
 };
