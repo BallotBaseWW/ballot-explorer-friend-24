@@ -13,26 +13,55 @@ const Login = () => {
   useEffect(() => {
     // Check initial session
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        // Check if user is approved
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("approved")
-          .eq("id", session.user.id)
-          .single();
+      try {
+        console.log("Checking initial session...");
+        const { data: { session } } = await supabase.auth.getSession();
+        console.log("Session check result:", session);
+        
+        if (session) {
+          // Check if user is approved
+          const { data: profile, error: profileError } = await supabase
+            .from("profiles")
+            .select("approved")
+            .eq("id", session.user.id)
+            .single();
 
-        if (profile?.approved) {
-          navigate("/");
-        } else {
-          toast({
-            title: "Account Pending Approval",
-            description: "Your account is pending administrator approval.",
-          });
-          await supabase.auth.signOut();
+          console.log("Profile check result:", profile, profileError);
+
+          if (profileError) {
+            console.error("Profile check error:", profileError);
+            toast({
+              title: "Error",
+              description: "There was an error checking your account status.",
+              variant: "destructive",
+            });
+            setIsLoading(false);
+            return;
+          }
+
+          if (profile?.approved) {
+            console.log("User is approved, navigating to home");
+            navigate("/");
+          } else {
+            console.log("User not approved, showing message");
+            toast({
+              title: "Account Pending Approval",
+              description: "Your account is pending administrator approval.",
+            });
+            await supabase.auth.signOut();
+          }
         }
+      } catch (error) {
+        console.error("Session check error:", error);
+        toast({
+          title: "Error",
+          description: "There was an error checking your session.",
+          variant: "destructive",
+        });
+      } finally {
+        console.log("Setting loading to false");
+        setIsLoading(false);
       }
-      setIsLoading(false);
     };
 
     checkSession();
@@ -43,33 +72,46 @@ const Login = () => {
         console.log("Auth state changed:", event, session?.user?.id);
         
         if (event === "SIGNED_IN" && session) {
-          // Check if user is approved
-          const { data: profile, error } = await supabase
-            .from("profiles")
-            .select("approved")
-            .eq("id", session.user.id)
-            .single();
+          try {
+            // Check if user is approved
+            const { data: profile, error } = await supabase
+              .from("profiles")
+              .select("approved")
+              .eq("id", session.user.id)
+              .single();
 
-          if (error) {
-            console.error("Error checking profile:", error);
+            console.log("Profile check on auth change:", profile, error);
+
+            if (error) {
+              console.error("Profile check error:", error);
+              toast({
+                title: "Error",
+                description: "There was an error checking your account status.",
+                variant: "destructive",
+              });
+              return;
+            }
+
+            if (!profile?.approved) {
+              console.log("User not approved, showing message");
+              toast({
+                title: "Account Pending Approval",
+                description: "Your account is pending administrator approval.",
+              });
+              await supabase.auth.signOut();
+              return;
+            }
+
+            console.log("User is approved, navigating to home");
+            navigate("/");
+          } catch (error) {
+            console.error("Error during auth state change:", error);
             toast({
               title: "Error",
-              description: "There was an error checking your account status.",
+              description: "There was an error processing your login.",
               variant: "destructive",
             });
-            return;
           }
-
-          if (!profile?.approved) {
-            toast({
-              title: "Account Pending Approval",
-              description: "Your account is pending administrator approval.",
-            });
-            await supabase.auth.signOut();
-            return;
-          }
-
-          navigate("/");
         }
       }
     );
@@ -82,7 +124,10 @@ const Login = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-100 via-white to-blue-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
       </div>
     );
   }

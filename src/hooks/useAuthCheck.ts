@@ -11,8 +11,12 @@ export const useAuthCheck = () => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
+        console.log("Checking auth in useAuthCheck...");
         const { data: { session } } = await supabase.auth.getSession();
+        console.log("Session in useAuthCheck:", session);
+        
         if (!session) {
+          console.log("No session found, redirecting to login");
           toast({
             title: "Authentication Required",
             description: "Please log in to access this page.",
@@ -23,13 +27,27 @@ export const useAuthCheck = () => {
         }
 
         // Check if user is approved
-        const { data: profile } = await supabase
+        const { data: profile, error } = await supabase
           .from("profiles")
           .select("approved")
           .eq("id", session.user.id)
           .single();
 
+        console.log("Profile check in useAuthCheck:", profile, error);
+
+        if (error) {
+          console.error("Profile check error:", error);
+          toast({
+            title: "Error",
+            description: "There was an error checking your account status.",
+            variant: "destructive",
+          });
+          navigate("/login");
+          return false;
+        }
+
         if (!profile?.approved) {
+          console.log("User not approved, redirecting to login");
           toast({
             title: "Account Pending Approval",
             description: "Your account is pending administrator approval.",
@@ -39,6 +57,7 @@ export const useAuthCheck = () => {
           return false;
         }
 
+        console.log("Auth check successful");
         return true;
       } catch (error) {
         console.error("Auth check error:", error);
@@ -50,6 +69,7 @@ export const useAuthCheck = () => {
         navigate("/login");
         return false;
       } finally {
+        console.log("Setting isChecking to false");
         setIsChecking(false);
       }
     };
