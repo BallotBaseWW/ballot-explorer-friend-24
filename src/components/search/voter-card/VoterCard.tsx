@@ -1,4 +1,7 @@
 import { Database } from "@/integrations/supabase/types";
+import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
+import { printVoterRecord } from "../voter-sections/printUtils";
 import { Button } from "@/components/ui/button";
 import { AddToListDialog } from "../AddToListDialog";
 import { TagManager } from "./TagManager";
@@ -9,11 +12,11 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { useState } from "react";
 import { PartyBadge } from "./PartyBadge";
 import { PersonalInfo } from "./PersonalInfo";
 import { AddressInfo } from "./AddressInfo";
 import { formatDate } from "@/lib/utils";
+import { County } from "../types";
 
 type VoterRecord = Database["public"]["Tables"]["bronx"]["Row"];
 
