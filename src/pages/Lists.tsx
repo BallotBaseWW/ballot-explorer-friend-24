@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Trash2, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { CreateListDialog } from "@/components/search/voter-lists/CreateListDialog";
 
 const Lists = () => {
   const { toast } = useToast();
@@ -23,28 +24,6 @@ const Lists = () => {
           )
         `)
         .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  const { data: listItems } = useQuery({
-    queryKey: ['list-items', selectedList],
-    enabled: !!selectedList,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('voter_list_items')
-        .select(`
-          *,
-          bronx!inner (
-            first_name,
-            last_name,
-            enrolled_party,
-            voter_status
-          )
-        `)
-        .eq('list_id', selectedList);
 
       if (error) throw error;
       return data;
@@ -79,8 +58,9 @@ const Lists = () => {
     <div className="min-h-screen bg-white">
       <Header />
       <main className="max-w-7xl mx-auto p-4">
-        <div className="mb-6">
+        <div className="mb-6 flex justify-between items-center">
           <h2 className="text-2xl font-semibold">My Voter Lists</h2>
+          <CreateListDialog onSuccess={refetchLists} />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -118,7 +98,7 @@ const Lists = () => {
 
         {!lists?.length && (
           <div className="text-center py-8 text-muted-foreground">
-            No lists created yet. Create a list by adding voters from search results.
+            No lists created yet. Create your first list using the button above.
           </div>
         )}
       </main>
