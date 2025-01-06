@@ -1,9 +1,8 @@
 import { useState } from "react";
-import { Plus, Tag, X } from "lucide-react";
+import { Tag, X } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -11,91 +10,84 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@supabase/auth-helpers-react";
+import { TagList } from "./tag-manager/TagList";
+import { TagSelector } from "./tag-manager/TagSelector";
+import { CreateTagForm } from "./tag-manager/CreateTagForm";
+import { Tag as TagType } from "./tag-manager/types";
 
 interface TagManagerProps {
   stateVoterId: string;
   county: string;
 }
 
-interface Tag {
-  id: string;
-  name: string;
-  color: string;
-  category: string | null;
-}
-
-interface TagAssignment {
-  id: string;
-  tag_id: string;
-}
-
 export const TagManager = ({ stateVoterId, county }: TagManagerProps) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [newTagName, setNewTagName] = useState("");
-  const [newTagColor, setNewTagColor] = useState("#000000");
-  const [newTagCategory, setNewTagCategory] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const auth = useAuth();
+
+  const userId = auth?.user()?.id;
+
+  console.log('Current user ID:', userId);
 
   // Fetch existing tags
   const { data: tags } = useQuery({
     queryKey: ["voter-tags"],
     queryFn: async () => {
+      if (!userId) return [];
       const { data, error } = await supabase
         .from("voter_tags")
         .select("*")
+        .eq('user_id', userId)
         .order("name");
       
       if (error) throw error;
-      return data as Tag[];
+      return data as TagType[];
     },
+    enabled: !!userId,
   });
 
   // Fetch tag assignments for this voter
   const { data: assignments } = useQuery({
     queryKey: ["voter-tag-assignments", stateVoterId],
     queryFn: async () => {
+      if (!userId) return [];
       const { data, error } = await supabase
         .from("voter_tag_assignments")
         .select("*")
         .eq("state_voter_id", stateVoterId)
-        .eq("county", county);
+        .eq("county", county)
+        .eq('user_id', userId);
       
       if (error) throw error;
-      return data as TagAssignment[];
+      return data;
     },
+    enabled: !!userId,
   });
 
   // Create new tag
   const createTag = useMutation({
-    mutationFn: async () => {
-      const { data, error } = await supabase
+    mutationFn: async (data: { name: string; color: string; category: string }) => {
+      if (!userId) throw new Error("User not authenticated");
+      
+      const { data: newTag, error } = await supabase
         .from("voter_tags")
         .insert({
-          name: newTagName,
-          color: newTagColor,
-          category: newTagCategory || null,
+          name: data.name,
+          color: data.color,
+          category: data.category || null,
+          user_id: userId,
         })
         .select()
         .single();
 
       if (error) throw error;
-      return data;
+      return newTag;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["voter-tags"] });
-      setNewTagName("");
-      setNewTagColor("#000000");
-      setNewTagCategory("");
       toast({
         title: "Tag created successfully",
       });
@@ -112,12 +104,15 @@ export const TagManager = ({ stateVoterId, county }: TagManagerProps) => {
   // Assign tag to voter
   const assignTag = useMutation({
     mutationFn: async (tagId: string) => {
+      if (!userId) throw new Error("User not authenticated");
+      
       const { error } = await supabase
         .from("voter_tag_assignments")
         .insert({
           tag_id: tagId,
           state_voter_id: stateVoterId,
           county: county,
+          user_id: userId,
         });
 
       if (error) throw error;
@@ -142,6 +137,8 @@ export const TagManager = ({ stateVoterId, county }: TagManagerProps) => {
   // Remove tag from voter
   const removeTag = useMutation({
     mutationFn: async (assignmentId: string) => {
+      if (!userId) throw new Error("User not authenticated");
+      
       const { error } = await supabase
         .from("voter_tag_assignments")
         .delete()
@@ -170,6 +167,25 @@ export const TagManager = ({ stateVoterId, county }: TagManagerProps) => {
     assignments?.some(assignment => assignment.tag_id === tag.id)
   ) || [];
 
+  const handleCreateTag = (name: string, color: string, category: string) => {
+    createTag.mutate({ name, color, category });
+  };
+
+  const handleAssignTag = (tagId: string) => {
+    assignTag.mutate(tagId);
+  };
+
+  const handleRemoveTag = (tagId: string) => {
+    const assignment = assignments?.find(a => a.tag_id === tagId);
+    if (assignment) {
+      removeTag.mutate(assignment.id);
+    }
+  };
+
+  if (!userId) {
+    return null;
+  }
+
   return (
     <div className="space-y-2">
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -187,93 +203,24 @@ export const TagManager = ({ stateVoterId, county }: TagManagerProps) => {
           <div className="space-y-4">
             <div className="space-y-2">
               <h4 className="text-sm font-medium">Current Tags</h4>
-              <div className="flex flex-wrap gap-2">
-                {assignedTags.map((tag) => (
-                  <Badge
-                    key={tag.id}
-                    style={{ backgroundColor: tag.color }}
-                    className="flex items-center gap-1"
-                  >
-                    {tag.name}
-                    <button
-                      onClick={() => {
-                        const assignment = assignments?.find(
-                          a => a.tag_id === tag.id
-                        );
-                        if (assignment) {
-                          removeTag.mutate(assignment.id);
-                        }
-                      }}
-                      className="ml-1 hover:bg-black/20 rounded"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </Badge>
-                ))}
-              </div>
+              <TagList tags={assignedTags} onRemoveTag={handleRemoveTag} />
             </div>
 
             <div className="space-y-2">
               <h4 className="text-sm font-medium">Add Existing Tag</h4>
-              <Select
-                onValueChange={(value) => assignTag.mutate(value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a tag" />
-                </SelectTrigger>
-                <SelectContent>
-                  {tags?.filter(tag => 
-                    !assignments?.some(assignment => 
-                      assignment.tag_id === tag.id
-                    )
-                  ).map((tag) => (
-                    <SelectItem key={tag.id} value={tag.id}>
-                      <div className="flex items-center gap-2">
-                        <div
-                          className="w-3 h-3 rounded-full"
-                          style={{ backgroundColor: tag.color }}
-                        />
-                        {tag.name}
-                        {tag.category && (
-                          <span className="text-muted-foreground">
-                            ({tag.category})
-                          </span>
-                        )}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <TagSelector 
+                availableTags={tags?.filter(tag => 
+                  !assignments?.some(assignment => 
+                    assignment.tag_id === tag.id
+                  )
+                ) || []}
+                onSelectTag={handleAssignTag}
+              />
             </div>
 
             <div className="space-y-2">
               <h4 className="text-sm font-medium">Create New Tag</h4>
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Tag name"
-                  value={newTagName}
-                  onChange={(e) => setNewTagName(e.target.value)}
-                />
-                <Input
-                  type="color"
-                  value={newTagColor}
-                  onChange={(e) => setNewTagColor(e.target.value)}
-                  className="w-20"
-                />
-              </div>
-              <Input
-                placeholder="Category (optional)"
-                value={newTagCategory}
-                onChange={(e) => setNewTagCategory(e.target.value)}
-              />
-              <Button
-                onClick={() => createTag.mutate()}
-                disabled={!newTagName}
-                className="w-full"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Create Tag
-              </Button>
+              <CreateTagForm onCreateTag={handleCreateTag} />
             </div>
           </div>
         </DialogContent>
