@@ -47,9 +47,11 @@ export const VoterCard = ({ voter, county, onPrint }: VoterCardProps) => {
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <MapPin className="h-4 w-4" />
               <p>
-                {voter.house} {voter.street_name}
-                {voter.unit_no && `, Unit ${voter.unit_no}`}, {voter.residence_city},{" "}
+                {voter.house} {voter.house_suffix} {voter.pre_st_direction} {voter.street_name} {voter.post_st_direction}
+                {voter.aptunit_type && `, ${voter.aptunit_type}`}
+                {voter.unit_no && ` ${voter.unit_no}`}, {voter.residence_city},{" "}
                 {voter.zip_code}
+                {voter.zip_four && `-${voter.zip_four}`}
               </p>
             </div>
           </div>
@@ -124,7 +126,83 @@ export const VoterCard = ({ voter, county, onPrint }: VoterCardProps) => {
                 <span className="font-medium">Senate District:</span>
                 <p>{voter.state_senate_district}</p>
               </div>
+              <div>
+                <span className="font-medium">Legislative District:</span>
+                <p>{voter.legislative_district}</p>
+              </div>
+              <div>
+                <span className="font-medium">Ward:</span>
+                <p>{voter.ward}</p>
+              </div>
+              <div>
+                <span className="font-medium">County Code:</span>
+                <p>{voter.county_code}</p>
+              </div>
+              <div>
+                <span className="font-medium">County Voter No:</span>
+                <p>{voter.county_voter_no}</p>
+              </div>
+              <div>
+                <span className="font-medium">State Voter ID:</span>
+                <p>{voter.state_voter_id}</p>
+              </div>
+              <div>
+                <span className="font-medium">Gender:</span>
+                <p>{voter.gender}</p>
+              </div>
+              <div>
+                <span className="font-medium">Date of Birth:</span>
+                <p>{formatDate(voter.date_of_birth)}</p>
+              </div>
+              <div>
+                <span className="font-medium">Application Source:</span>
+                <p>{voter.application_source}</p>
+              </div>
+              <div>
+                <span className="font-medium">ID Required:</span>
+                <p>{voter.id_required}</p>
+              </div>
+              <div>
+                <span className="font-medium">ID Met Flag:</span>
+                <p>{voter.id_met_flag}</p>
+              </div>
+              {voter.inactive_date && (
+                <div>
+                  <span className="font-medium">Inactive Date:</span>
+                  <p>{formatDate(voter.inactive_date)}</p>
+                </div>
+              )}
+              {voter.purge_date && (
+                <div>
+                  <span className="font-medium">Purge Date:</span>
+                  <p>{formatDate(voter.purge_date)}</p>
+                </div>
+              )}
+              {voter.reason && (
+                <div>
+                  <span className="font-medium">Status Reason:</span>
+                  <p>{voter.reason}</p>
+                </div>
+              )}
             </div>
+            
+            {(voter.mailing_address_one || voter.mailing_address_two || voter.mailing_address_three || voter.mailing_address_four) && (
+              <div className="space-y-2">
+                <span className="font-medium">Mailing Address:</span>
+                {voter.mailing_address_one && <p>{voter.mailing_address_one}</p>}
+                {voter.mailing_address_two && <p>{voter.mailing_address_two}</p>}
+                {voter.mailing_address_three && <p>{voter.mailing_address_three}</p>}
+                {voter.mailing_address_four && <p>{voter.mailing_address_four}</p>}
+              </div>
+            )}
+
+            {voter.voter_history && (
+              <div>
+                <span className="font-medium">Voter History:</span>
+                <p>{voter.voter_history}</p>
+              </div>
+            )}
+
             <div className="flex justify-end">
               <Button
                 variant="outline"
