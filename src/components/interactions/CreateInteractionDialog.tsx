@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useSession } from "@supabase/auth-helpers-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { County } from "@/components/search/list-utils/types";
@@ -8,7 +7,7 @@ import { VoterSearchForm } from "./voter-search/VoterSearchForm";
 import { VoterSearchResults } from "./voter-search/VoterSearchResults";
 import { InteractionForm } from "./interaction-form/InteractionForm";
 import { useInteractionMutation } from "./hooks/useInteractionMutation";
-import { VoterInfo, InteractionType } from "./types";
+import { VoterInfo } from "./types";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { VoterInteractionProvider, useVoterInteraction } from "./voter-interaction/VoterInteractionContext";
@@ -24,7 +23,6 @@ const InteractionDialogContent = ({
 }: {
   onSuccess: () => void;
 }) => {
-  const session = useSession();
   const { toast } = useToast();
   const [selectedCounty, setSelectedCounty] = useState<County | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -91,30 +89,41 @@ const InteractionDialogContent = ({
   };
 
   const handleCreateInteraction = async () => {
-    if (!session?.user?.id) {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session?.user?.id) {
+        toast({
+          title: "Authentication Error",
+          description: "You must be logged in to create interactions.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (!selectedVoter) {
+        toast({
+          title: "Validation Error",
+          description: "Please select a voter before creating an interaction.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      createInteractionMutation.mutate({
+        userId: session.user.id,
+        selectedVoter,
+        type,
+        notes,
+      });
+    } catch (error) {
+      console.error("Session error:", error);
       toast({
         title: "Authentication Error",
-        description: "You must be logged in to create interactions.",
+        description: "Please try logging in again.",
         variant: "destructive",
       });
-      return;
     }
-
-    if (!selectedVoter) {
-      toast({
-        title: "Validation Error",
-        description: "Please select a voter before creating an interaction.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    createInteractionMutation.mutate({
-      userId: session.user.id,
-      selectedVoter,
-      type,
-      notes,
-    });
   };
 
   const resetForm = () => {

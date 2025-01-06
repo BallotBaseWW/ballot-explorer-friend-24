@@ -17,6 +17,8 @@ export const useInteractionMutation = (onSuccess: () => void) => {
 
   return useMutation({
     mutationFn: async ({ userId, selectedVoter, type, notes }: CreateInteractionData) => {
+      console.log("Creating interaction with:", { userId, selectedVoter, type, notes });
+      
       if (!userId) {
         throw new Error("User ID is required");
       }
