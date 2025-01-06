@@ -9,17 +9,30 @@ import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import { InteractionManager } from "@/components/interactions/InteractionManager";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Tags = () => {
   useAuthCheck();
   const session = useSession();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
+
+  // Redirect if not authenticated
+  useEffect(() => {
+    if (!session) {
+      navigate('/login');
+    }
+  }, [session, navigate]);
 
   const { data: tags, refetch } = useQuery({
     queryKey: ["voter-tags", session?.user?.id],
     queryFn: async () => {
-      if (!session?.user?.id) return [];
+      if (!session?.user?.id) {
+        throw new Error("Not authenticated");
+      }
+
       const { data, error } = await supabase
         .from("voter_tags")
         .select("*")
@@ -42,7 +55,9 @@ const Tags = () => {
 
   const createTagMutation = useMutation({
     mutationFn: async (data: { name: string; color: string; category: string }) => {
-      if (!session?.user?.id) throw new Error("Not authenticated");
+      if (!session?.user?.id) {
+        throw new Error("Not authenticated");
+      }
       
       const { data: newTag, error } = await supabase
         .from("voter_tags")
@@ -73,7 +88,14 @@ const Tags = () => {
   });
 
   const handleRemoveTag = async (tagId: string) => {
-    if (!session?.user?.id) return;
+    if (!session?.user?.id) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to remove tags",
+        variant: "destructive",
+      });
+      return;
+    }
     
     const { error } = await supabase
       .from("voter_tags")
@@ -95,8 +117,21 @@ const Tags = () => {
   };
 
   const handleCreateTag = (name: string, color: string, category: string) => {
+    if (!session?.user?.id) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to create tags",
+        variant: "destructive",
+      });
+      return;
+    }
     createTagMutation.mutate({ name, color, category });
   };
+
+  // If not authenticated, don't render the content
+  if (!session?.user?.id) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
