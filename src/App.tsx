@@ -3,10 +3,10 @@ import Login from "./pages/Login";
 import RequestAccessForm from "./components/auth/RequestAccessForm";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthContainer } from "@/components/auth/AuthContainer";
-import { Home } from "@/pages/Home";
-import { Admin } from "@/pages/Admin";
-import { Profile } from "@/pages/Profile";
-import { Navbar } from "@/components/layout/Navbar";
+import Home from "./pages/Home";
+import Admin from "./pages/Admin";
+import Profile from "./pages/Profile";
+import Navbar from "./components/layout/Navbar";
 
 function App() {
   return (
