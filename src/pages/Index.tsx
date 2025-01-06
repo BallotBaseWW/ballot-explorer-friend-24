@@ -5,7 +5,7 @@ import { AuthContainer } from "@/components/auth/AuthContainer";
 const Index = () => {
   return (
     <AuthContainer>
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-background">
         <Header />
         <main className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-12 pt-12">
@@ -14,13 +14,13 @@ const Index = () => {
                 BallotBase
               </span>
             </h1>
-            <p className="text-lg md:text-xl text-neutral">
+            <p className="text-lg md:text-xl text-foreground/70">
               Modern Voter Information Platform
             </p>
           </div>
           <CountySelector />
         </main>
-        <footer className="py-8 text-center text-neutral text-sm">
+        <footer className="py-8 text-center text-foreground/60 text-sm">
           <p>© 2024 BallotBase. All rights reserved.</p>
         </footer>
       </div>

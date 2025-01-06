@@ -19,10 +19,10 @@ export const CountySelector = () => {
 
   return (
     <div className="max-w-4xl mx-auto p-4">
-      <Card>
+      <Card className="bg-card">
         <CardHeader>
-          <CardTitle>Select a County</CardTitle>
-          <CardDescription>Choose a county to search for voters</CardDescription>
+          <CardTitle className="text-card-foreground">Select a County</CardTitle>
+          <CardDescription className="text-card-foreground/70">Choose a county to search for voters</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -31,7 +31,7 @@ export const CountySelector = () => {
                 key={county.id}
                 onClick={() => handleCountySelect(county.id)}
                 variant="outline"
-                className="h-24 text-lg"
+                className="h-24 text-lg bg-background/5 hover:bg-background/10 border-border/10"
               >
                 {county.name}
               </Button>
