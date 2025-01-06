@@ -17,8 +17,6 @@ export const useInteractionMutation = (onSuccess: () => void) => {
 
   return useMutation({
     mutationFn: async ({ userId, selectedVoter, type, notes }: CreateInteractionData) => {
-      console.log('Starting interaction mutation with data:', { userId, selectedVoter, type, notes });
-
       if (!userId) {
         throw new Error("User ID is required");
       }
@@ -36,8 +34,6 @@ export const useInteractionMutation = (onSuccess: () => void) => {
         interaction_date: new Date().toISOString(),
       };
 
-      console.log('Inserting interaction with data:', interactionData);
-
       const { data, error } = await supabase
         .from("voter_interactions")
         .insert(interactionData)
@@ -49,7 +45,6 @@ export const useInteractionMutation = (onSuccess: () => void) => {
         throw error;
       }
 
-      console.log('Interaction created successfully:', data);
       return data;
     },
     onSuccess: () => {
