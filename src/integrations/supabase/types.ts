@@ -9,6 +9,51 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      access_requests: {
+        Row: {
+          address: string
+          city: string
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          organization: string
+          password_hash: string
+          state: string
+          status: string | null
+          updated_at: string
+          zip: string
+        }
+        Insert: {
+          address: string
+          city: string
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          organization: string
+          password_hash: string
+          state: string
+          status?: string | null
+          updated_at?: string
+          zip: string
+        }
+        Update: {
+          address?: string
+          city?: string
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          organization?: string
+          password_hash?: string
+          state?: string
+          status?: string | null
+          updated_at?: string
+          zip?: string
+        }
+        Relationships: []
+      }
       bronx: {
         Row: {
           application_date: string | null
@@ -879,6 +924,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      approve_access_request: {
+        Args: {
+          request_id: string
+        }
+        Returns: undefined
+      }
       calculate_age: {
         Args: {
           dob_str: string
