@@ -8,6 +8,7 @@ import { TagList } from "@/components/search/voter-card/tag-manager/TagList";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
+import { InteractionManager } from "@/components/interactions/InteractionManager";
 
 const Tags = () => {
   useAuthCheck();
@@ -127,10 +128,7 @@ const Tags = () => {
 
           <TabsContent value="interactions">
             <Card className="p-6">
-              <h2 className="text-lg font-semibold">Interaction Management</h2>
-              <p className="text-muted-foreground mt-2">
-                Track and manage your voter interactions here. Coming soon.
-              </p>
+              <InteractionManager />
             </Card>
           </TabsContent>
 
