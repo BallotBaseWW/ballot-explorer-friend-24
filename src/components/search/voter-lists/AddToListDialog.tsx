@@ -60,6 +60,12 @@ export function AddToListDialog({ voters, county }: AddToListDialogProps) {
 
   const handleSubmit = async (values: FormValues) => {
     try {
+      // Get the current user's ID
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error("User not authenticated");
+      }
+
       let listId = values.listId;
 
       // Create new list if needed
@@ -69,6 +75,7 @@ export function AddToListDialog({ voters, county }: AddToListDialogProps) {
           .insert({
             name: values.newListName,
             description: values.newListDescription,
+            user_id: user.id, // Include the user_id here
           })
           .select()
           .single();
