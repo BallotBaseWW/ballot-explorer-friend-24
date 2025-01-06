@@ -9,60 +9,63 @@ import Login from "@/pages/Login";
 import Admin from "@/pages/Admin";
 import RequestAccess from "@/pages/RequestAccess";
 import { AuthContainer } from "@/components/auth/AuthContainer";
+import { ThemeProvider } from "@/components/theme/ThemeProvider";
 
 const queryClient = new QueryClient();
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <Router>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/request-access" element={<RequestAccess />} />
-          <Route
-            path="/"
-            element={
-              <AuthContainer>
-                <Index />
-              </AuthContainer>
-            }
-          />
-          <Route
-            path="/search/:county"
-            element={
-              <AuthContainer>
-                <Search />
-              </AuthContainer>
-            }
-          />
-          <Route
-            path="/lists"
-            element={
-              <AuthContainer>
-                <Lists />
-              </AuthContainer>
-            }
-          />
-          <Route
-            path="/lists/:id"
-            element={
-              <AuthContainer>
-                <ListDetails />
-              </AuthContainer>
-            }
-          />
-          <Route
-            path="/admin"
-            element={
-              <AuthContainer adminOnly>
-                <Admin />
-              </AuthContainer>
-            }
-          />
-          <Route path="*" element={<Navigate to="/login" replace />} />
-        </Routes>
-        <Toaster />
-      </Router>
+      <ThemeProvider defaultTheme="light" storageKey="ballotbase-theme">
+        <Router>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/request-access" element={<RequestAccess />} />
+            <Route
+              path="/"
+              element={
+                <AuthContainer>
+                  <Index />
+                </AuthContainer>
+              }
+            />
+            <Route
+              path="/search/:county"
+              element={
+                <AuthContainer>
+                  <Search />
+                </AuthContainer>
+              }
+            />
+            <Route
+              path="/lists"
+              element={
+                <AuthContainer>
+                  <Lists />
+                </AuthContainer>
+              }
+            />
+            <Route
+              path="/lists/:id"
+              element={
+                <AuthContainer>
+                  <ListDetails />
+                </AuthContainer>
+              }
+            />
+            <Route
+              path="/admin"
+              element={
+                <AuthContainer adminOnly>
+                  <Admin />
+                </AuthContainer>
+              }
+            />
+            <Route path="*" element={<Navigate to="/login" replace />} />
+          </Routes>
+          <Toaster />
+        </Router>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }
