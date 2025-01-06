@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useSession } from "@supabase/auth-helpers-react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -8,6 +8,8 @@ import { useToast } from "@/hooks/use-toast";
 import { MessageSquare, Plus } from "lucide-react";
 import { CreateInteractionDialog } from "./CreateInteractionDialog";
 import { InteractionsList } from "./InteractionsList";
+import { County } from "../search/list-utils/types";
+import { Interaction } from "./types";
 
 export const InteractionManager = () => {
   const session = useSession();
@@ -34,7 +36,12 @@ export const InteractionManager = () => {
         });
         return [];
       }
-      return data;
+
+      // Ensure county is of type County
+      return data.map(interaction => ({
+        ...interaction,
+        county: interaction.county.toLowerCase() as County
+      })) as Interaction[];
     },
     enabled: !!session?.user?.id,
   });
