@@ -62,10 +62,10 @@ export const Header = () => {
   }, [navigate]);
 
   return (
-    <header className="border-b bg-white sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+    <header className="border-b bg-white">
+      <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
         <div 
-          className="text-2xl font-bold cursor-pointer flex items-center"
+          className="text-2xl font-bold cursor-pointer"
           onClick={handleNavigate("/")}
         >
           <span className="bg-gradient-to-r from-[#33C3F0] via-[#8E77B5] to-[#ea384c] bg-clip-text text-transparent">
@@ -73,7 +73,7 @@ export const Header = () => {
           </span>
         </div>
         
-        <nav className="flex items-center gap-6">
+        <div className="flex items-center gap-4">
           <Button
             variant="ghost"
             size="icon"
@@ -89,7 +89,7 @@ export const Header = () => {
                 <User className="h-5 w-5" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={handleNavigate("/")}>
                 <Home className="mr-2 h-4 w-4" />
                 Home
@@ -110,7 +110,7 @@ export const Header = () => {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-        </nav>
+        </div>
       </div>
     </header>
   );

@@ -7,11 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Trash2, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { CreateListDialog } from "@/components/search/voter-lists/CreateListDialog";
-import { useNavigate } from "react-router-dom";
 
 const Lists = () => {
   const { toast } = useToast();
-  const navigate = useNavigate();
   const [selectedList, setSelectedList] = useState<string | null>(null);
 
   const { data: lists, refetch: refetchLists } = useQuery({
@@ -67,11 +65,7 @@ const Lists = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {lists?.map((list) => (
-            <Card 
-              key={list.id} 
-              className="cursor-pointer hover:shadow-md transition-shadow"
-              onClick={() => navigate(`/lists/${list.id}`)}
-            >
+            <Card key={list.id}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-lg font-semibold">
                   {list.name}
@@ -79,10 +73,7 @@ const Lists = () => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDeleteList(list.id);
-                  }}
+                  onClick={() => handleDeleteList(list.id)}
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
@@ -95,6 +86,10 @@ const Lists = () => {
                   <span className="text-sm">
                     {list.voter_list_items?.[0]?.count || 0} voters
                   </span>
+                  <Button variant="outline" size="sm">
+                    <Download className="h-4 w-4 mr-2" />
+                    Export
+                  </Button>
                 </div>
               </CardContent>
             </Card>

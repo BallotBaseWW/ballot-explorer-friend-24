@@ -38,84 +38,36 @@ export const exportToPdf = async (
 ) => {
   if (selectedFields.length === 0 && !exportAllFields) return;
 
-  const doc = new jsPDF({
-    orientation: 'landscape',
-    unit: 'mm',
-    format: 'a4'
-  });
+  const doc = new jsPDF();
   
   try {
-    // Set up fonts and styling
-    doc.setFont("helvetica");
-    
-    // Add header with proper styling
+    // Add BallotBase text with styling
     doc.setFontSize(24);
-    doc.setTextColor(51, 195, 240); // Primary blue
-    doc.text("Ballot", 20, 20);
-    doc.setTextColor(234, 56, 76); // Secondary red
+    doc.setTextColor(51, 195, 240); // #33C3F0
+    doc.text("Ballot", 10, 20);
+    doc.setTextColor(234, 56, 76); // #ea384c
     doc.text("Base", 45, 20);
     
-    // Add list information
-    doc.setFontSize(16);
-    doc.setTextColor(0);
-    doc.text(listName, 20, 30);
-    
-    // Add metadata
-    doc.setFontSize(10);
-    doc.text(`Generated: ${new Date().toLocaleString()}`, 20, 37);
-    doc.text(`Total Voters: ${voters.length}`, 20, 43);
+    // Add title
+    doc.setFontSize(18);
+    doc.setTextColor(0, 0, 0); // Reset to black
+    doc.text(listName, 10, 40);
     
     // Prepare table data
     const fieldsToExport = exportAllFields ? Object.keys(voters[0] || {}) : selectedFields;
-    const headers = fieldsToExport.map(field => ({
-      header: field.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '),
-      dataKey: field
-    }));
+    const headers = fieldsToExport.map((field) => field.replace(/_/g, ' ').toUpperCase());
 
-    const tableData = voters.map(voter => {
-      const row: Record<string, string> = {};
-      fieldsToExport.forEach(field => {
-        row[field] = voter[field as keyof typeof voter]?.toString() || '';
-      });
-      return row;
-    });
+    const rows = voters.map((voter) =>
+      fieldsToExport.map((field) => voter[field as keyof typeof voter] || "")
+    );
 
-    // Add table with improved styling
+    // Add table
     autoTable(doc, {
+      head: [headers],
+      body: rows,
       startY: 50,
-      head: [headers.map(h => h.header)],
-      body: tableData.map(row => headers.map(h => row[h.dataKey])),
-      styles: {
-        font: "helvetica",
-        fontSize: 8,
-        cellPadding: 2,
-        overflow: 'linebreak',
-        cellWidth: 'wrap'
-      },
-      headStyles: {
-        fillColor: [51, 195, 240],
-        textColor: 255,
-        fontSize: 9,
-        fontStyle: 'bold',
-        halign: 'left'
-      },
-      columnStyles: {
-        0: { cellWidth: 30 }, // Name columns
-        1: { cellWidth: 'auto' },
-        2: { cellWidth: 'auto' }
-      },
-      margin: { top: 50, right: 15, bottom: 20, left: 15 },
-      didDrawPage: (data) => {
-        // Add header to each page
-        doc.setFontSize(8);
-        doc.text(`${listName} - Page ${doc.getCurrentPageInfo().pageNumber}`, 20, 10);
-      },
-      willDrawCell: (data) => {
-        // Ensure text wrapping for long content
-        if (data.cell.text.length > 50) {
-          data.cell.styles.cellWidth = 'wrap';
-        }
-      }
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: [41, 128, 185] },
     });
 
     doc.save(`${listName}_voters.pdf`);
