@@ -12,11 +12,13 @@ interface VoterInfo {
   county: County;
 }
 
+type InteractionType = "call" | "email" | "meeting" | "door_knock" | "other";
+
 interface InteractionFormProps {
   selectedVoter: VoterInfo;
-  type: string;
+  type: InteractionType;
   notes: string;
-  onTypeChange: (value: string) => void;
+  onTypeChange: (value: InteractionType) => void;
   onNotesChange: (value: string) => void;
   onSubmit: () => void;
   onBack: () => void;

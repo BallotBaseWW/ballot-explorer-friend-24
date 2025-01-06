@@ -24,6 +24,8 @@ interface CreateInteractionDialogProps {
   onSuccess: () => void;
 }
 
+type InteractionType = "call" | "email" | "meeting" | "door_knock" | "other";
+
 export const CreateInteractionDialog = ({
   open,
   onOpenChange,
@@ -35,7 +37,7 @@ export const CreateInteractionDialog = ({
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedVoter, setSelectedVoter] = useState<VoterInfo | null>(null);
   const [searchResults, setSearchResults] = useState<VoterInfo[]>([]);
-  const [type, setType] = useState("call");
+  const [type, setType] = useState<InteractionType>("call");
   const [notes, setNotes] = useState("");
   const [isSearching, setIsSearching] = useState(false);
 
