@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { Login } from "@/pages/Login";
+import Login from "@/pages/Login";
 import { RequestAccessForm } from "@/components/auth/RequestAccessForm";
 import { AuthContainer } from "@/components/auth/AuthContainer";
 import { Home } from "@/pages/Home";
