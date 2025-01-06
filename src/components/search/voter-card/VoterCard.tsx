@@ -14,6 +14,7 @@ import { PersonalInfo } from "./PersonalInfo";
 import { AddressInfo } from "./AddressInfo";
 import { formatDate } from "@/lib/utils";
 import { County } from "../types";
+import { AddSingleVoterDialog } from "../voter-lists/AddSingleVoterDialog";
 
 type VoterRecord = Database["public"]["Tables"]["bronx"]["Row"];
 
@@ -51,8 +52,9 @@ export const VoterCard = ({ voter, county, onPrint }: VoterCardProps) => {
               zipFour={voter.zip_four}
             />
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <PartyBadge party={voter.enrolled_party} />
+            <AddSingleVoterDialog voter={voter} county={county} />
           </div>
         </div>
       </CardHeader>

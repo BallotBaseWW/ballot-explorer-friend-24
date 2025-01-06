@@ -23,9 +23,6 @@ export const SearchResults = ({ results, county, searchQuery }: SearchResultsPro
   const { toast } = useToast();
   const [currentPage, setCurrentPage] = useState(1);
 
-  console.log('SearchResults component - Number of results:', results.length);
-  console.log('First few results:', results.slice(0, 3));
-
   if (!Array.isArray(results)) {
     console.error('Results is not an array:', results);
     return null;
@@ -35,8 +32,6 @@ export const SearchResults = ({ results, county, searchQuery }: SearchResultsPro
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const endIndex = startIndex + ITEMS_PER_PAGE;
   const currentResults = results.slice(startIndex, endIndex);
-
-  console.log('Current page results:', currentResults);
 
   const handlePrint = async (voter: VoterRecord) => {
     try {
@@ -61,7 +56,6 @@ export const SearchResults = ({ results, county, searchQuery }: SearchResultsPro
     });
   };
 
-  // Only show results section if a search has been performed
   if (!searchQuery) {
     return null;
   }
