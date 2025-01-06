@@ -9,51 +9,50 @@ export const useAuthCheck = () => {
   const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
+    let mounted = true;
+
     const checkAuth = async () => {
       try {
         console.log("Checking auth in useAuthCheck...");
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) throw sessionError;
+        
         console.log("Session in useAuthCheck:", session);
         
         if (!session) {
           console.log("No session found, redirecting to login");
-          toast({
-            title: "Authentication Required",
-            description: "Please log in to access this page.",
-            variant: "destructive",
-          });
-          navigate("/login");
+          if (mounted) {
+            toast({
+              title: "Authentication Required",
+              description: "Please log in to access this page.",
+              variant: "destructive",
+            });
+            navigate("/login");
+          }
           return false;
         }
 
-        // Check if user is approved
-        const { data: profile, error } = await supabase
+        const { data: profile, error: profileError } = await supabase
           .from("profiles")
           .select("approved")
           .eq("id", session.user.id)
           .single();
 
-        console.log("Profile check in useAuthCheck:", profile, error);
+        console.log("Profile check in useAuthCheck:", profile, profileError);
 
-        if (error) {
-          console.error("Profile check error:", error);
-          toast({
-            title: "Error",
-            description: "There was an error checking your account status.",
-            variant: "destructive",
-          });
-          navigate("/login");
-          return false;
-        }
+        if (profileError) throw profileError;
 
         if (!profile?.approved) {
           console.log("User not approved, redirecting to login");
-          toast({
-            title: "Account Pending Approval",
-            description: "Your account is pending administrator approval.",
-          });
-          await supabase.auth.signOut();
-          navigate("/login");
+          if (mounted) {
+            toast({
+              title: "Account Pending Approval",
+              description: "Your account is pending administrator approval.",
+            });
+            await supabase.auth.signOut();
+            navigate("/login");
+          }
           return false;
         }
 
@@ -61,16 +60,20 @@ export const useAuthCheck = () => {
         return true;
       } catch (error) {
         console.error("Auth check error:", error);
-        toast({
-          title: "Error",
-          description: "There was an error checking your authentication status.",
-          variant: "destructive",
-        });
-        navigate("/login");
+        if (mounted) {
+          toast({
+            title: "Error",
+            description: "There was an error checking your authentication status.",
+            variant: "destructive",
+          });
+          navigate("/login");
+        }
         return false;
       } finally {
-        console.log("Setting isChecking to false");
-        setIsChecking(false);
+        if (mounted) {
+          console.log("Setting isChecking to false");
+          setIsChecking(false);
+        }
       }
     };
     
@@ -80,11 +83,14 @@ export const useAuthCheck = () => {
       console.log("Auth state changed in useAuthCheck:", event, session?.user?.id);
       
       if (event === 'SIGNED_OUT' || !session) {
-        navigate('/login');
+        if (mounted) {
+          navigate('/login');
+        }
       }
     });
 
     return () => {
+      mounted = false;
       subscription.unsubscribe();
     };
   }, [navigate, toast]);
