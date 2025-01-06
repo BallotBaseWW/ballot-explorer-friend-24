@@ -1,5 +1,5 @@
 import { RequestAccessForm } from "@/components/access/RequestAccessForm";
-import { LoginHeader } from "@/components/auth/LoginHeader";
+import LoginHeader from "@/components/auth/LoginHeader";
 
 export default function RequestAccess() {
   return (
