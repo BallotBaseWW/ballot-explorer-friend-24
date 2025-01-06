@@ -6,7 +6,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { User, Home, LogOut, Shield, ListTodo } from "lucide-react";
+import { User, Home, LogOut, Shield, ListTodo, UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { useQuery } from "@tanstack/react-query";
@@ -83,6 +83,15 @@ export const Header = () => {
             <Home className="h-5 w-5" />
           </Button>
           
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleNavigate("/request-access")}
+            className="hidden md:flex"
+          >
+            <UserPlus className="h-5 w-5" />
+          </Button>
+          
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon">
@@ -104,6 +113,10 @@ export const Header = () => {
                   Admin Panel
                 </DropdownMenuItem>
               )}
+              <DropdownMenuItem onClick={handleNavigate("/request-access")}>
+                <UserPlus className="mr-2 h-4 w-4" />
+                Request Access
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />
                 Logout
