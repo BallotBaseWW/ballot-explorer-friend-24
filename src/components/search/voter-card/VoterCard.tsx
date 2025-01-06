@@ -1,5 +1,4 @@
 import { Database } from "@/integrations/supabase/types";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AddToListDialog } from "../AddToListDialog";
 import { TagManager } from "./TagManager";
@@ -12,6 +11,8 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { useState } from "react";
+import { PartyBadge } from "./PartyBadge";
+import { StatusBadge } from "./StatusBadge";
 
 type VoterRecord = Database["public"]["Tables"]["bronx"]["Row"];
 
@@ -56,10 +57,8 @@ export const VoterCard = ({ voter, county, onPrint }: VoterCardProps) => {
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Badge variant={voter.voter_status === "A" ? "default" : "secondary"}>
-              {voter.voter_status === "A" ? "Active" : "Inactive"}
-            </Badge>
-            <Badge variant="outline">{voter.enrolled_party || "No Party"}</Badge>
+            <StatusBadge status={voter.voter_status || ""} />
+            <PartyBadge party={voter.enrolled_party} />
           </div>
         </div>
       </CardHeader>
