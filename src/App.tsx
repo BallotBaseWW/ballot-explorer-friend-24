@@ -11,6 +11,7 @@ import Search from "./pages/Search";
 import Admin from "./pages/Admin";
 import Lists from "./pages/Lists";
 import ListDetail from "./pages/ListDetail";
+import Tags from "./pages/Tags";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -110,6 +111,14 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <ListDetail />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/tags"
+            element={
+              <ProtectedRoute>
+                <Tags />
               </ProtectedRoute>
             }
           />
