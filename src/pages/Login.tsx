@@ -124,7 +124,10 @@ const Login = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-100 via-white to-blue-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <LoginHeader />
+        <LoginHeader 
+          heading="Welcome to BallotBase"
+          text="Sign in or create an account to continue"
+        />
         <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
           <AuthContainer>
             <Auth
