@@ -10,49 +10,26 @@ const Login = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check if user is already logged in
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        navigate("/");
-      }
-    });
-
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log("Auth event:", event);
-        
         if (event === "SIGNED_IN") {
           // Check if user is approved
-          const { data: profile, error: profileError } = await supabase
+          const { data: profile } = await supabase
             .from("profiles")
             .select("approved")
             .eq("id", session?.user?.id)
             .single();
 
-          if (profileError) {
-            console.error("Error fetching profile:", profileError);
-            toast({
-              title: "Error",
-              description: "There was a problem checking your account status.",
-              variant: "destructive",
-            });
-            await supabase.auth.signOut();
-            return;
-          }
-
           if (!profile?.approved) {
             toast({
               title: "Account Pending Approval",
               description: "Your account is pending administrator approval.",
-              variant: "destructive",
             });
             await supabase.auth.signOut();
             return;
           }
 
           navigate("/");
-        } else if (event === "SIGNED_OUT") {
-          navigate("/login");
         }
       }
     );
@@ -70,7 +47,7 @@ const Login = () => {
             Welcome to BallotBase
           </h2>
           <p className="text-lg text-gray-600">
-            Sign in with your email to continue
+            Sign in or create an account to continue
           </p>
         </div>
         <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
@@ -133,7 +110,6 @@ const Login = () => {
               },
             }}
             providers={[]}
-            view="magic_link"
           />
         </div>
       </div>
