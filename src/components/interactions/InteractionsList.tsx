@@ -1,6 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { formatDistanceToNow } from "date-fns";
 import { MessageSquare, Phone, Mail, Users, Home } from "lucide-react";
+import { County } from "@/components/search/list-utils/types";
 
 const getInteractionIcon = (type: string) => {
   switch (type) {
@@ -32,13 +33,31 @@ const getInteractionLabel = (type: string) => {
   }
 };
 
-const getVoterName = (interaction: any) => {
-  const voter = interaction[interaction.county.toLowerCase()];
+interface VoterData {
+  first_name?: string;
+  last_name?: string;
+}
+
+interface Interaction {
+  id: string;
+  type: string;
+  notes?: string;
+  interaction_date: string;
+  county: County;
+  bronx?: VoterData;
+  brooklyn?: VoterData;
+  manhattan?: VoterData;
+  queens?: VoterData;
+  statenisland?: VoterData;
+}
+
+const getVoterName = (interaction: Interaction) => {
+  const voter = interaction[interaction.county.toLowerCase() as keyof Interaction] as VoterData | undefined;
   if (!voter) return "Unknown Voter";
   return `${voter.first_name || ""} ${voter.last_name || ""}`.trim() || "Unknown Voter";
 };
 
-export const InteractionsList = ({ interactions }: { interactions: any[] }) => {
+export const InteractionsList = ({ interactions }: { interactions: Interaction[] }) => {
   if (!interactions || interactions.length === 0) {
     return (
       <Card className="p-4">
