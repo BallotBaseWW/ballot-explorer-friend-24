@@ -31,11 +31,9 @@ export const TagManager = ({ stateVoterId, county }: TagManagerProps) => {
 
   const userId = session?.user?.id;
 
-  console.log('Current user ID:', userId);
-
   // Fetch existing tags
   const { data: tags } = useQuery({
-    queryKey: ["voter-tags"],
+    queryKey: ["voter-tags", userId],
     queryFn: async () => {
       if (!userId) return [];
       const { data, error } = await supabase
