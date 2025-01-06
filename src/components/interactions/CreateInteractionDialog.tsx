@@ -3,17 +3,13 @@ import { useSession } from "@supabase/auth-helpers-react";
 import { useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { County } from "@/components/search/list-utils/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card } from "@/components/ui/card";
-
-type InteractionType = "call" | "email" | "meeting" | "door_knock" | "other";
+import { County } from "@/components/search/list-utils/types";
+import { CountySelector } from "./voter-search/CountySelector";
+import { VoterSearchForm } from "./voter-search/VoterSearchForm";
+import { VoterSearchResults } from "./voter-search/VoterSearchResults";
+import { InteractionForm } from "./interaction-form/InteractionForm";
 
 interface VoterInfo {
   state_voter_id: string;
@@ -35,53 +31,33 @@ export const CreateInteractionDialog = ({
 }: CreateInteractionDialogProps) => {
   const session = useSession();
   const { toast } = useToast();
+  const [selectedCounty, setSelectedCounty] = useState<County | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedVoter, setSelectedVoter] = useState<VoterInfo | null>(null);
   const [searchResults, setSearchResults] = useState<VoterInfo[]>([]);
-  const [type, setType] = useState<InteractionType>("call");
+  const [type, setType] = useState("call");
   const [notes, setNotes] = useState("");
   const [isSearching, setIsSearching] = useState(false);
 
-  const searchVoter = async (query: string) => {
+  const searchVoter = async () => {
+    if (!selectedCounty || !searchQuery) return;
+    
     setIsSearching(true);
     try {
-      // Try to find by NYS Voter ID first
-      const counties: County[] = ["bronx", "brooklyn", "manhattan", "queens", "statenisland"];
-      let found = false;
+      const { data, error } = await supabase
+        .from(selectedCounty)
+        .select('state_voter_id, first_name, last_name')
+        .or(`state_voter_id.eq.${searchQuery},last_name.ilike.${searchQuery}%`)
+        .limit(5);
 
-      for (const county of counties) {
-        const { data, error } = await supabase
-          .from(county)
-          .select('state_voter_id, first_name, last_name')
-          .eq('state_voter_id', query)
-          .single();
+      if (error) throw error;
 
-        if (data && !error) {
-          setSearchResults([{ ...data, county }]);
-          found = true;
-          break;
-        }
-      }
-
-      // If not found by ID, search by name
-      if (!found) {
-        const allResults = await Promise.all(
-          counties.map(async (county) => {
-            const { data, error } = await supabase
-              .from(county)
-              .select('state_voter_id, first_name, last_name')
-              .ilike('last_name', `${query}%`)
-              .limit(5);
-
-            if (data && !error) {
-              return data.map(voter => ({ ...voter, county }));
-            }
-            return [];
-          })
-        );
-
-        setSearchResults(allResults.flat());
-      }
+      setSearchResults(
+        data.map(voter => ({
+          ...voter,
+          county: selectedCounty
+        }))
+      );
     } catch (error) {
       console.error('Error searching voter:', error);
       toast({
@@ -125,6 +101,7 @@ export const CreateInteractionDialog = ({
   });
 
   const resetForm = () => {
+    setSelectedCounty(null);
     setSearchQuery("");
     setSelectedVoter(null);
     setSearchResults([]);
@@ -151,97 +128,40 @@ export const CreateInteractionDialog = ({
 
           <TabsContent value="search">
             <div className="space-y-4">
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Enter NYS Voter ID or last name"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-                <Button 
-                  onClick={() => searchVoter(searchQuery)}
-                  disabled={!searchQuery || isSearching}
-                >
-                  {isSearching ? "Searching..." : "Search"}
-                </Button>
-              </div>
+              <CountySelector
+                onCountySelect={setSelectedCounty}
+                selectedCounty={selectedCounty}
+              />
 
-              <div className="space-y-2">
-                {searchResults.map((voter) => (
-                  <Card
-                    key={`${voter.county}-${voter.state_voter_id}`}
-                    className="p-4 cursor-pointer hover:bg-gray-50"
-                    onClick={() => setSelectedVoter(voter)}
-                  >
-                    <p className="font-medium">
-                      {voter.first_name} {voter.last_name}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      ID: {voter.state_voter_id} | County: {voter.county}
-                    </p>
-                  </Card>
-                ))}
-              </div>
+              <VoterSearchForm
+                searchQuery={searchQuery}
+                onSearchQueryChange={setSearchQuery}
+                onSearch={searchVoter}
+                isSearching={isSearching}
+                selectedCounty={selectedCounty}
+              />
+
+              {searchResults.length > 0 && (
+                <VoterSearchResults
+                  results={searchResults}
+                  onVoterSelect={setSelectedVoter}
+                />
+              )}
             </div>
           </TabsContent>
 
           <TabsContent value="create">
             {selectedVoter && (
-              <div className="space-y-4">
-                <Card className="p-4">
-                  <p className="font-medium">
-                    Selected Voter: {selectedVoter.first_name} {selectedVoter.last_name}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    ID: {selectedVoter.state_voter_id} | County: {selectedVoter.county}
-                  </p>
-                </Card>
-
-                <div className="space-y-2">
-                  <Label htmlFor="type">Interaction Type</Label>
-                  <Select value={type} onValueChange={(value: InteractionType) => setType(value)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="call">Phone Call</SelectItem>
-                      <SelectItem value="email">Email</SelectItem>
-                      <SelectItem value="meeting">Meeting</SelectItem>
-                      <SelectItem value="door_knock">Door Knock</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="notes">Notes</Label>
-                  <Textarea
-                    id="notes"
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Enter any additional notes about the interaction..."
-                    className="min-h-[100px]"
-                  />
-                </div>
-
-                <div className="flex justify-end gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => {
-                      setSelectedVoter(null);
-                      setSearchResults([]);
-                    }}
-                  >
-                    Back to Search
-                  </Button>
-                  <Button
-                    onClick={() => createInteractionMutation.mutate()}
-                    disabled={createInteractionMutation.isPending}
-                  >
-                    Save Interaction
-                  </Button>
-                </div>
-              </div>
+              <InteractionForm
+                selectedVoter={selectedVoter}
+                type={type}
+                notes={notes}
+                onTypeChange={setType}
+                onNotesChange={setNotes}
+                onSubmit={() => createInteractionMutation.mutate()}
+                onBack={() => setSelectedVoter(null)}
+                isSubmitting={createInteractionMutation.isPending}
+              />
             )}
           </TabsContent>
         </Tabs>
