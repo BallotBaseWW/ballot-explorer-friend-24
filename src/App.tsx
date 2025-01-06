@@ -1,59 +1,47 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import Login from "./pages/Login";
+import RequestAccessForm from "./components/auth/RequestAccessForm";
 import { Toaster } from "@/components/ui/toaster";
-import Index from "@/pages/Index";
-import Search from "@/pages/Search";
-import Lists from "@/pages/Lists";
-import ListDetails from "@/pages/ListDetails";
-import Login from "@/pages/Login";
-import Admin from "@/pages/Admin";
 import { AuthContainer } from "@/components/auth/AuthContainer";
-
-const queryClient = new QueryClient();
+import { Home } from "@/pages/Home";
+import { Admin } from "@/pages/Admin";
+import { Profile } from "@/pages/Profile";
+import { Navbar } from "@/components/layout/Navbar";
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <Router>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/login" element={<Login />} />
-          <Route
-            path="/search/:county"
-            element={
-              <AuthContainer>
-                <Search />
-              </AuthContainer>
-            }
-          />
-          <Route
-            path="/lists"
-            element={
-              <AuthContainer>
-                <Lists />
-              </AuthContainer>
-            }
-          />
-          <Route
-            path="/lists/:id"
-            element={
-              <AuthContainer>
-                <ListDetails />
-              </AuthContainer>
-            }
-          />
-          <Route
-            path="/admin"
-            element={
-              <AuthContainer adminOnly>
-                <Admin />
-              </AuthContainer>
-            }
-          />
-        </Routes>
-        <Toaster />
-      </Router>
-    </QueryClientProvider>
+    <Router>
+      <Navbar />
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/request-access" element={<RequestAccessForm />} />
+        <Route
+          path="/"
+          element={
+            <AuthContainer>
+              <Home />
+            </AuthContainer>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <AuthContainer adminOnly>
+              <Admin />
+            </AuthContainer>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <AuthContainer>
+              <Profile />
+            </AuthContainer>
+          }
+        />
+      </Routes>
+      <Toaster />
+    </Router>
   );
 }
 
