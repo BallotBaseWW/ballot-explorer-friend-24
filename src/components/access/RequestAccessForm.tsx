@@ -1,33 +1,13 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import { Form } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-
-const formSchema = z.object({
-  full_name: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
-  organization: z.string().min(2, "Organization must be at least 2 characters"),
-  address: z.string().min(5, "Please enter a valid address"),
-  city: z.string().min(2, "Please enter a valid city"),
-  state: z.string().min(2, "Please enter a valid state"),
-  zip: z.string().min(5, "Please enter a valid ZIP code"),
-});
-
-type FormData = z.infer<typeof formSchema>;
+import { FormSection } from "./FormSection";
+import { formSchema, FormData } from "./types";
 
 export function RequestAccessForm() {
   const [isLoading, setIsLoading] = useState(false);
@@ -55,7 +35,7 @@ export function RequestAccessForm() {
         {
           full_name: data.full_name,
           email: data.email,
-          password_hash: data.password, // Note: In a production environment, this should be properly hashed
+          password_hash: data.password,
           organization: data.organization,
           address: data.address,
           city: data.city,
@@ -85,120 +65,63 @@ export function RequestAccessForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <FormSection
+          form={form}
           name="full_name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Full Name</FormLabel>
-              <FormControl>
-                <Input placeholder="John Doe" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+          label="Full Name"
+          placeholder="John Doe"
         />
-
-        <FormField
-          control={form.control}
+        <FormSection
+          form={form}
           name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email</FormLabel>
-              <FormControl>
-                <Input type="email" placeholder="john@example.com" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+          label="Email"
+          type="email"
+          placeholder="john@example.com"
         />
-
-        <FormField
-          control={form.control}
+        <FormSection
+          form={form}
           name="password"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Password</FormLabel>
-              <FormControl>
-                <Input type="password" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+          label="Password"
+          type="password"
         />
-
-        <FormField
-          control={form.control}
+        <FormSection
+          form={form}
           name="organization"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Organization / Affiliation</FormLabel>
-              <FormControl>
-                <Input placeholder="Organization name" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+          label="Organization / Affiliation"
+          placeholder="Organization name"
         />
-
-        <FormField
-          control={form.control}
+        <FormSection
+          form={form}
           name="address"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Address</FormLabel>
-              <FormControl>
-                <Input placeholder="123 Main St" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+          label="Address"
+          placeholder="123 Main St"
         />
-
-        <FormField
-          control={form.control}
-          name="city"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>City</FormLabel>
-              <FormControl>
-                <Input placeholder="New York" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="state"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>State</FormLabel>
-              <FormControl>
-                <Input placeholder="NY" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="zip"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>ZIP Code</FormLabel>
-              <FormControl>
-                <Input placeholder="10001" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <Button type="submit" className="w-full" disabled={isLoading}>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <FormSection
+            form={form}
+            name="city"
+            label="City"
+            placeholder="New York"
+          />
+          <FormSection
+            form={form}
+            name="state"
+            label="State"
+            placeholder="NY"
+          />
+          <FormSection
+            form={form}
+            name="zip"
+            label="ZIP Code"
+            placeholder="10001"
+          />
+        </div>
+        <Button 
+          type="submit" 
+          className="w-full bg-primary hover:bg-primary/90" 
+          disabled={isLoading}
+        >
           {isLoading ? "Submitting..." : "Submit Request"}
         </Button>
       </form>
