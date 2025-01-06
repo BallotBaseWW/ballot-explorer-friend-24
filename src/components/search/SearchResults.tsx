@@ -60,6 +60,11 @@ export const SearchResults = ({ results, county, searchQuery }: SearchResultsPro
     });
   };
 
+  // Only show results section if a search has been performed
+  if (!searchQuery) {
+    return null;
+  }
+
   return (
     <div className="mt-8">
       <div className="flex justify-between items-center mb-4">
