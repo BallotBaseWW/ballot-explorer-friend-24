@@ -21,6 +21,9 @@ export const InteractionManager = () => {
     queryKey: ["voter-interactions", session?.user?.id],
     queryFn: async () => {
       if (!session?.user?.id) return [];
+      
+      console.log("Fetching interactions for user:", session.user.id);
+      
       const { data, error } = await supabase
         .from("voter_interactions")
         .select("*, bronx(*), brooklyn(*), manhattan(*), queens(*), statenisland(*)")
@@ -37,7 +40,9 @@ export const InteractionManager = () => {
         return [];
       }
 
-      // Ensure county is of type County
+      console.log("Fetched interactions:", data);
+
+      // Ensure county is of type County and convert to lowercase
       return data.map(interaction => ({
         ...interaction,
         county: interaction.county.toLowerCase() as County
