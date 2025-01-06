@@ -1,12 +1,11 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Login from "./pages/Login";
-import RequestAccessForm from "./components/auth/RequestAccessForm";
-import { Toaster } from "@/components/ui/toaster";
+import { Login } from "@/pages/Login";
+import { RequestAccessForm } from "@/components/auth/RequestAccessForm";
 import { AuthContainer } from "@/components/auth/AuthContainer";
-import Home from "./pages/Home";
-import Admin from "./pages/Admin";
-import Profile from "./pages/Profile";
-import Navbar from "./components/layout/Navbar";
+import { Home } from "@/pages/Home";
+import Admin from "@/pages/Admin";
+import Profile from "@/pages/Profile";
+import { Toaster } from "@/components/ui/toaster";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 // Create a client
@@ -23,7 +22,6 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <Router>
-        <Navbar />
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/request-access" element={<RequestAccessForm />} />
