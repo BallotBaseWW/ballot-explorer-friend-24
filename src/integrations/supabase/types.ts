@@ -815,6 +815,65 @@ export type Database = {
           },
         ]
       }
+      voter_list_items: {
+        Row: {
+          added_at: string
+          county: string
+          id: string
+          list_id: string
+          state_voter_id: string
+        }
+        Insert: {
+          added_at?: string
+          county: string
+          id?: string
+          list_id: string
+          state_voter_id: string
+        }
+        Update: {
+          added_at?: string
+          county?: string
+          id?: string
+          list_id?: string
+          state_voter_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "voter_list_items_list_id_fkey"
+            columns: ["list_id"]
+            isOneToOne: false
+            referencedRelation: "voter_lists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      voter_lists: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

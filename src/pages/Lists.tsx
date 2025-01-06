@@ -1,14 +1,126 @@
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { Header } from "@/components/Header";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Trash2, Download } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const Lists = () => {
+  const { toast } = useToast();
+  const [selectedList, setSelectedList] = useState<string | null>(null);
+
+  const { data: lists, refetch: refetchLists } = useQuery({
+    queryKey: ['voter-lists'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('voter_lists')
+        .select(`
+          *,
+          voter_list_items (
+            count
+          )
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: listItems } = useQuery({
+    queryKey: ['list-items', selectedList],
+    enabled: !!selectedList,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('voter_list_items')
+        .select(`
+          *,
+          bronx!inner (
+            first_name,
+            last_name,
+            enrolled_party,
+            voter_status
+          )
+        `)
+        .eq('list_id', selectedList);
+
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const handleDeleteList = async (listId: string) => {
+    try {
+      const { error } = await supabase
+        .from('voter_lists')
+        .delete()
+        .eq('id', listId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "List deleted successfully",
+      });
+      refetchLists();
+    } catch (error) {
+      console.error('Error deleting list:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete list",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       <Header />
-      <main className="max-w-7xl mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-6">My Lists</h1>
-        <div className="bg-white rounded-lg shadow p-6">
-          <p className="text-gray-600">Your saved voter lists will appear here.</p>
+      <main className="max-w-7xl mx-auto p-4">
+        <div className="mb-6">
+          <h2 className="text-2xl font-semibold">My Voter Lists</h2>
         </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {lists?.map((list) => (
+            <Card key={list.id}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-lg font-semibold">
+                  {list.name}
+                </CardTitle>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => handleDeleteList(list.id)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground mb-4">
+                  {list.description || "No description"}
+                </p>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">
+                    {list.voter_list_items?.[0]?.count || 0} voters
+                  </span>
+                  <Button variant="outline" size="sm">
+                    <Download className="h-4 w-4 mr-2" />
+                    Export
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {!lists?.length && (
+          <div className="text-center py-8 text-muted-foreground">
+            No lists created yet. Create a list by adding voters from search results.
+          </div>
+        )}
       </main>
     </div>
   );

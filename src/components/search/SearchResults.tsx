@@ -7,6 +7,7 @@ import { PaginationControls } from "./pagination/PaginationControls";
 import { Button } from "@/components/ui/button";
 import { ArrowUp } from "lucide-react";
 import { County } from "./types";
+import { AddToListDialog } from "./voter-lists/AddToListDialog";
 
 type VoterRecord = Database["public"]["Tables"]["bronx"]["Row"];
 
@@ -76,6 +77,7 @@ export const SearchResults = ({ results, county, searchQuery }: SearchResultsPro
             </span>
           )}
         </h2>
+        <AddToListDialog voters={results} county={county} />
       </div>
 
       {currentResults.length > 0 ? (
