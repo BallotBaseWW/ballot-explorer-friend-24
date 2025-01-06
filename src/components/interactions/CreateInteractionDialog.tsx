@@ -1,22 +1,15 @@
 import { useState } from "react";
 import { useSession } from "@supabase/auth-helpers-react";
-import { useMutation } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useToast } from "@/hooks/use-toast";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { County } from "@/components/search/list-utils/types";
 import { CountySelector } from "./voter-search/CountySelector";
 import { VoterSearchForm } from "./voter-search/VoterSearchForm";
 import { VoterSearchResults } from "./voter-search/VoterSearchResults";
 import { InteractionForm } from "./interaction-form/InteractionForm";
-
-interface VoterInfo {
-  state_voter_id: string;
-  first_name: string;
-  last_name: string;
-  county: County;
-}
+import { useInteractionMutation } from "./hooks/useInteractionMutation";
+import { VoterInfo, InteractionType } from "./types";
+import { supabase } from "@/integrations/supabase/client";
 
 interface CreateInteractionDialogProps {
   open: boolean;
@@ -24,15 +17,12 @@ interface CreateInteractionDialogProps {
   onSuccess: () => void;
 }
 
-type InteractionType = "call" | "email" | "meeting" | "door_knock" | "other";
-
 export const CreateInteractionDialog = ({
   open,
   onOpenChange,
   onSuccess,
 }: CreateInteractionDialogProps) => {
   const session = useSession();
-  const { toast } = useToast();
   const [selectedCounty, setSelectedCounty] = useState<County | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedVoter, setSelectedVoter] = useState<VoterInfo | null>(null);
@@ -42,6 +32,11 @@ export const CreateInteractionDialog = ({
   const [isSearching, setIsSearching] = useState(false);
   const [activeTab, setActiveTab] = useState("search");
 
+  const createInteractionMutation = useInteractionMutation(() => {
+    onSuccess();
+    resetForm();
+  });
+
   const searchVoter = async () => {
     if (!selectedCounty || !searchQuery) return;
     
@@ -49,21 +44,17 @@ export const CreateInteractionDialog = ({
     try {
       const query = supabase.from(selectedCounty).select('state_voter_id, first_name, last_name');
       
-      // Check if the search query looks like a voter ID
       if (searchQuery.match(/^NY\d+$/)) {
         query.eq('state_voter_id', searchQuery);
       } else {
-        // Split the search query into potential first and last names
         const terms = searchQuery.trim().split(/\s+/);
         if (terms.length > 1) {
-          // If multiple terms, assume first and last name
           const firstName = terms[0];
           const lastName = terms[terms.length - 1];
           query
             .ilike('first_name', `${firstName}%`)
             .ilike('last_name', `${lastName}%`);
         } else {
-          // If single term, search in last name only
           query.ilike('last_name', `${searchQuery}%`);
         }
       }
@@ -78,21 +69,6 @@ export const CreateInteractionDialog = ({
           county: selectedCounty
         }))
       );
-
-      if (data.length === 0) {
-        toast({
-          title: "No voters found",
-          description: "Try adjusting your search terms",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      console.error('Error searching voter:', error);
-      toast({
-        title: "Error searching voter",
-        description: "Please try again",
-        variant: "destructive",
-      });
     } finally {
       setIsSearching(false);
     }
@@ -103,35 +79,16 @@ export const CreateInteractionDialog = ({
     setActiveTab("create");
   };
 
-  const createInteractionMutation = useMutation({
-    mutationFn: async () => {
-      if (!session?.user?.id || !selectedVoter) throw new Error("Not authenticated or no voter selected");
-
-      const { error } = await supabase.from("voter_interactions").insert({
-        user_id: session.user.id,
-        state_voter_id: selectedVoter.state_voter_id,
-        county: selectedVoter.county.toUpperCase(),
-        type,
-        notes,
-        interaction_date: new Date().toISOString(),
-      });
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast({ title: "Interaction recorded successfully" });
-      onSuccess();
-      resetForm();
-    },
-    onError: (error: Error) => {
-      console.error("Error creating interaction:", error);
-      toast({
-        title: "Error creating interaction",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
+  const handleCreateInteraction = () => {
+    if (!session?.user?.id || !selectedVoter) return;
+    
+    createInteractionMutation.mutate({
+      userId: session.user.id,
+      selectedVoter,
+      type,
+      notes,
+    });
+  };
 
   const resetForm = () => {
     setSelectedCounty(null);
@@ -148,6 +105,9 @@ export const CreateInteractionDialog = ({
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>Record New Interaction</DialogTitle>
+          <DialogDescription>
+            Search for a voter and record your interaction with them.
+          </DialogDescription>
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -192,7 +152,7 @@ export const CreateInteractionDialog = ({
                 notes={notes}
                 onTypeChange={setType}
                 onNotesChange={setNotes}
-                onSubmit={() => createInteractionMutation.mutate()}
+                onSubmit={handleCreateInteraction}
                 onBack={() => {
                   setSelectedVoter(null);
                   setActiveTab("search");
