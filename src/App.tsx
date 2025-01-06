@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import Index from "@/pages/Index";
@@ -17,9 +17,16 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <Router>
         <Routes>
-          <Route path="/" element={<Index />} />
           <Route path="/login" element={<Login />} />
           <Route path="/request-access" element={<RequestAccess />} />
+          <Route
+            path="/"
+            element={
+              <AuthContainer>
+                <Index />
+              </AuthContainer>
+            }
+          />
           <Route
             path="/search/:county"
             element={
@@ -52,6 +59,7 @@ function App() {
               </AuthContainer>
             }
           />
+          <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
         <Toaster />
       </Router>
