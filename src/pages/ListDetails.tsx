@@ -38,7 +38,6 @@ const ListDetails = () => {
 
       if (itemsError) throw itemsError;
 
-      // Fetch voter details for each item
       const voterPromises = items.map(async (item) => {
         const { data: voter, error: voterError } = await supabase
           .from(item.county as County)
@@ -56,17 +55,20 @@ const ListDetails = () => {
   });
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       <Header />
       <main className="max-w-7xl mx-auto p-4">
         <div className="mb-6">
           <Link to="/lists">
-            <Button variant="ghost" className="mb-4">
+            <Button 
+              variant="outline" 
+              className="mb-4 dark:border-white/20 dark:hover:bg-white/10 dark:text-white"
+            >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Lists
             </Button>
           </Link>
-          <h2 className="text-2xl font-semibold">{listDetails?.name}</h2>
+          <h2 className="text-2xl font-semibold text-foreground">{listDetails?.name}</h2>
           {listDetails?.description && (
             <p className="text-muted-foreground mt-2">{listDetails.description}</p>
           )}
