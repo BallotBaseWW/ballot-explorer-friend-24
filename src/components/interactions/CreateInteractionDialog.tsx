@@ -10,6 +10,7 @@ import { InteractionForm } from "./interaction-form/InteractionForm";
 import { useInteractionMutation } from "./hooks/useInteractionMutation";
 import { VoterInfo, InteractionType } from "./types";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface CreateInteractionDialogProps {
   open: boolean;
@@ -23,6 +24,7 @@ export const CreateInteractionDialog = ({
   onSuccess,
 }: CreateInteractionDialogProps) => {
   const session = useSession();
+  const { toast } = useToast();
   const [selectedCounty, setSelectedCounty] = useState<County | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedVoter, setSelectedVoter] = useState<VoterInfo | null>(null);
@@ -71,6 +73,13 @@ export const CreateInteractionDialog = ({
           county: selectedCounty
         }))
       );
+    } catch (error) {
+      console.error('Search error:', error);
+      toast({
+        title: "Error searching for voter",
+        description: "An error occurred while searching. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsSearching(false);
     }
@@ -82,8 +91,22 @@ export const CreateInteractionDialog = ({
   };
 
   const handleCreateInteraction = () => {
-    if (!session?.user?.id || !selectedVoter) return;
+    if (!session?.user?.id || !selectedVoter) {
+      toast({
+        title: "Error creating interaction",
+        description: "Please ensure you are logged in and have selected a voter.",
+        variant: "destructive",
+      });
+      return;
+    }
     
+    console.log('Creating interaction:', {
+      userId: session.user.id,
+      selectedVoter,
+      type,
+      notes
+    });
+
     createInteractionMutation.mutate({
       userId: session.user.id,
       selectedVoter,
