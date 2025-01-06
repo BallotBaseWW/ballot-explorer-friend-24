@@ -1,34 +1,51 @@
 import { Header } from "@/components/Header";
 import { useAuthCheck } from "@/hooks/useAuthCheck";
 import { useSession } from "@supabase/auth-helpers-react";
+import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { CreateTagForm } from "@/components/search/voter-card/tag-manager/CreateTagForm";
-import { TagList } from "@/components/search/voter-card/tag-manager/TagList";
-import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import { InteractionManager } from "@/components/interactions/InteractionManager";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 const Tags = () => {
-  useAuthCheck();
-  const session = useSession();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // Redirect if not authenticated
   useEffect(() => {
-    if (!session) {
-      navigate('/login');
-    }
-  }, [session, navigate]);
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setIsAuthenticated(!!session);
+      setIsLoading(false);
+      
+      if (!session) {
+        navigate('/login');
+      }
+    };
+
+    checkAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setIsAuthenticated(!!session);
+      if (!session) {
+        navigate('/login');
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [navigate]);
 
   const { data: tags, refetch } = useQuery({
-    queryKey: ["voter-tags", session?.user?.id],
+    queryKey: ["voter-tags"],
     queryFn: async () => {
+      const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user?.id) {
         throw new Error("Not authenticated");
       }
@@ -36,58 +53,65 @@ const Tags = () => {
       const { data, error } = await supabase
         .from("voter_tags")
         .select("*")
-        .eq('user_id', session.user.id)
-        .order("name");
-      
+        .eq("user_id", session.user.id)
+        .order("created_at", { ascending: false });
+
       if (error) {
         console.error("Error fetching tags:", error);
-        toast({
-          title: "Error fetching tags",
-          description: error.message,
-          variant: "destructive",
-        });
-        return [];
+        throw error;
       }
-      return data;
+
+      return data || [];
     },
-    enabled: !!session?.user?.id,
+    enabled: isAuthenticated,
   });
 
   const createTagMutation = useMutation({
     mutationFn: async (data: { name: string; color: string; category: string }) => {
+      const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user?.id) {
         throw new Error("Not authenticated");
       }
       
       const { data: newTag, error } = await supabase
         .from("voter_tags")
-        .insert({
-          name: data.name,
-          color: data.color,
-          category: data.category || null,
-          user_id: session.user.id,
-        })
+        .insert([
+          {
+            name: data.name,
+            color: data.color,
+            category: data.category,
+            user_id: session.user.id,
+          },
+        ])
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error creating tag:", error);
+        throw error;
+      }
+
       return newTag;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["voter-tags"] });
-      toast({ title: "Tag created successfully" });
-    },
-    onError: (error: Error) => {
-      console.error("Error creating tag:", error);
       toast({
-        title: "Error creating tag",
-        description: error.message,
+        title: "Success",
+        description: "Tag created successfully",
+      });
+    },
+    onError: (error) => {
+      console.error("Error in createTagMutation:", error);
+      toast({
+        title: "Error",
+        description: "Failed to create tag",
         variant: "destructive",
       });
     },
   });
 
   const handleRemoveTag = async (tagId: string) => {
+    const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user?.id) {
       toast({
         title: "Error",
@@ -106,77 +130,85 @@ const Tags = () => {
     if (error) {
       console.error("Error removing tag:", error);
       toast({
-        title: "Error removing tag",
-        description: error.message,
-        variant: "destructive",
-      });
-    } else {
-      toast({ title: "Tag removed successfully" });
-      refetch();
-    }
-  };
-
-  const handleCreateTag = (name: string, color: string, category: string) => {
-    if (!session?.user?.id) {
-      toast({
         title: "Error",
-        description: "You must be logged in to create tags",
+        description: "Failed to remove tag",
         variant: "destructive",
       });
       return;
     }
+
+    refetch();
+    toast({
+      title: "Success",
+      description: "Tag removed successfully",
+    });
+  };
+
+  const handleCreateTag = (name: string, color: string, category: string) => {
     createTagMutation.mutate({ name, color, category });
   };
 
-  // If not authenticated, don't render the content
-  if (!session?.user?.id) {
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
     return null;
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      <main className="max-w-7xl mx-auto p-6">
-        <h1 className="text-2xl font-bold mb-6">Voter Management</h1>
-        
-        <Tabs defaultValue="tags" className="space-y-6">
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <Tabs defaultValue="tags" className="w-full">
           <TabsList>
-            <TabsTrigger value="tags">Tags</TabsTrigger>
+            <TabsTrigger value="tags">Tag Management</TabsTrigger>
             <TabsTrigger value="interactions">Interactions</TabsTrigger>
-            <TabsTrigger value="finance">Finance</TabsTrigger>
           </TabsList>
-
-          <TabsContent value="tags" className="space-y-6">
+          
+          <TabsContent value="tags">
             <Card className="p-6">
-              <h2 className="text-lg font-semibold mb-4">Create New Tag</h2>
-              <CreateTagForm onCreateTag={handleCreateTag} />
-            </Card>
-
-            <Card className="p-6">
-              <h2 className="text-lg font-semibold mb-4">Your Tags</h2>
-              <TagList 
-                tags={tags || []} 
-                onRemoveTag={handleRemoveTag}
-              />
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {tags?.map((tag) => (
+                    <div
+                      key={tag.id}
+                      className="p-4 bg-white rounded-lg shadow flex justify-between items-center"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <div
+                          className="w-4 h-4 rounded-full"
+                          style={{ backgroundColor: tag.color }}
+                        />
+                        <span>{tag.name}</span>
+                        {tag.category && (
+                          <span className="text-sm text-gray-500">
+                            ({tag.category})
+                          </span>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => handleRemoveTag(tag.id)}
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </Card>
           </TabsContent>
-
+          
           <TabsContent value="interactions">
-            <Card className="p-6">
-              <InteractionManager />
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="finance">
-            <Card className="p-6">
-              <h2 className="text-lg font-semibold">Finance Management</h2>
-              <p className="text-muted-foreground mt-2">
-                Manage voter contributions and financial records here. Coming soon.
-              </p>
-            </Card>
+            <InteractionManager />
           </TabsContent>
         </Tabs>
-      </main>
+      </div>
     </div>
   );
 };
