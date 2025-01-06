@@ -6,7 +6,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { User, Home, LogOut, Shield } from "lucide-react";
+import { User, Home, LogOut, Shield, ListTodo } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { useQuery } from "@tanstack/react-query";
@@ -93,6 +93,10 @@ export const Header = () => {
               <DropdownMenuItem onClick={handleNavigate("/")}>
                 <Home className="mr-2 h-4 w-4" />
                 Home
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleNavigate("/lists")}>
+                <ListTodo className="mr-2 h-4 w-4" />
+                My Lists
               </DropdownMenuItem>
               {isAdmin && (
                 <DropdownMenuItem onClick={handleNavigate("/admin")}>

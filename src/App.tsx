@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Search from "./pages/Search";
 import Admin from "./pages/Admin";
+import Lists from "./pages/Lists";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -92,6 +93,14 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <Admin />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/lists"
+            element={
+              <ProtectedRoute>
+                <Lists />
               </ProtectedRoute>
             }
           />
