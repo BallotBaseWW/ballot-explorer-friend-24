@@ -1,35 +1,44 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Login from "@/pages/Login";
-import { RequestAccessForm } from "@/components/auth/RequestAccessForm";
-import { AuthContainer } from "@/components/auth/AuthContainer";
-import { Home } from "@/pages/Home";
-import Admin from "@/pages/Admin";
-import Profile from "@/pages/Profile";
-import { Toaster } from "@/components/ui/toaster";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Toaster } from "@/components/ui/toaster";
+import Index from "@/pages/Index";
+import Search from "@/pages/Search";
+import Lists from "@/pages/Lists";
+import ListDetails from "@/pages/ListDetails";
+import Login from "@/pages/Login";
+import Admin from "@/pages/Admin";
+import { AuthContainer } from "@/components/auth/AuthContainer";
 
-// Create a client
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
+const queryClient = new QueryClient();
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <Router>
         <Routes>
+          <Route path="/" element={<Index />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/request-access" element={<RequestAccessForm />} />
           <Route
-            path="/"
+            path="/search/:county"
             element={
               <AuthContainer>
-                <Home />
+                <Search />
+              </AuthContainer>
+            }
+          />
+          <Route
+            path="/lists"
+            element={
+              <AuthContainer>
+                <Lists />
+              </AuthContainer>
+            }
+          />
+          <Route
+            path="/lists/:id"
+            element={
+              <AuthContainer>
+                <ListDetails />
               </AuthContainer>
             }
           />
@@ -38,14 +47,6 @@ function App() {
             element={
               <AuthContainer adminOnly>
                 <Admin />
-              </AuthContainer>
-            }
-          />
-          <Route
-            path="/profile"
-            element={
-              <AuthContainer>
-                <Profile />
               </AuthContainer>
             }
           />
