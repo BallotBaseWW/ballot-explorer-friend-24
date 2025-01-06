@@ -5,7 +5,7 @@ import { printVoterRecord } from "./voter-sections/printUtils";
 import { VoterCard } from "./voter-card/VoterCard";
 import { PaginationControls } from "./pagination/PaginationControls";
 import { Button } from "@/components/ui/button";
-import { ArrowUp, ListPlus } from "lucide-react";
+import { ArrowUp } from "lucide-react";
 import { AddAllToListDialog } from "./AddAllToListDialog";
 import { County } from "./types";
 
@@ -26,7 +26,6 @@ export const SearchResults = ({ results, county, searchQuery }: SearchResultsPro
   console.log('SearchResults component - Number of results:', results.length);
   console.log('First few results:', results.slice(0, 3));
 
-  // Don't return null if there are results
   if (!Array.isArray(results)) {
     console.error('Results is not an array:', results);
     return null;
@@ -83,7 +82,7 @@ export const SearchResults = ({ results, county, searchQuery }: SearchResultsPro
               key={voter.state_voter_id || index}
               voter={voter}
               county={county}
-              onPrint={handlePrint}
+              onPrint={() => handlePrint(voter)}
             />
           ))}
         </div>
