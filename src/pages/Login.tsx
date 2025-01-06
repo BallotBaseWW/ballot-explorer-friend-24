@@ -1,24 +1,64 @@
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 const Login = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // Check initial session
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        // Check if user is approved
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("approved")
+          .eq("id", session.user.id)
+          .single();
+
+        if (profile?.approved) {
+          navigate("/");
+        } else {
+          toast({
+            title: "Account Pending Approval",
+            description: "Your account is pending administrator approval.",
+          });
+          await supabase.auth.signOut();
+        }
+      }
+      setIsLoading(false);
+    };
+
+    checkSession();
+
+    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        if (event === "SIGNED_IN") {
+        console.log("Auth state changed:", event, session?.user?.id);
+        
+        if (event === "SIGNED_IN" && session) {
           // Check if user is approved
-          const { data: profile } = await supabase
+          const { data: profile, error } = await supabase
             .from("profiles")
             .select("approved")
-            .eq("id", session?.user?.id)
+            .eq("id", session.user.id)
             .single();
+
+          if (error) {
+            console.error("Error checking profile:", error);
+            toast({
+              title: "Error",
+              description: "There was an error checking your account status.",
+              variant: "destructive",
+            });
+            return;
+          }
 
           if (!profile?.approved) {
             toast({
@@ -38,6 +78,14 @@ const Login = () => {
       subscription.unsubscribe();
     };
   }, [navigate, toast]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-100 via-white to-blue-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-100 via-white to-blue-50 flex items-center justify-center p-4">
