@@ -2,9 +2,8 @@ import { Database } from "@/integrations/supabase/types";
 import { Button } from "@/components/ui/button";
 import { AddToListDialog } from "../AddToListDialog";
 import { TagManager } from "./TagManager";
-import { Printer, User, MapPin, Calendar, ChevronDown, Tag } from "lucide-react";
+import { Printer, Tag, Calendar, ChevronDown } from "lucide-react";
 import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
-import { County } from "../types";
 import {
   Collapsible,
   CollapsibleContent,
@@ -12,7 +11,9 @@ import {
 } from "@/components/ui/collapsible";
 import { useState } from "react";
 import { PartyBadge } from "./PartyBadge";
-import { StatusBadge } from "./StatusBadge";
+import { PersonalInfo } from "./PersonalInfo";
+import { AddressInfo } from "./AddressInfo";
+import { formatDate } from "@/lib/utils";
 
 type VoterRecord = Database["public"]["Tables"]["bronx"]["Row"];
 
@@ -25,39 +26,32 @@ interface VoterCardProps {
 export const VoterCard = ({ voter, county, onPrint }: VoterCardProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
-  const formatDate = (dateStr: string | null) => {
-    if (!dateStr) return "N/A";
-    return new Date(
-      parseInt(dateStr.substring(0, 4)), 
-      parseInt(dateStr.substring(4, 6)) - 1, 
-      parseInt(dateStr.substring(6, 8))
-    ).toLocaleDateString();
-  };
-
   return (
     <Card className="w-full">
       <CardHeader>
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <User className="h-4 w-4 text-muted-foreground" />
-              <h3 className="font-medium">
-                {voter.first_name} {voter.middle} {voter.last_name} {voter.suffix}
-              </h3>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <MapPin className="h-4 w-4" />
-              <p>
-                {voter.house} {voter.house_suffix} {voter.pre_st_direction} {voter.street_name} {voter.post_st_direction}
-                {voter.aptunit_type && `, ${voter.aptunit_type}`}
-                {voter.unit_no && ` ${voter.unit_no}`}, {voter.residence_city},{" "}
-                {voter.zip_code}
-                {voter.zip_four && `-${voter.zip_four}`}
-              </p>
-            </div>
+            <PersonalInfo
+              firstName={voter.first_name}
+              middleName={voter.middle}
+              lastName={voter.last_name}
+              suffix={voter.suffix}
+              dateOfBirth={voter.date_of_birth}
+            />
+            <AddressInfo
+              house={voter.house}
+              houseSuffix={voter.house_suffix}
+              preStDirection={voter.pre_st_direction}
+              streetName={voter.street_name}
+              postStDirection={voter.post_st_direction}
+              aptunitType={voter.aptunit_type}
+              unitNo={voter.unit_no}
+              residenceCity={voter.residence_city}
+              zipCode={voter.zip_code}
+              zipFour={voter.zip_four}
+            />
           </div>
           <div className="flex flex-wrap gap-2">
-            <StatusBadge status={voter.voter_status || ""} />
             <PartyBadge party={voter.enrolled_party} />
           </div>
         </div>
@@ -109,6 +103,10 @@ export const VoterCard = ({ voter, county, onPrint }: VoterCardProps) => {
           </CollapsibleTrigger>
           <CollapsibleContent className="mt-4 space-y-4">
             <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <span className="font-medium">Voter Status:</span>
+                <p>{voter.voter_status === "A" ? "Active" : "Inactive"}</p>
+              </div>
               <div>
                 <span className="font-medium">Election District:</span>
                 <p>{voter.election_district}</p>
