@@ -14,6 +14,9 @@ import {
 } from "@/components/ui/table";
 import { exportToCsv, exportToPdf } from "@/components/export/exportUtils";
 import { useToast } from "@/hooks/use-toast";
+import { Database } from "@/integrations/supabase/types";
+
+type County = "bronx" | "brooklyn" | "manhattan" | "queens" | "statenisland";
 
 export const ListDetails = () => {
   const { id } = useParams();
@@ -45,8 +48,9 @@ export const ListDetails = () => {
 
       const voterData = [];
       for (const item of listItems || []) {
+        const county = item.county as County;
         const { data: voter, error: voterError } = await supabase
-          .from(item.county)
+          .from(county)
           .select('*')
           .eq('state_voter_id', item.state_voter_id)
           .single();
@@ -57,7 +61,7 @@ export const ListDetails = () => {
         }
 
         if (voter) {
-          voterData.push({ ...voter, county: item.county });
+          voterData.push({ ...voter, county });
         }
       }
 
