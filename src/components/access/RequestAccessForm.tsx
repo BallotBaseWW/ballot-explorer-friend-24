@@ -8,9 +8,12 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { FormSection } from "./FormSection";
 import { formSchema, FormData } from "./types";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 export function RequestAccessForm() {
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -30,21 +33,32 @@ export function RequestAccessForm() {
 
   async function onSubmit(data: FormData) {
     setIsLoading(true);
+    setError(null);
+    
     try {
-      const { error } = await supabase.from("access_requests").insert([
+      const { error: insertError } = await supabase.from("access_requests").insert([
         {
           full_name: data.full_name,
           email: data.email,
-          password_hash: data.password,
+          password_hash: data.password, // Note: In a production environment, you should hash the password
           organization: data.organization,
           address: data.address,
           city: data.city,
           state: data.state,
           zip: data.zip,
+          status: 'pending'
         },
       ]);
 
-      if (error) throw error;
+      if (insertError) {
+        console.error("Submission error:", insertError);
+        if (insertError.code === '23505') { // Unique violation
+          setError("An access request with this email already exists.");
+        } else {
+          setError("There was a problem submitting your request. Please try again.");
+        }
+        return;
+      }
 
       toast({
         title: "Request Submitted",
@@ -53,11 +67,8 @@ export function RequestAccessForm() {
 
       navigate("/");
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "There was a problem submitting your request. Please try again.",
-        variant: "destructive",
-      });
+      console.error("Submission error:", error);
+      setError("There was a problem submitting your request. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -66,6 +77,14 @@ export function RequestAccessForm() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        {error && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+        
         <FormSection
           form={form}
           name="full_name"
