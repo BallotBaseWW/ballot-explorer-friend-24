@@ -61,11 +61,11 @@ const Lists = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       <Header />
       <main className="max-w-7xl mx-auto p-4">
         <div className="mb-6 flex justify-between items-center">
-          <h2 className="text-2xl font-semibold">My Voter Lists</h2>
+          <h2 className="text-2xl font-semibold text-foreground">My Voter Lists</h2>
           <CreateListDialog onSuccess={refetchLists} />
         </div>
 
@@ -73,20 +73,21 @@ const Lists = () => {
           {lists?.map((list) => (
             <Card 
               key={list.id} 
-              className="hover:shadow-md transition-shadow cursor-pointer"
+              className="hover:shadow-md transition-shadow cursor-pointer bg-card border-border/50"
               onClick={() => handleCardClick(list.id)}
             >
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-lg font-semibold">
+                <CardTitle className="text-lg font-semibold text-card-foreground">
                   {list.name}
                 </CardTitle>
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={(e) => {
-                    e.stopPropagation(); // Prevent card click when clicking delete
+                    e.stopPropagation();
                     handleDeleteList(list.id);
                   }}
+                  className="text-muted-foreground hover:text-destructive"
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
@@ -96,16 +97,17 @@ const Lists = () => {
                   {list.description || "No description"}
                 </p>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm">
+                  <span className="text-sm text-muted-foreground">
                     {list.voter_list_items?.[0]?.count || 0} voters
                   </span>
                   <Button 
                     variant="outline" 
                     size="sm"
                     onClick={(e) => {
-                      e.stopPropagation(); // Prevent card click when clicking export
+                      e.stopPropagation();
                       // Handle export
                     }}
+                    className="text-card-foreground bg-background/50 hover:bg-background/80"
                   >
                     <Download className="h-4 w-4 mr-2" />
                     Export
