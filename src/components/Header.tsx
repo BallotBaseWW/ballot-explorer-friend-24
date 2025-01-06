@@ -6,7 +6,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { User, Home, LogOut, Shield, ListTodo, Tags, Link } from "lucide-react";
+import { User, Home, LogOut, Shield } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { useQuery } from "@tanstack/react-query";
@@ -82,16 +82,6 @@ export const Header = () => {
           >
             <Home className="h-5 w-5" />
           </Button>
-
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleNavigate("/tags")}
-            className="hidden md:flex"
-            title="Connects"
-          >
-            <Link className="h-5 w-5" />
-          </Button>
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -103,14 +93,6 @@ export const Header = () => {
               <DropdownMenuItem onClick={handleNavigate("/")}>
                 <Home className="mr-2 h-4 w-4" />
                 Home
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleNavigate("/lists")}>
-                <ListTodo className="mr-2 h-4 w-4" />
-                My Lists
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleNavigate("/tags")}>
-                <Tags className="mr-2 h-4 w-4" />
-                Tag Management
               </DropdownMenuItem>
               {isAdmin && (
                 <DropdownMenuItem onClick={handleNavigate("/admin")}>

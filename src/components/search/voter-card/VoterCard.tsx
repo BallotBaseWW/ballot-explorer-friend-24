@@ -1,11 +1,8 @@
 import { Database } from "@/integrations/supabase/types";
-import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { printVoterRecord } from "../voter-sections/printUtils";
 import { Button } from "@/components/ui/button";
-import { AddToListDialog } from "../AddToListDialog";
-import { TagManager } from "./TagManager";
-import { Printer, Tag, Calendar, ChevronDown } from "lucide-react";
+import { Printer, Calendar, ChevronDown } from "lucide-react";
 import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
 import {
   Collapsible,
@@ -76,28 +73,10 @@ export const VoterCard = ({ voter, county, onPrint }: VoterCardProps) => {
               </div>
             )}
           </div>
-          <div>
-            <TagManager 
-              stateVoterId={voter.state_voter_id} 
-              county={county}
-            />
-          </div>
         </div>
       </CardContent>
 
       <CardFooter className="flex flex-wrap gap-2">
-        <AddToListDialog 
-          stateVoterId={voter.state_voter_id}
-          county={county}
-        />
-        <Button
-          variant="outline"
-          size="sm"
-          className="md:w-auto w-full text-sm px-2 h-8 whitespace-nowrap"
-        >
-          <Tag className="h-4 w-4 mr-2" />
-          Add Tags
-        </Button>
         <Collapsible open={isOpen} onOpenChange={setIsOpen} className="w-full">
           <CollapsibleTrigger asChild>
             <Button variant="ghost" size="sm" className="w-full mt-2">
