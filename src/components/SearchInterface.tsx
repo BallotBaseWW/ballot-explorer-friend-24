@@ -21,6 +21,8 @@ export const SearchInterface = ({ county }: { county: County }) => {
   const [currentSearchQuery, setCurrentSearchQuery] = useState<any>(null);
   const [hasSearched, setHasSearched] = useState(false);
 
+  console.log('SearchInterface - Current results:', searchResults?.length);
+
   const form = useForm<SearchFormValues>({
     defaultValues: {
       basicSearch: "",
@@ -76,7 +78,6 @@ export const SearchInterface = ({ county }: { county: County }) => {
 
   const handleBasicSearch = form.handleSubmit((data) => {
     console.log('Handling basic search with data:', data);
-    // Clear advanced search fields before performing basic search
     const basicSearchData = {
       ...form.getValues(),
       last_name: "",
@@ -95,7 +96,6 @@ export const SearchInterface = ({ county }: { county: County }) => {
 
   const handleAdvancedSearch = form.handleSubmit((data) => {
     console.log('Handling advanced search with data:', data);
-    // Clear basic search field before performing advanced search
     const advancedSearchData = {
       ...data,
       basicSearch: "",
@@ -150,7 +150,7 @@ export const SearchInterface = ({ county }: { county: County }) => {
         </div>
       </Form>
 
-      {hasSearched && (
+      {hasSearched && searchResults && (
         <SearchResults 
           results={searchResults} 
           county={county} 

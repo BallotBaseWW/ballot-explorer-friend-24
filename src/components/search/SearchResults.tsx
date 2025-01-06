@@ -14,7 +14,7 @@ type VoterRecord = Database["public"]["Tables"]["bronx"]["Row"];
 interface SearchResultsProps {
   results: VoterRecord[];
   county: County;
-  searchQuery: any; // This will be used to fetch all results
+  searchQuery: any;
 }
 
 const ITEMS_PER_PAGE = 20;
@@ -23,12 +23,21 @@ export const SearchResults = ({ results, county, searchQuery }: SearchResultsPro
   const { toast } = useToast();
   const [currentPage, setCurrentPage] = useState(1);
 
-  if (results.length === 0) return null;
+  console.log('SearchResults component - Number of results:', results.length);
+  console.log('First few results:', results.slice(0, 3));
+
+  // Don't return null if there are results
+  if (!Array.isArray(results)) {
+    console.error('Results is not an array:', results);
+    return null;
+  }
 
   const totalPages = Math.ceil(results.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const endIndex = startIndex + ITEMS_PER_PAGE;
   const currentResults = results.slice(startIndex, endIndex);
+
+  console.log('Current page results:', currentResults);
 
   const handlePrint = async (voter: VoterRecord) => {
     try {
@@ -57,7 +66,7 @@ export const SearchResults = ({ results, county, searchQuery }: SearchResultsPro
     <div className="mt-8">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold">
-          Search Results
+          Search Results ({results.length} found)
           {results.length >= 100 && (
             <span className="text-sm font-normal text-muted-foreground ml-2">
               (Showing first 100 matches)
@@ -67,24 +76,34 @@ export const SearchResults = ({ results, county, searchQuery }: SearchResultsPro
         <AddAllToListDialog searchQuery={searchQuery} county={county} />
       </div>
 
-      <div className="space-y-4">
-        {currentResults.map((voter, index) => (
-          <VoterCard
-            key={index}
-            voter={voter}
-            county={county}
-            onPrint={handlePrint}
-          />
-        ))}
-      </div>
+      {currentResults.length > 0 ? (
+        <div className="space-y-4">
+          {currentResults.map((voter, index) => (
+            <VoterCard
+              key={voter.state_voter_id || index}
+              voter={voter}
+              county={county}
+              onPrint={handlePrint}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-8 text-muted-foreground">
+          No results to display
+        </div>
+      )}
 
-      <div className="mt-8 space-y-4">
-        <PaginationControls
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
-        />
-        
+      {results.length > ITEMS_PER_PAGE && (
+        <div className="mt-8 space-y-4">
+          <PaginationControls
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
+        </div>
+      )}
+      
+      {results.length > 0 && (
         <div className="flex justify-center pt-4">
           <Button
             variant="outline"
@@ -96,7 +115,7 @@ export const SearchResults = ({ results, county, searchQuery }: SearchResultsPro
             Return to Top
           </Button>
         </div>
-      </div>
+      )}
     </div>
   );
 };
