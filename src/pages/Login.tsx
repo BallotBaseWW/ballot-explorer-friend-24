@@ -138,22 +138,29 @@ const Login = () => {
                     },
                   },
                   className: {
-                    container: "space-y-6",
+                    container: "space-y-4",
                     button: "w-full font-medium shadow-sm hover:shadow-md transition-all duration-200 bg-gradient-to-r from-[#33C3F0] to-[#2980b9] hover:from-[#2980b9] hover:to-[#33C3F0]",
                     input: "w-full transition-all duration-200 focus:ring-2 focus:ring-[#33C3F0] focus:ring-opacity-50",
                     label: "text-foreground/90 font-medium",
                     loader: "border-[#33C3F0]",
                     anchor: "text-[#33C3F0] hover:text-[#2980b9] transition-colors duration-200 font-medium",
-                    divider: "my-6",
+                    divider: "my-4",
                     message: "text-sm",
                   },
                 }}
                 providers={[]}
+                localization={{
+                  variables: {
+                    sign_up: {
+                      link_text: "",
+                    },
+                  },
+                }}
               />
-              <div className="mt-6 text-center">
+              <div className="mt-4 text-center">
                 <Button
                   onClick={() => navigate("/request-access")}
-                  className="w-full bg-gradient-to-r from-[#33C3F0] to-[#2980b9] hover:from-[#2980b9] hover:to-[#33C3F0] text-white transition-all duration-300"
+                  className="w-full bg-gradient-to-r from-[#33C3F0] to-[#ea384c] hover:from-[#ea384c] hover:to-[#33C3F0] text-white transition-all duration-300"
                 >
                   Request Access
                 </Button>
