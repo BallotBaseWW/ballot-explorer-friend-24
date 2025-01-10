@@ -4,7 +4,7 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { AuthContainer } from "@/components/auth/AuthContainer";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,36 +28,52 @@ const Districts = () => {
   // Fetch API key from Supabase
   useEffect(() => {
     const fetchApiKey = async () => {
-      const { data: { GOOGLE_CIVIC_API_KEY }, error } = await supabase.functions.invoke('get-secret', {
-        body: { key: 'GOOGLE_CIVIC_API_KEY' }
-      });
-      
-      if (error) {
-        console.error('Error fetching API key:', error);
-        return;
-      }
-      
-      setApiKey(GOOGLE_CIVIC_API_KEY);
-      
-      // Load Google Maps script after we have the API key
-      if (!scriptLoaded && !window.google?.maps?.places) {
-        const script = document.createElement("script");
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_CIVIC_API_KEY}&libraries=places`;
-        script.async = true;
-        script.defer = true;
-        script.onload = () => {
-          setScriptLoaded(true);
-        };
-        document.body.appendChild(script);
+      try {
+        const { data, error } = await supabase.functions.invoke('get-secret', {
+          body: { key: 'GOOGLE_CIVIC_API_KEY' }
+        });
+
+        if (error) {
+          console.error('Error fetching API key:', error);
+          toast({
+            title: "Error",
+            description: "Failed to load API key. Please try again later.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        if (data?.GOOGLE_CIVIC_API_KEY) {
+          setApiKey(data.GOOGLE_CIVIC_API_KEY);
+          
+          // Load Google Maps script after we have the API key
+          if (!scriptLoaded && !window.google?.maps?.places) {
+            const script = document.createElement("script");
+            script.src = `https://maps.googleapis.com/maps/api/js?key=${data.GOOGLE_CIVIC_API_KEY}&libraries=places`;
+            script.async = true;
+            script.defer = true;
+            script.onload = () => {
+              setScriptLoaded(true);
+            };
+            document.body.appendChild(script);
+          }
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        toast({
+          title: "Error",
+          description: "Failed to initialize the district lookup. Please try again later.",
+          variant: "destructive",
+        });
       }
     };
 
     fetchApiKey();
-  }, [scriptLoaded]);
+  }, [toast]);
 
   // Initialize autocomplete
   useEffect(() => {
-    if (scriptLoaded && autocompleteInput.current) {
+    if (scriptLoaded && autocompleteInput.current && apiKey) {
       const autocomplete = new google.maps.places.Autocomplete(
         autocompleteInput.current,
         {
@@ -80,7 +96,7 @@ const Districts = () => {
         }
       });
     }
-  }, [scriptLoaded]);
+  }, [scriptLoaded, apiKey]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
