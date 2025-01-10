@@ -1,12 +1,51 @@
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
 import LoginHeader from "@/components/auth/LoginHeader";
 
 const Login = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    // Check if user is already logged in
+    const checkUser = async () => {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (error) {
+        console.error("Auth check error:", error);
+        toast({
+          title: "Error",
+          description: "There was a problem checking your authentication status.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (session?.user) {
+        navigate("/");
+      }
+    };
+
+    checkUser();
+
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("Auth state changed:", event, session);
+      
+      if (event === 'SIGNED_IN' && session) {
+        navigate("/");
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [navigate, toast]);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
