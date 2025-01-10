@@ -5,6 +5,7 @@ import { Plus } from "lucide-react";
 import { ResourcesList } from "./ResourcesList";
 import { CreateResourceDialog } from "./CreateResourceDialog";
 import { CategoriesManagement } from "./CategoriesManagement";
+import { MatchingFundsCalculator } from "./MatchingFundsCalculator";
 import { supabase } from "@/integrations/supabase/client";
 
 export function ResourcesContent() {
@@ -30,22 +31,26 @@ export function ResourcesContent() {
   const isAdmin = userRole === "admin";
 
   return (
-    <div className="space-y-8">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Resources</h1>
-        <Button onClick={() => setIsCreateDialogOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Resource
-        </Button>
+    <div className="space-y-12">
+      <MatchingFundsCalculator />
+      
+      <div>
+        <div className="flex justify-between items-center mb-8">
+          <h2 className="text-2xl font-bold">Resources</h2>
+          <Button onClick={() => setIsCreateDialogOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Resource
+          </Button>
+        </div>
+        
+        {isAdmin && <CategoriesManagement />}
+        
+        <ResourcesList />
+        <CreateResourceDialog 
+          open={isCreateDialogOpen} 
+          onOpenChange={setIsCreateDialogOpen}
+        />
       </div>
-      
-      {isAdmin && <CategoriesManagement />}
-      
-      <ResourcesList />
-      <CreateResourceDialog 
-        open={isCreateDialogOpen} 
-        onOpenChange={setIsCreateDialogOpen}
-      />
     </div>
   );
 }
