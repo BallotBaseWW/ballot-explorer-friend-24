@@ -32,6 +32,8 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
+    console.log('Fetching secret:', key)
+
     // Get the secret value
     const { data, error } = await supabaseAdmin.functions.invoke('get-secret-value', {
       body: { key }
@@ -47,6 +49,8 @@ serve(async (req) => {
         }
       )
     }
+
+    console.log('Secret fetched successfully')
 
     // Return the secret value
     return new Response(

@@ -28,6 +28,7 @@ serve(async (req) => {
     const value = Deno.env.get(key)
     
     if (!value) {
+      console.error(`Secret ${key} not found`)
       return new Response(
         JSON.stringify({ error: `Secret ${key} not found` }),
         { 
@@ -36,6 +37,8 @@ serve(async (req) => {
         }
       )
     }
+
+    console.log(`Successfully retrieved secret: ${key}`)
 
     return new Response(
       JSON.stringify(value),
