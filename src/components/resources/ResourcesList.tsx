@@ -22,12 +22,8 @@ export function ResourcesList() {
         .from("resources")
         .select(`
           *,
-          categories (
-            name
-          ),
-          profiles:created_by (
-            full_name
-          )
+          categories (name),
+          profiles (full_name)
         `)
         .order("created_at", { ascending: false });
 
