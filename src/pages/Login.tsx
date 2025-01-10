@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import LoginHeader from "@/components/auth/LoginHeader";
+import { Header } from "@/components/Header";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -49,6 +50,7 @@ const Login = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <Header />
       <LoginHeader 
         heading="Welcome Back"
         text="Enter your email to sign in to your account"
