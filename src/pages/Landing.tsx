@@ -1,13 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Header } from "@/components/Header";
 import { Search, ListTodo, MapPin, Calculator } from "lucide-react";
 
 export default function Landing() {
@@ -36,8 +29,61 @@ export default function Landing() {
     },
   ];
 
+  const pricingPlans = [
+    {
+      title: "Solo",
+      seats: "1",
+      monthlyPrice: 20.00,
+      annualPrice: 216.00,
+      discount: "10%",
+      features: [
+        "1 User Seat",
+        "Basic Search Features",
+        "List Management",
+      ],
+      additionalSeats: null,
+    },
+    {
+      title: "Grassroots",
+      seats: "3",
+      monthlyPrice: 48.00,
+      annualPrice: 518.40,
+      discount: "10%",
+      popular: true,
+      features: [
+        "3 User Seats",
+        "Advanced Search Features",
+        "Enhanced List Management",
+        "Priority Support",
+      ],
+      additionalSeats: {
+        monthly: 14,
+        annual: 151.20,
+      },
+    },
+    {
+      title: "Organizational",
+      seats: "10",
+      monthlyPrice: 130.00,
+      annualPrice: 1326.00,
+      discount: "15%",
+      features: [
+        "10 User Seats",
+        "All Features Included",
+        "Advanced Analytics",
+        "24/7 Priority Support",
+      ],
+      additionalSeats: {
+        monthly: 12,
+        annual: 108.00,
+      },
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-background">
+      <Header />
+      
       {/* Hero Section */}
       <div className="relative">
         <div className="absolute inset-0 bg-gradient-to-br from-[#33C3F0] via-[#8E77B5] to-[#ea384c] opacity-5" />
@@ -100,118 +146,61 @@ export default function Landing() {
             </span>
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-            {/* Solo Plan */}
-            <div className="relative p-8 rounded-2xl bg-gradient-to-b from-background to-muted/30 border border-border/50 hover:border-primary/50 transition-all hover:shadow-lg">
-              <div className="text-center">
-                <h3 className="text-xl font-semibold mb-2">Solo</h3>
-                <p className="text-sm text-foreground/70 mb-4">Perfect for individual campaigners</p>
-                <div className="flex justify-center items-baseline mb-4">
-                  <span className="text-4xl font-bold">$20</span>
-                  <span className="text-foreground/70 ml-1">/month</span>
+            {pricingPlans.map((plan) => (
+              <div
+                key={plan.title}
+                className={`relative p-8 rounded-2xl ${
+                  plan.popular
+                    ? "bg-gradient-to-b from-[#33C3F0] to-[#8E77B5] text-white transform scale-105 shadow-xl"
+                    : "bg-gradient-to-b from-background to-muted/30 border border-border/50 hover:border-primary/50"
+                } transition-all hover:shadow-lg`}
+              >
+                {plan.popular && (
+                  <div className="absolute top-0 right-0 bg-secondary px-3 py-1 rounded-tr-lg rounded-bl-lg text-xs font-semibold">
+                    Popular
+                  </div>
+                )}
+                <div className="text-center">
+                  <h3 className="text-xl font-semibold mb-2">{plan.title}</h3>
+                  <p className={`text-sm ${plan.popular ? "opacity-90" : "text-foreground/70"} mb-4`}>
+                    {plan.seats} User Seats
+                  </p>
+                  <div className="space-y-2 mb-4">
+                    <div className="flex justify-center items-baseline">
+                      <span className="text-4xl font-bold">${plan.monthlyPrice}</span>
+                      <span className={`${plan.popular ? "opacity-90" : "text-foreground/70"} ml-1`}>/month</span>
+                    </div>
+                    <div className="flex justify-center items-baseline text-sm">
+                      <span className="font-semibold">${plan.annualPrice}</span>
+                      <span className={`${plan.popular ? "opacity-90" : "text-foreground/70"} ml-1`}>/year</span>
+                      <span className="ml-2 text-secondary-foreground">Save {plan.discount}</span>
+                    </div>
+                  </div>
+                  <Button 
+                    onClick={() => navigate("/request-access")}
+                    variant={plan.popular ? "secondary" : "default"}
+                    className="w-full"
+                  >
+                    Get Started
+                  </Button>
                 </div>
-                <Button 
-                  onClick={() => navigate("/request-access")}
-                  className="w-full bg-gradient-to-r from-[#33C3F0] via-[#8E77B5] to-[#ea384c] hover:opacity-90"
-                >
-                  Get Started
-                </Button>
+                <ul className="mt-6 space-y-3 text-sm">
+                  {plan.features.map((feature) => (
+                    <li key={feature} className="flex items-center">
+                      <span className="mr-2">✓</span>
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
+                {plan.additionalSeats && (
+                  <div className="mt-4 pt-4 border-t border-border/20 text-sm">
+                    <p>Additional seats:</p>
+                    <p>${plan.additionalSeats.monthly}/month per seat</p>
+                    <p>${plan.additionalSeats.annual}/year per seat</p>
+                  </div>
+                )}
               </div>
-              <ul className="mt-6 space-y-3 text-sm">
-                <li className="flex items-center">
-                  <span className="mr-2">✓</span>
-                  1 User Seat
-                </li>
-                <li className="flex items-center">
-                  <span className="mr-2">✓</span>
-                  Basic Search Features
-                </li>
-                <li className="flex items-center">
-                  <span className="mr-2">✓</span>
-                  List Management
-                </li>
-              </ul>
-            </div>
-
-            {/* Grassroots Plan */}
-            <div className="relative p-8 rounded-2xl bg-gradient-to-b from-[#33C3F0] to-[#8E77B5] text-white transform scale-105 shadow-xl">
-              <div className="absolute top-0 right-0 bg-secondary px-3 py-1 rounded-tr-lg rounded-bl-lg text-xs font-semibold">
-                Popular
-              </div>
-              <div className="text-center">
-                <h3 className="text-xl font-semibold mb-2">Grassroots</h3>
-                <p className="text-sm opacity-90 mb-4">For growing campaign teams</p>
-                <div className="flex justify-center items-baseline mb-4">
-                  <span className="text-4xl font-bold">$48</span>
-                  <span className="opacity-90 ml-1">/month</span>
-                </div>
-                <Button 
-                  onClick={() => navigate("/request-access")}
-                  variant="secondary"
-                  className="w-full"
-                >
-                  Get Started
-                </Button>
-              </div>
-              <ul className="mt-6 space-y-3 text-sm">
-                <li className="flex items-center">
-                  <span className="mr-2">✓</span>
-                  3 User Seats
-                </li>
-                <li className="flex items-center">
-                  <span className="mr-2">✓</span>
-                  Advanced Search Features
-                </li>
-                <li className="flex items-center">
-                  <span className="mr-2">✓</span>
-                  Enhanced List Management
-                </li>
-                <li className="flex items-center">
-                  <span className="mr-2">✓</span>
-                  Priority Support
-                </li>
-              </ul>
-            </div>
-
-            {/* Organizational Plan */}
-            <div className="relative p-8 rounded-2xl bg-gradient-to-b from-background to-muted/30 border border-border/50 hover:border-primary/50 transition-all hover:shadow-lg">
-              <div className="text-center">
-                <h3 className="text-xl font-semibold mb-2">Organizational</h3>
-                <p className="text-sm text-foreground/70 mb-4">For established organizations</p>
-                <div className="flex justify-center items-baseline mb-4">
-                  <span className="text-4xl font-bold">$130</span>
-                  <span className="text-foreground/70 ml-1">/month</span>
-                </div>
-                <Button 
-                  onClick={() => navigate("/request-access")}
-                  className="w-full bg-gradient-to-r from-[#33C3F0] via-[#8E77B5] to-[#ea384c] hover:opacity-90"
-                >
-                  Get Started
-                </Button>
-              </div>
-              <ul className="mt-6 space-y-3 text-sm">
-                <li className="flex items-center">
-                  <span className="mr-2">✓</span>
-                  10 User Seats
-                </li>
-                <li className="flex items-center">
-                  <span className="mr-2">✓</span>
-                  All Features Included
-                </li>
-                <li className="flex items-center">
-                  <span className="mr-2">✓</span>
-                  Advanced Analytics
-                </li>
-                <li className="flex items-center">
-                  <span className="mr-2">✓</span>
-                  24/7 Priority Support
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="mt-8 space-y-2 text-sm text-foreground/70 text-center">
-            <p>*Additional seats on the Grassroots plan are $14 per month or $151.20 annually</p>
-            <p>**Additional seats on the Organizational plan are $12 per month or $108.00 annually</p>
+            ))}
           </div>
         </div>
       </div>
