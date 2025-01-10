@@ -4,19 +4,42 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { User, LogOut, UserPlus } from "lucide-react";
+import { User, LogOut, UserPlus, Home, Search, ListTodo, FileText, Shield } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { useCallback, useEffect, useState } from "react";
 import { ThemeToggle } from "./theme/ThemeToggle";
 import { SidebarTrigger } from "./ui/sidebar";
+import { useQuery } from "@tanstack/react-query";
 
 export const Header = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  
+  const { data: isAdmin } = useQuery({
+    queryKey: ["isAdmin"],
+    queryFn: async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return false;
+      
+      const { data: roleData, error } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", session.user.id)
+        .single();
+      
+      if (error) {
+        console.error("Error fetching user role:", error);
+        return false;
+      }
+      
+      return roleData?.role === "admin";
+    },
+  });
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -54,6 +77,17 @@ export const Header = () => {
   const handleNavigate = useCallback((path: string) => () => {
     navigate(path);
   }, [navigate]);
+
+  const navigationItems = [
+    { icon: Home, label: "Home", path: "/" },
+    { icon: Search, label: "Search", path: "/search", disabled: true },
+    { icon: ListTodo, label: "Lists", path: "/lists" },
+    { icon: FileText, label: "Resources", path: "/resources" },
+  ];
+
+  if (isAdmin) {
+    navigationItems.push({ icon: Shield, label: "Admin", path: "/admin" });
+  }
 
   return (
     <header className="border-b bg-background">
@@ -97,8 +131,25 @@ export const Header = () => {
               </DropdownMenuTrigger>
               <DropdownMenuContent 
                 align="end"
-                className="w-48 animate-in fade-in-0 zoom-in-95"
+                className="w-56 animate-in fade-in-0 zoom-in-95"
               >
+                {/* Mobile Navigation Items */}
+                <div className="md:hidden">
+                  {navigationItems.map((item) => (
+                    <DropdownMenuItem
+                      key={item.path}
+                      onClick={handleNavigate(item.path)}
+                      disabled={item.disabled}
+                      className="cursor-pointer"
+                    >
+                      <item.icon className="mr-2 h-4 w-4" />
+                      {item.label}
+                    </DropdownMenuItem>
+                  ))}
+                  <DropdownMenuSeparator />
+                </div>
+                
+                {/* Logout Option (visible on all screen sizes) */}
                 <DropdownMenuItem 
                   onClick={handleLogout}
                   className="cursor-pointer transition-colors hover:bg-destructive hover:text-destructive-foreground"
