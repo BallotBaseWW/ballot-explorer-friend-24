@@ -9,7 +9,6 @@ import {
 import { User, LogOut, UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { useQuery } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
 import { ThemeToggle } from "./theme/ThemeToggle";
 import { SidebarTrigger } from "./ui/sidebar";
@@ -88,12 +87,22 @@ export const Header = () => {
           {isAuthenticated && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon">
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  className="transition-colors hover:bg-accent data-[state=open]:bg-accent"
+                >
                   <User className="h-5 w-5" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={handleLogout}>
+              <DropdownMenuContent 
+                align="end"
+                className="w-48 animate-in fade-in-0 zoom-in-95"
+              >
+                <DropdownMenuItem 
+                  onClick={handleLogout}
+                  className="cursor-pointer transition-colors hover:bg-destructive hover:text-destructive-foreground"
+                >
                   <LogOut className="mr-2 h-4 w-4" />
                   Logout
                 </DropdownMenuItem>
