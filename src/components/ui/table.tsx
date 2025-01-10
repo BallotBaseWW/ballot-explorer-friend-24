@@ -19,7 +19,7 @@ const TableHeader = React.forwardRef<
   HTMLTableSectionElement,
   React.HTMLAttributes<HTMLTableSectionElement>
 >(({ className, ...props }, ref) => (
-  <thead ref={ref} className={cn("[&_tr]:border-b dark:text-gray-200", className)} {...props} />
+  <thead ref={ref} className={cn("[&_tr]:border-b text-black dark:text-gray-200", className)} {...props} />
 ))
 TableHeader.displayName = "TableHeader"
 
@@ -29,7 +29,7 @@ const TableBody = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <tbody
     ref={ref}
-    className={cn("[&_tr:last-child]:border-0 dark:text-gray-300", className)}
+    className={cn("[&_tr:last-child]:border-0 text-black dark:text-gray-300", className)}
     {...props}
   />
 ))
@@ -42,7 +42,7 @@ const TableFooter = React.forwardRef<
   <tfoot
     ref={ref}
     className={cn(
-      "border-t bg-muted/50 font-medium [&>tr]:last:border-b-0 dark:text-gray-300",
+      "border-t bg-muted/50 font-medium [&>tr]:last:border-b-0 text-black dark:text-gray-300",
       className
     )}
     {...props}
@@ -72,7 +72,7 @@ const TableHead = React.forwardRef<
   <th
     ref={ref}
     className={cn(
-      "h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 dark:text-gray-200",
+      "h-12 px-4 text-left align-middle font-medium text-black dark:text-gray-200 [&:has([role=checkbox])]:pr-0",
       className
     )}
     {...props}
@@ -86,7 +86,7 @@ const TableCell = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <td
     ref={ref}
-    className={cn("p-4 align-middle [&:has([role=checkbox])]:pr-0 dark:text-gray-300", className)}
+    className={cn("p-4 align-middle text-black dark:text-gray-300 [&:has([role=checkbox])]:pr-0", className)}
     {...props}
   />
 ))
@@ -98,7 +98,7 @@ const TableCaption = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <caption
     ref={ref}
-    className={cn("mt-4 text-sm text-muted-foreground dark:text-gray-400", className)}
+    className={cn("mt-4 text-sm text-black dark:text-gray-400", className)}
     {...props}
   />
 ))
