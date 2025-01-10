@@ -76,12 +76,10 @@ const Districts = () => {
         {
           componentRestrictions: { country: "us" },
           types: ["address"],
-          bounds: {
-            north: 40.9176,
-            south: 40.4774,
-            east: -73.7002,
-            west: -74.2591,
-          },
+          bounds: new google.maps.LatLngBounds(
+            new google.maps.LatLng(40.4774, -74.2591),
+            new google.maps.LatLng(40.9176, -73.7002)
+          ),
           strictBounds: true,
         }
       );
@@ -92,6 +90,11 @@ const Districts = () => {
           setAddress(place.formatted_address);
         }
       });
+
+      // Return cleanup function
+      return () => {
+        google.maps.event.clearInstanceListeners(autocomplete);
+      };
     }
   }, [scriptLoaded, apiKey]);
 
@@ -178,6 +181,7 @@ const Districts = () => {
                       onChange={(e) => setAddress(e.target.value)}
                       placeholder="Enter a New York City address"
                       className="flex-1"
+                      autoComplete="off"
                     />
                     <Button type="submit" disabled={loading || !address}>
                       {loading ? (
