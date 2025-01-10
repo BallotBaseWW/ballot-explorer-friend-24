@@ -8,7 +8,7 @@ import ListDetails from "@/pages/ListDetails";
 import Login from "@/pages/Login";
 import Admin from "@/pages/Admin";
 import RequestAccess from "@/pages/RequestAccess";
-import Resources from "@/pages/Resources";
+import MatchingFunds from "@/pages/MatchingFunds";
 import Districts from "@/pages/Districts";
 import { AuthContainer } from "@/components/auth/AuthContainer";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
@@ -56,10 +56,10 @@ function App() {
               }
             />
             <Route
-              path="/resources"
+              path="/matching-funds"
               element={
                 <AuthContainer>
-                  <Resources />
+                  <MatchingFunds />
                 </AuthContainer>
               }
             />
