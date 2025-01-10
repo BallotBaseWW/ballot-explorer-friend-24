@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { Loader2 } from "lucide-react";
+import { AuthContainer } from "@/components/auth/AuthContainer";
 
 interface DistrictInfo {
   congressional?: string;
@@ -65,74 +66,76 @@ const Districts = () => {
   };
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen bg-background flex w-full">
-        <AppSidebar />
-        <div className="flex-1">
-          <Header />
-          <main className="max-w-4xl mx-auto px-4 py-8">
-            <h1 className="text-3xl font-bold mb-8">District Lookup</h1>
-            
-            <form onSubmit={handleSubmit} className="space-y-4 mb-8">
-              <div>
-                <label htmlFor="address" className="block text-sm font-medium mb-2">
-                  Enter NYC Address
-                </label>
-                <div className="flex gap-2">
-                  <Input
-                    id="address"
-                    type="text"
-                    value={address}
-                    onChange={(e) => setAddress(e.target.value)}
-                    placeholder="123 Main St"
-                    className="flex-1"
-                  />
-                  <Button type="submit" disabled={loading || !address}>
-                    {loading ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      "Look Up"
-                    )}
-                  </Button>
+    <AuthContainer>
+      <SidebarProvider>
+        <div className="min-h-screen bg-background flex w-full">
+          <AppSidebar />
+          <div className="flex-1">
+            <Header />
+            <main className="max-w-4xl mx-auto px-4 py-8">
+              <h1 className="text-3xl font-bold mb-8">District Lookup</h1>
+              
+              <form onSubmit={handleSubmit} className="space-y-4 mb-8">
+                <div>
+                  <label htmlFor="address" className="block text-sm font-medium mb-2">
+                    Enter NYC Address
+                  </label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="address"
+                      type="text"
+                      value={address}
+                      onChange={(e) => setAddress(e.target.value)}
+                      placeholder="123 Main St"
+                      className="flex-1"
+                    />
+                    <Button type="submit" disabled={loading || !address}>
+                      {loading ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        "Look Up"
+                      )}
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            </form>
+              </form>
 
-            {districts && (
-              <div className="space-y-6">
-                <h2 className="text-2xl font-semibold mb-4">District Information</h2>
-                <div className="grid gap-4 md:grid-cols-2">
-                  {districts.congressional && (
-                    <div className="p-4 border rounded-lg">
-                      <h3 className="font-medium mb-2">Congressional District</h3>
-                      <p>{districts.congressional}</p>
-                    </div>
-                  )}
-                  {districts.stateSenate && (
-                    <div className="p-4 border rounded-lg">
-                      <h3 className="font-medium mb-2">State Senate District</h3>
-                      <p>{districts.stateSenate}</p>
-                    </div>
-                  )}
-                  {districts.stateAssembly && (
-                    <div className="p-4 border rounded-lg">
-                      <h3 className="font-medium mb-2">State Assembly District</h3>
-                      <p>{districts.stateAssembly}</p>
-                    </div>
-                  )}
-                  {districts.cityCouncil && (
-                    <div className="p-4 border rounded-lg">
-                      <h3 className="font-medium mb-2">City Council District</h3>
-                      <p>{districts.cityCouncil}</p>
-                    </div>
-                  )}
+              {districts && (
+                <div className="space-y-6">
+                  <h2 className="text-2xl font-semibold mb-4">District Information</h2>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {districts.congressional && (
+                      <div className="p-4 border rounded-lg">
+                        <h3 className="font-medium mb-2">Congressional District</h3>
+                        <p>{districts.congressional}</p>
+                      </div>
+                    )}
+                    {districts.stateSenate && (
+                      <div className="p-4 border rounded-lg">
+                        <h3 className="font-medium mb-2">State Senate District</h3>
+                        <p>{districts.stateSenate}</p>
+                      </div>
+                    )}
+                    {districts.stateAssembly && (
+                      <div className="p-4 border rounded-lg">
+                        <h3 className="font-medium mb-2">State Assembly District</h3>
+                        <p>{districts.stateAssembly}</p>
+                      </div>
+                    )}
+                    {districts.cityCouncil && (
+                      <div className="p-4 border rounded-lg">
+                        <h3 className="font-medium mb-2">City Council District</h3>
+                        <p>{districts.cityCouncil}</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
-          </main>
+              )}
+            </main>
+          </div>
         </div>
-      </div>
-    </SidebarProvider>
+      </SidebarProvider>
+    </AuthContainer>
   );
 };
 
