@@ -45,15 +45,17 @@ const Districts = () => {
         if (data?.GOOGLE_CIVIC_API_KEY) {
           setApiKey(data.GOOGLE_CIVIC_API_KEY);
           
-          if (!scriptLoaded && !window.google?.maps?.places) {
+          // Only load the script if it hasn't been loaded yet
+          if (!window.google?.maps?.places) {
             const script = document.createElement("script");
             script.src = `https://maps.googleapis.com/maps/api/js?key=${data.GOOGLE_CIVIC_API_KEY}&libraries=places`;
             script.async = true;
-            script.defer = true;
             script.onload = () => {
               setScriptLoaded(true);
             };
             document.body.appendChild(script);
+          } else {
+            setScriptLoaded(true);
           }
         }
       } catch (error) {
@@ -91,7 +93,6 @@ const Districts = () => {
         }
       });
 
-      // Return cleanup function
       return () => {
         google.maps.event.clearInstanceListeners(autocomplete);
       };
@@ -116,25 +117,27 @@ const Districts = () => {
         `https://www.googleapis.com/civicinfo/v2/representatives?key=${apiKey}&address=${encodeURIComponent(address)}`
       );
       
-      const data = await response.json();
-      
       if (!response.ok) {
-        throw new Error(data.error?.message || "Failed to fetch district information");
+        const errorData = await response.json();
+        throw new Error(errorData.error?.message || "Failed to fetch district information");
       }
 
+      const data = await response.json();
       const districtInfo: DistrictInfo = {};
       
-      data.divisions && Object.entries(data.divisions).forEach(([divisionId, division]: [string, any]) => {
-        if (divisionId.includes("cd:")) {
-          districtInfo.congressional = division.name;
-        } else if (divisionId.includes("sldu:")) {
-          districtInfo.stateSenate = division.name;
-        } else if (divisionId.includes("sldl:")) {
-          districtInfo.stateAssembly = division.name;
-        } else if (divisionId.includes("council_district:")) {
-          districtInfo.cityCouncil = division.name;
-        }
-      });
+      if (data.divisions) {
+        Object.entries(data.divisions).forEach(([divisionId, division]: [string, any]) => {
+          if (divisionId.includes("cd:")) {
+            districtInfo.congressional = division.name;
+          } else if (divisionId.includes("sldu:")) {
+            districtInfo.stateSenate = division.name;
+          } else if (divisionId.includes("sldl:")) {
+            districtInfo.stateAssembly = division.name;
+          } else if (divisionId.includes("council_district:")) {
+            districtInfo.cityCouncil = division.name;
+          }
+        });
+      }
 
       setDistricts(districtInfo);
       
