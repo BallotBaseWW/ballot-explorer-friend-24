@@ -31,7 +31,7 @@ export const CountySelector = () => {
                 key={county.id}
                 onClick={() => handleCountySelect(county.id)}
                 variant="outline"
-                className="h-24 text-lg bg-background/5 hover:bg-background/10 border-border/10"
+                className="h-24 text-lg bg-background/5 hover:bg-background/10 border-2 border-border/50 shadow-sm"
               >
                 {county.name}
               </Button>
