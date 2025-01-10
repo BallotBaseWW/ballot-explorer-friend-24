@@ -25,7 +25,7 @@ export function ResourcesList() {
           categories (
             name
           ),
-          profiles (
+          profiles:created_by (
             full_name
           )
         `)
