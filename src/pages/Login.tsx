@@ -14,9 +14,9 @@ const Login = () => {
         heading="Welcome Back"
         text="Enter your email to sign in to your account"
       />
-      <main className="flex-1 flex items-center justify-center px-4 py-8">
+      <main className="flex-1 flex items-start justify-center px-4">
         <div className="w-full max-w-md">
-          <div className="bg-card rounded-lg shadow-md p-6">
+          <div className="bg-card rounded-lg shadow-md p-8">
             <Auth
               supabaseClient={supabase}
               appearance={{
@@ -31,13 +31,13 @@ const Login = () => {
                   },
                 },
                 className: {
-                  container: "space-y-4",
+                  container: "space-y-6",
                   button: "w-full font-medium shadow-sm hover:shadow-md transition-all duration-200 bg-gradient-to-r from-[#33C3F0] via-[#8E77B5] to-[#ea384c] hover:from-[#ea384c] hover:via-[#8E77B5] hover:to-[#33C3F0]",
                   input: "w-full transition-all duration-200 focus:ring-2 focus:ring-[#33C3F0] focus:ring-opacity-50",
                   label: "text-foreground/90 font-medium",
                   loader: "border-[#33C3F0]",
                   anchor: "text-[#33C3F0] hover:text-[#8E77B5] transition-colors duration-200 font-medium",
-                  divider: "my-4",
+                  divider: "my-6",
                   message: "text-sm",
                 },
               }}
@@ -50,7 +50,7 @@ const Login = () => {
                 },
               }}
             />
-            <div className="mt-4 text-center">
+            <div className="mt-6">
               <Button
                 onClick={() => navigate("/request-access")}
                 className="w-full bg-gradient-to-r from-[#33C3F0] via-[#8E77B5] to-[#ea384c] hover:from-[#ea384c] hover:via-[#8E77B5] hover:to-[#33C3F0] text-white transition-all duration-300"
