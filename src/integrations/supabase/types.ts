@@ -354,6 +354,27 @@ export type Database = {
         }
         Relationships: []
       }
+      data_currency: {
+        Row: {
+          as_of_date: string
+          id: string
+          updated_at: string
+          updated_by: string
+        }
+        Insert: {
+          as_of_date: string
+          id?: string
+          updated_at?: string
+          updated_by: string
+        }
+        Update: {
+          as_of_date?: string
+          id?: string
+          updated_at?: string
+          updated_by?: string
+        }
+        Relationships: []
+      }
       manhattan: {
         Row: {
           application_date: string | null
@@ -678,6 +699,30 @@ export type Database = {
           ward?: string | null
           zip_code?: string | null
           zip_four?: string | null
+        }
+        Relationships: []
+      }
+      site_updates: {
+        Row: {
+          content: string
+          created_at: string
+          created_by: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          created_by: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          updated_at?: string
         }
         Relationships: []
       }

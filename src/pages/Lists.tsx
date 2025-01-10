@@ -1,129 +1,117 @@
-import { useState } from "react";
+import { Header } from "@/components/Header";
+import { AppSidebar } from "@/components/AppSidebar";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Header } from "@/components/Header";
+import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Trash2, Download } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { CreateListDialog } from "@/components/search/voter-lists/CreateListDialog";
-import { Link, useNavigate } from "react-router-dom";
+import { Plus } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { format } from "date-fns";
 
 const Lists = () => {
-  const { toast } = useToast();
   const navigate = useNavigate();
-  const [selectedList, setSelectedList] = useState<string | null>(null);
+  const { toast } = useToast();
 
-  const { data: lists, refetch: refetchLists } = useQuery({
-    queryKey: ['voter-lists'],
+  const { data: lists, isLoading } = useQuery({
+    queryKey: ["voterLists"],
     queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("No user found");
+
       const { data, error } = await supabase
-        .from('voter_lists')
-        .select(`
-          *,
-          voter_list_items (
-            count
-          )
-        `)
-        .order('created_at', { ascending: false });
+        .from("voter_lists")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("updated_at", { ascending: false });
 
       if (error) throw error;
       return data;
     },
   });
 
-  const handleDeleteList = async (listId: string) => {
+  const handleCreateList = async () => {
     try {
-      const { error } = await supabase
-        .from('voter_lists')
-        .delete()
-        .eq('id', listId);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("No user found");
+
+      const { data, error } = await supabase
+        .from("voter_lists")
+        .insert([
+          {
+            name: "New List",
+            description: "",
+            user_id: user.id,
+          },
+        ])
+        .select()
+        .single();
 
       if (error) throw error;
 
       toast({
-        title: "Success",
-        description: "List deleted successfully",
+        title: "List created successfully",
       });
-      refetchLists();
-    } catch (error) {
-      console.error('Error deleting list:', error);
+
+      navigate(`/lists/${data.id}`);
+    } catch (error: any) {
       toast({
-        title: "Error",
-        description: "Failed to delete list",
+        title: "Error creating list",
+        description: error.message,
         variant: "destructive",
       });
     }
   };
 
-  const handleCardClick = (listId: string) => {
-    navigate(`/lists/${listId}`);
-  };
-
   return (
     <div className="min-h-screen bg-background">
-      <Header />
-      <main className="max-w-7xl mx-auto p-4">
-        <div className="mb-6 flex justify-between items-center">
-          <h2 className="text-2xl font-semibold text-foreground">My Voter Lists</h2>
-          <CreateListDialog onSuccess={refetchLists} />
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {lists?.map((list) => (
-            <Card 
-              key={list.id} 
-              className="hover:shadow-md transition-shadow cursor-pointer bg-card border-border/50"
-              onClick={() => handleCardClick(list.id)}
-            >
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-lg font-semibold text-card-foreground">
-                  {list.name}
-                </CardTitle>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDeleteList(list.id);
-                  }}
-                  className="text-muted-foreground hover:text-destructive"
-                >
-                  <Trash2 className="h-4 w-4" />
+      <SidebarProvider>
+        <div className="flex w-full">
+          <AppSidebar />
+          <div className="flex-1">
+            <Header />
+            <main className="max-w-7xl mx-auto p-4">
+              <div className="flex justify-between items-center mb-6">
+                <h1 className="text-2xl font-bold">My Lists</h1>
+                <Button onClick={handleCreateList}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create List
                 </Button>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground mb-4">
-                  {list.description || "No description"}
-                </p>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">
-                    {list.voter_list_items?.[0]?.count || 0} voters
-                  </span>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      // Handle export
-                    }}
-                    className="text-card-foreground bg-background/50 hover:bg-background/80"
-                  >
-                    <Download className="h-4 w-4 mr-2" />
-                    Export
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+              </div>
 
-        {!lists?.length && (
-          <div className="text-center py-8 text-muted-foreground">
-            No lists created yet. Create your first list using the button above.
+              {isLoading ? (
+                <div className="flex justify-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-foreground"></div>
+                </div>
+              ) : lists?.length === 0 ? (
+                <div className="text-center py-12">
+                  <p className="text-muted-foreground">No lists created yet</p>
+                </div>
+              ) : (
+                <div className="grid gap-4">
+                  {lists?.map((list) => (
+                    <div
+                      key={list.id}
+                      className="p-4 rounded-lg border bg-card hover:bg-accent/50 cursor-pointer transition-colors"
+                      onClick={() => navigate(`/lists/${list.id}`)}
+                    >
+                      <h3 className="font-semibold mb-1">{list.name}</h3>
+                      {list.description && (
+                        <p className="text-sm text-muted-foreground mb-2">
+                          {list.description}
+                        </p>
+                      )}
+                      <p className="text-xs text-muted-foreground">
+                        Last updated: {format(new Date(list.updated_at), "PPP")}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </main>
           </div>
-        )}
-      </main>
+        </div>
+      </SidebarProvider>
     </div>
   );
 };
