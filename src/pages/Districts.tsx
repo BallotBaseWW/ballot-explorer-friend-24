@@ -16,22 +16,7 @@ interface DistrictInfo {
   cityCouncil?: string;
 }
 
-// Declare google maps types
-declare global {
-  interface Window {
-    google: {
-      maps: {
-        places: {
-          Autocomplete: new (
-            input: HTMLInputElement,
-            options?: google.maps.places.AutocompleteOptions
-          ) => google.maps.places.Autocomplete;
-        };
-      };
-    };
-  }
-}
-
+// We can remove the manual type declaration since we now have @types/google.maps installed
 const Districts = () => {
   const [address, setAddress] = useState("");
   const [loading, setLoading] = useState(false);
@@ -40,7 +25,6 @@ const Districts = () => {
   const autocompleteInput = useRef<HTMLInputElement>(null);
   const [scriptLoaded, setScriptLoaded] = useState(false);
 
-  // Load Google Places API script
   useEffect(() => {
     if (!scriptLoaded && !window.google?.maps?.places) {
       const script = document.createElement("script");
@@ -57,7 +41,7 @@ const Districts = () => {
   // Initialize autocomplete
   useEffect(() => {
     if (scriptLoaded && autocompleteInput.current) {
-      const autocomplete = new window.google.maps.places.Autocomplete(
+      const autocomplete = new google.maps.places.Autocomplete(
         autocompleteInput.current,
         {
           componentRestrictions: { country: "us" },
