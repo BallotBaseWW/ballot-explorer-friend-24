@@ -25,7 +25,6 @@ const Districts = () => {
   const [scriptLoaded, setScriptLoaded] = useState(false);
   const [apiKey, setApiKey] = useState<string>("");
 
-  // Fetch API key from Supabase
   useEffect(() => {
     const fetchApiKey = async () => {
       try {
@@ -46,7 +45,6 @@ const Districts = () => {
         if (data?.GOOGLE_CIVIC_API_KEY) {
           setApiKey(data.GOOGLE_CIVIC_API_KEY);
           
-          // Load Google Maps script after we have the API key
           if (!scriptLoaded && !window.google?.maps?.places) {
             const script = document.createElement("script");
             script.src = `https://maps.googleapis.com/maps/api/js?key=${data.GOOGLE_CIVIC_API_KEY}&libraries=places`;
@@ -71,7 +69,6 @@ const Districts = () => {
     fetchApiKey();
   }, [toast]);
 
-  // Initialize autocomplete
   useEffect(() => {
     if (scriptLoaded && autocompleteInput.current && apiKey) {
       const autocomplete = new google.maps.places.Autocomplete(
