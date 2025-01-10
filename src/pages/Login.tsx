@@ -3,14 +3,17 @@ import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { LoginHeader } from "@/components/auth/LoginHeader";
+import LoginHeader from "@/components/auth/LoginHeader";
 
 const Login = () => {
   const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <LoginHeader />
+      <LoginHeader 
+        heading="Welcome Back"
+        text="Enter your email to sign in to your account"
+      />
       <main className="flex-1 flex items-center justify-center px-4 py-8">
         <div className="w-full max-w-md">
           <div className="bg-card rounded-lg shadow-md p-6">
