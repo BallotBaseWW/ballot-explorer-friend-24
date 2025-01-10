@@ -8,6 +8,7 @@ import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { AuthContainer } from "@/components/auth/AuthContainer";
 import { Header } from "@/components/Header";
+import { Button } from "@/components/ui/button";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -149,6 +150,14 @@ const Login = () => {
                 }}
                 providers={[]}
               />
+              <div className="mt-6 text-center">
+                <Button
+                  onClick={() => navigate("/request-access")}
+                  className="w-full bg-gradient-to-r from-[#33C3F0] to-[#2980b9] hover:from-[#2980b9] hover:to-[#33C3F0] text-white transition-all duration-300"
+                >
+                  Request Access
+                </Button>
+              </div>
             </AuthContainer>
           </div>
         </div>
