@@ -8,6 +8,7 @@ import ListDetails from "@/pages/ListDetails";
 import Login from "@/pages/Login";
 import Admin from "@/pages/Admin";
 import RequestAccess from "@/pages/RequestAccess";
+import Resources from "@/pages/Resources";
 import { AuthContainer } from "@/components/auth/AuthContainer";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 
@@ -50,6 +51,14 @@ function App() {
               element={
                 <AuthContainer>
                   <ListDetails />
+                </AuthContainer>
+              }
+            />
+            <Route
+              path="/resources"
+              element={
+                <AuthContainer>
+                  <Resources />
                 </AuthContainer>
               }
             />

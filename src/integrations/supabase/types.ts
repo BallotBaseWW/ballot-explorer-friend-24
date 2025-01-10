@@ -54,6 +54,36 @@ export type Database = {
         }
         Relationships: []
       }
+      blog_posts: {
+        Row: {
+          author_id: string
+          content: string
+          created_at: string
+          id: string
+          is_featured: boolean | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author_id: string
+          content: string
+          created_at?: string
+          id?: string
+          is_featured?: boolean | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          is_featured?: boolean | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       bronx: {
         Row: {
           application_date: string | null
@@ -351,6 +381,27 @@ export type Database = {
           ward?: string | null
           zip_code?: string | null
           zip_four?: string | null
+        }
+        Relationships: []
+      }
+      categories: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -701,6 +752,47 @@ export type Database = {
           zip_four?: string | null
         }
         Relationships: []
+      }
+      resources: {
+        Row: {
+          category_id: string | null
+          created_at: string
+          created_by: string
+          description: string | null
+          file_path: string | null
+          id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category_id?: string | null
+          created_at?: string
+          created_by: string
+          description?: string | null
+          file_path?: string | null
+          id?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          file_path?: string | null
+          id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "resources_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       site_updates: {
         Row: {
