@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { AppSidebar } from "@/components/AppSidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { Loader2 } from "lucide-react";
 import { AuthContainer } from "@/components/auth/AuthContainer";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 interface DistrictInfo {
   congressional?: string;
@@ -15,11 +16,70 @@ interface DistrictInfo {
   cityCouncil?: string;
 }
 
+// Declare google maps types
+declare global {
+  interface Window {
+    google: {
+      maps: {
+        places: {
+          Autocomplete: new (
+            input: HTMLInputElement,
+            options?: google.maps.places.AutocompleteOptions
+          ) => google.maps.places.Autocomplete;
+        };
+      };
+    };
+  }
+}
+
 const Districts = () => {
   const [address, setAddress] = useState("");
   const [loading, setLoading] = useState(false);
   const [districts, setDistricts] = useState<DistrictInfo | null>(null);
   const { toast } = useToast();
+  const autocompleteInput = useRef<HTMLInputElement>(null);
+  const [scriptLoaded, setScriptLoaded] = useState(false);
+
+  // Load Google Places API script
+  useEffect(() => {
+    if (!scriptLoaded && !window.google?.maps?.places) {
+      const script = document.createElement("script");
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${import.meta.env.VITE_GOOGLE_CIVIC_API_KEY}&libraries=places`;
+      script.async = true;
+      script.defer = true;
+      script.onload = () => {
+        setScriptLoaded(true);
+      };
+      document.body.appendChild(script);
+    }
+  }, [scriptLoaded]);
+
+  // Initialize autocomplete
+  useEffect(() => {
+    if (scriptLoaded && autocompleteInput.current) {
+      const autocomplete = new window.google.maps.places.Autocomplete(
+        autocompleteInput.current,
+        {
+          componentRestrictions: { country: "us" },
+          types: ["address"],
+          bounds: {
+            north: 40.9176,
+            south: 40.4774,
+            east: -73.7002,
+            west: -74.2591,
+          },
+          strictBounds: true,
+        }
+      );
+
+      autocomplete.addListener("place_changed", () => {
+        const place = autocomplete.getPlace();
+        if (place.formatted_address) {
+          setAddress(place.formatted_address);
+        }
+      });
+    }
+  }, [scriptLoaded]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,9 +87,9 @@ const Districts = () => {
     
     try {
       const response = await fetch(
-        `https://www.googleapis.com/civicinfo/v2/representatives?key=${process.env.GOOGLE_CIVIC_API_KEY}&address=${encodeURIComponent(
-          address + ", New York, NY"
-        )}`
+        `https://www.googleapis.com/civicinfo/v2/representatives?key=${
+          import.meta.env.VITE_GOOGLE_CIVIC_API_KEY
+        }&address=${encodeURIComponent(address)}`
       );
       
       const data = await response.json();
@@ -53,6 +113,14 @@ const Districts = () => {
       });
 
       setDistricts(districtInfo);
+      
+      if (Object.keys(districtInfo).length === 0) {
+        toast({
+          title: "No districts found",
+          description: "No district information was found for this address.",
+          variant: "destructive",
+        });
+      }
     } catch (error) {
       console.error("Error fetching district info:", error);
       toast({
@@ -83,10 +151,11 @@ const Districts = () => {
                   <div className="flex gap-2">
                     <Input
                       id="address"
+                      ref={autocompleteInput}
                       type="text"
                       value={address}
                       onChange={(e) => setAddress(e.target.value)}
-                      placeholder="123 Main St"
+                      placeholder="Enter a New York City address"
                       className="flex-1"
                     />
                     <Button type="submit" disabled={loading || !address}>
