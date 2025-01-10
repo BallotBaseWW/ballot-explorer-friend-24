@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { Loader2 } from "lucide-react";
 import { AuthContainer } from "@/components/auth/AuthContainer";
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { supabase } from "@/integrations/supabase/client";
 
 interface DistrictInfo {
   congressional?: string;
@@ -16,7 +16,6 @@ interface DistrictInfo {
   cityCouncil?: string;
 }
 
-// We can remove the manual type declaration since we now have @types/google.maps installed
 const Districts = () => {
   const [address, setAddress] = useState("");
   const [loading, setLoading] = useState(false);
@@ -24,18 +23,36 @@ const Districts = () => {
   const { toast } = useToast();
   const autocompleteInput = useRef<HTMLInputElement>(null);
   const [scriptLoaded, setScriptLoaded] = useState(false);
+  const [apiKey, setApiKey] = useState<string>("");
 
+  // Fetch API key from Supabase
   useEffect(() => {
-    if (!scriptLoaded && !window.google?.maps?.places) {
-      const script = document.createElement("script");
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${import.meta.env.VITE_GOOGLE_CIVIC_API_KEY}&libraries=places`;
-      script.async = true;
-      script.defer = true;
-      script.onload = () => {
-        setScriptLoaded(true);
-      };
-      document.body.appendChild(script);
-    }
+    const fetchApiKey = async () => {
+      const { data: { GOOGLE_CIVIC_API_KEY }, error } = await supabase.functions.invoke('get-secret', {
+        body: { key: 'GOOGLE_CIVIC_API_KEY' }
+      });
+      
+      if (error) {
+        console.error('Error fetching API key:', error);
+        return;
+      }
+      
+      setApiKey(GOOGLE_CIVIC_API_KEY);
+      
+      // Load Google Maps script after we have the API key
+      if (!scriptLoaded && !window.google?.maps?.places) {
+        const script = document.createElement("script");
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_CIVIC_API_KEY}&libraries=places`;
+        script.async = true;
+        script.defer = true;
+        script.onload = () => {
+          setScriptLoaded(true);
+        };
+        document.body.appendChild(script);
+      }
+    };
+
+    fetchApiKey();
   }, [scriptLoaded]);
 
   // Initialize autocomplete
@@ -67,13 +84,20 @@ const Districts = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!apiKey) {
+      toast({
+        title: "Error",
+        description: "API key not available. Please try again later.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setLoading(true);
     
     try {
       const response = await fetch(
-        `https://www.googleapis.com/civicinfo/v2/representatives?key=${
-          import.meta.env.VITE_GOOGLE_CIVIC_API_KEY
-        }&address=${encodeURIComponent(address)}`
+        `https://www.googleapis.com/civicinfo/v2/representatives?key=${apiKey}&address=${encodeURIComponent(address)}`
       );
       
       const data = await response.json();
