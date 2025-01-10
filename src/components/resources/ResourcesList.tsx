@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Download, Trash2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { format } from "date-fns";
 
 export function ResourcesList() {
   const { toast } = useToast();
@@ -22,8 +23,7 @@ export function ResourcesList() {
         .from("resources")
         .select(`
           *,
-          categories (name),
-          profiles (full_name)
+          categories (name)
         `)
         .order("created_at", { ascending: false });
 
@@ -94,41 +94,58 @@ export function ResourcesList() {
     return <div>Loading...</div>;
   }
 
+  // Group resources by category
+  const groupedResources = resources?.reduce((acc, resource) => {
+    const categoryName = resource.categories?.name || "Uncategorized";
+    if (!acc[categoryName]) {
+      acc[categoryName] = [];
+    }
+    acc[categoryName].push(resource);
+    return acc;
+  }, {} as Record<string, typeof resources>);
+
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Title</TableHead>
-          <TableHead>Category</TableHead>
-          <TableHead>Uploaded By</TableHead>
-          <TableHead>Actions</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {resources?.map((resource) => (
-          <TableRow key={resource.id}>
-            <TableCell>{resource.title}</TableCell>
-            <TableCell>{resource.categories?.name}</TableCell>
-            <TableCell>{resource.profiles?.full_name}</TableCell>
-            <TableCell className="space-x-2">
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => handleDownload(resource.file_path, resource.title)}
-              >
-                <Download className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => handleDelete(resource.id, resource.file_path)}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+    <div className="space-y-8">
+      {Object.entries(groupedResources || {}).map(([category, categoryResources]) => (
+        <div key={category} className="space-y-4">
+          <h2 className="text-xl font-semibold">{category}</h2>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="text-foreground">Title</TableHead>
+                <TableHead className="text-foreground">Date Added</TableHead>
+                <TableHead className="text-foreground">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {categoryResources?.map((resource) => (
+                <TableRow key={resource.id}>
+                  <TableCell className="text-foreground">{resource.title}</TableCell>
+                  <TableCell className="text-foreground">
+                    {format(new Date(resource.created_at), 'MMM d, yyyy')}
+                  </TableCell>
+                  <TableCell className="space-x-2">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => handleDownload(resource.file_path, resource.title)}
+                    >
+                      <Download className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => handleDelete(resource.id, resource.file_path)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      ))}
+    </div>
   );
 }
