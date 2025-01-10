@@ -9,7 +9,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { Home, Search, ListTodo, Shield, FileText, MapPin } from "lucide-react";
+import { Home, Search, ListTodo, Shield, MapPin, Calculator } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -60,9 +60,9 @@ export function AppSidebar() {
       icon: MapPin,
     },
     {
-      title: "Resources",
-      url: "/resources",
-      icon: FileText,
+      title: "Matching Funds",
+      url: "/matching-funds",
+      icon: Calculator,
     },
   ];
 
