@@ -12,7 +12,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { useCallback, useEffect, useState } from "react";
 import { ThemeToggle } from "./theme/ThemeToggle";
-import { SidebarTrigger } from "./ui/sidebar";
 import { useQuery } from "@tanstack/react-query";
 
 export const Header = () => {
@@ -92,16 +91,13 @@ export const Header = () => {
   return (
     <header className="border-b bg-background">
       <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-        <div className="flex items-center gap-4">
-          <SidebarTrigger className="md:hidden" />
-          <div 
-            className="text-2xl font-bold cursor-pointer"
-            onClick={handleNavigate("/")}
-          >
-            <span className="bg-gradient-to-r from-[#33C3F0] via-[#8E77B5] to-[#ea384c] bg-clip-text text-transparent">
-              BallotBase
-            </span>
-          </div>
+        <div 
+          className="text-2xl font-bold cursor-pointer"
+          onClick={handleNavigate("/")}
+        >
+          <span className="bg-gradient-to-r from-[#33C3F0] via-[#8E77B5] to-[#ea384c] bg-clip-text text-transparent">
+            BallotBase
+          </span>
         </div>
         
         <div className="flex items-center gap-4">
