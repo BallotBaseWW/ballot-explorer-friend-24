@@ -35,13 +35,13 @@ const Districts = () => {
     if (!user) return;
 
     // Get or create user's search limit
-    let { data: limitData } = await supabase
+    let { data: limitData, error: limitError } = await supabase
       .from('user_search_limits')
       .select('daily_limit')
       .eq('user_id', user.id)
       .maybeSingle();
 
-    if (!limitData) {
+    if (!limitData && !limitError) {
       // Create default search limit for user
       const { data: newLimitData, error: insertError } = await supabase
         .from('user_search_limits')
@@ -59,14 +59,14 @@ const Districts = () => {
 
     // Get today's search count
     const today = new Date().toISOString().split('T')[0];
-    let { data: searchData } = await supabase
+    let { data: searchData, error: searchError } = await supabase
       .from('user_searches')
       .select('search_count')
       .eq('user_id', user.id)
       .eq('search_date', today)
       .maybeSingle();
 
-    if (!searchData) {
+    if (!searchData && !searchError) {
       // Create today's search record if it doesn't exist
       const { data: newSearchData, error: insertError } = await supabase
         .from('user_searches')
@@ -427,16 +427,6 @@ const Districts = () => {
                             </div>
                         </form>
                     </div>
-
-                    {!isAdmin && searchLimit && (
-                        <div style={{ 
-                            textAlign: 'center', 
-                            margin: '10px 0', 
-                            color: searchCount >= searchLimit ? '#DC2626' : '#6B7280'
-                        }}>
-                            Searches today: {searchCount} / {searchLimit}
-                        </div>
-                    )}
 
                     {error && <div className="error">{error}</div>}
 
