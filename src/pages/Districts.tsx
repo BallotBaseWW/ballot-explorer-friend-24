@@ -2,128 +2,8 @@ import { Header } from "@/components/Header";
 import { AppSidebar } from "@/components/AppSidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AuthContainer } from "@/components/auth/AuthContainer";
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
 
 const Districts = () => {
-  const [searchCount, setSearchCount] = useState(0);
-  const [searchLimit, setSearchLimit] = useState<number | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const { toast } = useToast();
-
-  useEffect(() => {
-    checkUserRole();
-    getSearchLimits();
-  }, []);
-
-  const checkUserRole = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    const { data: roles } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', user.id)
-      .maybeSingle();
-
-    setIsAdmin(roles?.role === 'admin');
-  };
-
-  const getSearchLimits = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    // Get or create user's search limit
-    let { data: limitData, error: limitError } = await supabase
-      .from('user_search_limits')
-      .select('daily_limit')
-      .eq('user_id', user.id)
-      .maybeSingle();
-
-    if (!limitData && !limitError) {
-      // Create default search limit for user
-      const { data: newLimitData, error: insertError } = await supabase
-        .from('user_search_limits')
-        .insert([{ 
-          user_id: user.id,
-          daily_limit: 100 // Default limit
-        }])
-        .select('daily_limit')
-        .maybeSingle();
-      
-      if (!insertError) {
-        limitData = newLimitData;
-      }
-    }
-
-    // Get today's search count
-    const today = new Date().toISOString().split('T')[0];
-    let { data: searchData, error: searchError } = await supabase
-      .from('user_searches')
-      .select('search_count')
-      .eq('user_id', user.id)
-      .eq('search_date', today)
-      .maybeSingle();
-
-    if (!searchData && !searchError) {
-      // Create today's search record if it doesn't exist
-      const { data: newSearchData, error: insertError } = await supabase
-        .from('user_searches')
-        .insert([{
-          user_id: user.id,
-          search_date: today,
-          search_count: 0
-        }])
-        .select('search_count')
-        .maybeSingle();
-      
-      if (!insertError) {
-        searchData = newSearchData;
-      }
-    }
-
-    setSearchLimit(limitData?.daily_limit ?? 100);
-    setSearchCount(searchData?.search_count ?? 0);
-  };
-
-  const incrementSearchCount = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return false;
-
-    if (!isAdmin && searchLimit !== null && searchCount >= searchLimit) {
-      toast({
-        title: "Search limit reached",
-        description: "You have reached your daily search limit",
-        variant: "destructive",
-      });
-      return false;
-    }
-
-    const today = new Date().toISOString().split('T')[0];
-
-    const { data: existingSearch } = await supabase
-      .from('user_searches')
-      .select()
-      .eq('user_id', user.id)
-      .eq('search_date', today)
-      .maybeSingle();
-
-    if (existingSearch) {
-      await supabase
-        .from('user_searches')
-        .update({ search_count: existingSearch.search_count + 1 })
-        .eq('id', existingSearch.id);
-    } else {
-      await supabase
-        .from('user_searches')
-        .insert([{ user_id: user.id, search_date: today, search_count: 1 }]);
-    }
-
-    setSearchCount(prev => prev + 1);
-    return true;
-  };
-
   const htmlContent = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -263,11 +143,6 @@ const Districts = () => {
             margin-bottom: 12px;
             font-size: 14px;
         }
-        .search-count {
-            text-align: center;
-            margin: 10px 0;
-            font-size: 14px;
-        }
     </style>
 </head>
 <body>
@@ -288,30 +163,17 @@ const Districts = () => {
                 'CITY COUNCIL': 4
             };
 
-            const resetForm = () => {
-                setBorough('');
-                setAddress('');
-                setDistricts(null);
-                setError('');
-            };
-
             const handleSubmit = async (e) => {
                 e.preventDefault();
                 if (!borough || !address) return;
 
+                setLoading(true);
+                setError('');
+                setDistricts(null);
+
+                const fullAddress = \`\${address}, \${borough}, NY\`;
+
                 try {
-                    // Check with parent component if search is allowed
-                    const canSearch = await window.parent.incrementSearchCount();
-                    if (!canSearch) {
-                        setError('You have reached your daily search limit');
-                        return;
-                    }
-
-                    setLoading(true);
-                    setError('');
-                    setDistricts(null);
-
-                    const fullAddress = \`\${address}, \${borough}, NY\`;
                     const response = await fetch(
                         \`https://civicinfo.googleapis.com/civicinfo/v2/representatives?address=\${encodeURIComponent(fullAddress)}&key=AIzaSyCKt9DPND5l1VbuunwgQuLbw01hU7EQ0sI&includeOffices=true\`
                     );
@@ -365,6 +227,7 @@ const Districts = () => {
                             }
                         });
 
+                        // Sort districts according to the specified order
                         formattedDistricts.sort((a, b) => districtOrder[a.type] - districtOrder[b.type]);
                         setDistricts(formattedDistricts);
                     }
@@ -411,27 +274,13 @@ const Districts = () => {
                                 />
                             </div>
                             
-                            <div className="button-group" style={{ display: 'flex', gap: '10px' }}>
-                                <button 
-                                    className="button"
-                                    type="submit"
-                                    disabled={loading || !borough || !address}
-                                    style={{ flex: 1 }}
-                                >
-                                    {loading ? 'Looking Up Districts...' : 'Look Up Districts'}
-                                </button>
-                                <button 
-                                    className="button"
-                                    type="button"
-                                    onClick={resetForm}
-                                    style={{ 
-                                        flex: 1,
-                                        backgroundColor: '#6B7280',
-                                    }}
-                                >
-                                    Reset
-                                </button>
-                            </div>
+                            <button 
+                                className="button"
+                                type="submit"
+                                disabled={loading || !borough || !address}
+                            >
+                                {loading ? 'Looking Up Districts...' : 'Look Up Districts'}
+                            </button>
                         </form>
                     </div>
 
@@ -471,15 +320,10 @@ const Districts = () => {
           <AppSidebar />
           <div className="flex-1">
             <Header />
-            <main className="w-full h-[calc(100vh-64px)] p-4">
-              {!isAdmin && searchLimit && (
-                <div className="text-center mb-4 text-sm text-gray-600">
-                  Searches today: {searchCount} / {searchLimit}
-                </div>
-              )}
+            <main className="w-full h-[calc(100vh-64px)]">
               <iframe
                 srcDoc={htmlContent}
-                className="w-full h-full border-none bg-white rounded-lg shadow-sm"
+                className="w-full h-full border-none"
                 title="District Lookup"
                 sandbox="allow-scripts allow-forms"
               />

@@ -28,7 +28,7 @@ const Login = () => {
       }
 
       if (session?.user) {
-        navigate("/dashboard");
+        navigate("/");
       }
     };
 
@@ -39,7 +39,7 @@ const Login = () => {
       console.log("Auth state changed:", event, session);
       
       if (event === 'SIGNED_IN' && session) {
-        navigate("/dashboard");
+        navigate("/");
       }
     });
 

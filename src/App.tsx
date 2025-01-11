@@ -10,7 +10,6 @@ import Admin from "@/pages/Admin";
 import RequestAccess from "@/pages/RequestAccess";
 import MatchingFunds from "@/pages/MatchingFunds";
 import Districts from "@/pages/Districts";
-import Landing from "@/pages/Landing";
 import { AuthContainer } from "@/components/auth/AuthContainer";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 
@@ -22,11 +21,10 @@ function App() {
       <ThemeProvider defaultTheme="light" storageKey="ballotbase-theme">
         <Router>
           <Routes>
-            <Route path="/" element={<Landing />} />
             <Route path="/login" element={<Login />} />
             <Route path="/request-access" element={<RequestAccess />} />
             <Route
-              path="/dashboard"
+              path="/"
               element={
                 <AuthContainer>
                   <Index />
@@ -81,7 +79,7 @@ function App() {
                 </AuthContainer>
               }
             />
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="*" element={<Navigate to="/login" replace />} />
           </Routes>
           <Toaster />
         </Router>

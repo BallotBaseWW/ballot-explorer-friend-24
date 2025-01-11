@@ -7,7 +7,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { User, LogOut, Home, Search, ListTodo, FileText, Shield, Home as HomeIcon } from "lucide-react";
+import { User, LogOut, UserPlus, Home, Search, ListTodo, FileText, Shield } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { useCallback, useEffect, useState } from "react";
@@ -101,18 +101,18 @@ export const Header = () => {
         </div>
         
         <div className="flex items-center gap-4">
+          <ThemeToggle />
+          
           {!isAuthenticated && (
             <Button
               variant="ghost"
               size="icon"
-              onClick={handleNavigate("/")}
+              onClick={handleNavigate("/request-access")}
               className="hidden md:flex"
             >
-              <HomeIcon className="h-5 w-5" />
+              <UserPlus className="h-5 w-5" />
             </Button>
           )}
-          
-          <ThemeToggle />
           
           {isAuthenticated && (
             <DropdownMenu>
