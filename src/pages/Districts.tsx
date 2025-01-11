@@ -25,7 +25,7 @@ const Districts = () => {
       .from('user_roles')
       .select('role')
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
 
     setIsAdmin(roles?.role === 'admin');
   };
@@ -34,20 +34,54 @@ const Districts = () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    // Get user's search limit
-    const { data: limitData } = await supabase
+    // Get or create user's search limit
+    let { data: limitData } = await supabase
       .from('user_search_limits')
       .select('daily_limit')
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
+
+    if (!limitData) {
+      // Create default search limit for user
+      const { data: newLimitData, error: insertError } = await supabase
+        .from('user_search_limits')
+        .insert([{ 
+          user_id: user.id,
+          daily_limit: 100 // Default limit
+        }])
+        .select('daily_limit')
+        .maybeSingle();
+      
+      if (!insertError) {
+        limitData = newLimitData;
+      }
+    }
 
     // Get today's search count
-    const { data: searchData } = await supabase
+    const today = new Date().toISOString().split('T')[0];
+    let { data: searchData } = await supabase
       .from('user_searches')
       .select('search_count')
       .eq('user_id', user.id)
-      .eq('search_date', new Date().toISOString().split('T')[0])
-      .single();
+      .eq('search_date', today)
+      .maybeSingle();
+
+    if (!searchData) {
+      // Create today's search record if it doesn't exist
+      const { data: newSearchData, error: insertError } = await supabase
+        .from('user_searches')
+        .insert([{
+          user_id: user.id,
+          search_date: today,
+          search_count: 0
+        }])
+        .select('search_count')
+        .maybeSingle();
+      
+      if (!insertError) {
+        searchData = newSearchData;
+      }
+    }
 
     setSearchLimit(limitData?.daily_limit ?? 100);
     setSearchCount(searchData?.search_count ?? 0);
@@ -73,7 +107,7 @@ const Districts = () => {
       .select()
       .eq('user_id', user.id)
       .eq('search_date', today)
-      .single();
+      .maybeSingle();
 
     if (existingSearch) {
       await supabase
