@@ -263,6 +263,11 @@ const Districts = () => {
             margin-bottom: 12px;
             font-size: 14px;
         }
+        .search-count {
+            text-align: center;
+            margin: 10px 0;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
@@ -294,17 +299,19 @@ const Districts = () => {
                 e.preventDefault();
                 if (!borough || !address) return;
 
-                // Check with parent component if search is allowed
-                const canSearch = await window.parent.incrementSearchCount();
-                if (!canSearch) return;
-
-                setLoading(true);
-                setError('');
-                setDistricts(null);
-
-                const fullAddress = \`\${address}, \${borough}, NY\`;
-
                 try {
+                    // Check with parent component if search is allowed
+                    const canSearch = await window.parent.incrementSearchCount();
+                    if (!canSearch) {
+                        setError('You have reached your daily search limit');
+                        return;
+                    }
+
+                    setLoading(true);
+                    setError('');
+                    setDistricts(null);
+
+                    const fullAddress = \`\${address}, \${borough}, NY\`;
                     const response = await fetch(
                         \`https://civicinfo.googleapis.com/civicinfo/v2/representatives?address=\${encodeURIComponent(fullAddress)}&key=AIzaSyCKt9DPND5l1VbuunwgQuLbw01hU7EQ0sI&includeOffices=true\`
                     );
@@ -449,11 +456,6 @@ const Districts = () => {
             );
         }
 
-        // Add incrementSearchCount to window object so iframe can access it
-        window.incrementSearchCount = async function() {
-            return await window.parent.incrementSearchCount();
-        };
-
         ReactDOM.render(
             <DistrictLookup />,
             document.getElementById('root')
@@ -469,10 +471,15 @@ const Districts = () => {
           <AppSidebar />
           <div className="flex-1">
             <Header />
-            <main className="w-full h-[calc(100vh-64px)]">
+            <main className="w-full h-[calc(100vh-64px)] p-4">
+              {!isAdmin && searchLimit && (
+                <div className="text-center mb-4 text-sm text-gray-600">
+                  Searches today: {searchCount} / {searchLimit}
+                </div>
+              )}
               <iframe
                 srcDoc={htmlContent}
-                className="w-full h-full border-none"
+                className="w-full h-full border-none bg-white rounded-lg shadow-sm"
                 title="District Lookup"
                 sandbox="allow-scripts allow-forms"
               />
