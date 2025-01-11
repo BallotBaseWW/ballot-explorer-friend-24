@@ -69,7 +69,7 @@ export default function Landing() {
       features: [
         "All Features Included",
         "10 User Seats",
-        "24/7 Priority Support",
+        "Priority Support",
       ],
       additionalSeats: {
         monthly: 12.00,
