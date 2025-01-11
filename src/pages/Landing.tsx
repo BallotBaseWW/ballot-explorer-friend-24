@@ -156,35 +156,41 @@ export default function Landing() {
                 } transition-all hover:shadow-lg`}
               >
                 {plan.popular && (
-                  <div className="absolute top-0 right-0 bg-secondary px-3 py-1 rounded-tr-lg rounded-bl-lg text-xs font-semibold">
+                  <div className="absolute -top-4 right-4 bg-secondary px-4 py-1 rounded-full text-sm font-semibold shadow-lg">
                     Popular
                   </div>
                 )}
                 <div className="text-center">
                   <h3 className="text-xl font-semibold mb-2">{plan.title}</h3>
-                  <p className={`text-sm ${plan.popular ? "opacity-90" : "text-foreground/70"} mb-4`}>
+                  <p className={`text-sm ${plan.popular ? "text-white/90" : "text-foreground/70"} mb-4`}>
                     {plan.seats} User Seats
                   </p>
-                  <div className="space-y-2 mb-4">
+                  <div className="space-y-2 mb-6">
                     <div className="flex justify-center items-baseline">
                       <span className="text-4xl font-bold">${plan.monthlyPrice}</span>
-                      <span className={`${plan.popular ? "opacity-90" : "text-foreground/70"} ml-1`}>/month</span>
+                      <span className={`${plan.popular ? "text-white/90" : "text-foreground/70"} ml-1`}>/month</span>
                     </div>
-                    <div className="flex justify-center items-baseline text-sm">
-                      <span className="font-semibold">${plan.annualPrice}</span>
-                      <span className={`${plan.popular ? "opacity-90" : "text-foreground/70"} ml-1`}>/year</span>
-                      <span className="ml-2 text-secondary-foreground">Save {plan.discount}</span>
+                    <div className="flex flex-col items-center text-sm space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold">${plan.annualPrice}</span>
+                        <span className={`${plan.popular ? "text-white/90" : "text-foreground/70"}`}>/year</span>
+                      </div>
+                      <span className={`${
+                        plan.popular ? "bg-white/20" : "bg-secondary/20"
+                      } text-sm px-2 py-0.5 rounded-full`}>
+                        Save {plan.discount}
+                      </span>
                     </div>
                   </div>
                   <Button 
                     onClick={() => navigate("/request-access")}
                     variant={plan.popular ? "secondary" : "default"}
-                    className="w-full"
+                    className="w-full mb-6"
                   >
                     Get Started
                   </Button>
                 </div>
-                <ul className="mt-6 space-y-3 text-sm">
+                <ul className="space-y-3 text-sm">
                   {plan.features.map((feature) => (
                     <li key={feature} className="flex items-center">
                       <span className="mr-2">✓</span>
@@ -193,8 +199,10 @@ export default function Landing() {
                   ))}
                 </ul>
                 {plan.additionalSeats && (
-                  <div className="mt-4 pt-4 border-t border-border/20 text-sm">
-                    <p>Additional seats:</p>
+                  <div className={`mt-6 pt-4 border-t ${
+                    plan.popular ? "border-white/20" : "border-border/20"
+                  } text-sm space-y-1`}>
+                    <p className="font-medium">Additional seats:</p>
                     <p>${plan.additionalSeats.monthly}/month per seat</p>
                     <p>${plan.additionalSeats.annual}/year per seat</p>
                   </div>
