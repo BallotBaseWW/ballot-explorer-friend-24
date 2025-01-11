@@ -2,8 +2,94 @@ import { Header } from "@/components/Header";
 import { AppSidebar } from "@/components/AppSidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AuthContainer } from "@/components/auth/AuthContainer";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const Districts = () => {
+  const [searchCount, setSearchCount] = useState(0);
+  const [searchLimit, setSearchLimit] = useState<number | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    checkUserRole();
+    getSearchLimits();
+  }, []);
+
+  const checkUserRole = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data: roles } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .single();
+
+    setIsAdmin(roles?.role === 'admin');
+  };
+
+  const getSearchLimits = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    // Get user's search limit
+    const { data: limitData } = await supabase
+      .from('user_search_limits')
+      .select('daily_limit')
+      .eq('user_id', user.id)
+      .single();
+
+    // Get today's search count
+    const { data: searchData } = await supabase
+      .from('user_searches')
+      .select('search_count')
+      .eq('user_id', user.id)
+      .eq('search_date', new Date().toISOString().split('T')[0])
+      .single();
+
+    setSearchLimit(limitData?.daily_limit ?? 100);
+    setSearchCount(searchData?.search_count ?? 0);
+  };
+
+  const incrementSearchCount = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return false;
+
+    if (!isAdmin && searchLimit !== null && searchCount >= searchLimit) {
+      toast({
+        title: "Search limit reached",
+        description: "You have reached your daily search limit",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+
+    const { data: existingSearch } = await supabase
+      .from('user_searches')
+      .select()
+      .eq('user_id', user.id)
+      .eq('search_date', today)
+      .single();
+
+    if (existingSearch) {
+      await supabase
+        .from('user_searches')
+        .update({ search_count: existingSearch.search_count + 1 })
+        .eq('id', existingSearch.id);
+    } else {
+      await supabase
+        .from('user_searches')
+        .insert([{ user_id: user.id, search_date: today, search_count: 1 }]);
+    }
+
+    setSearchCount(prev => prev + 1);
+    return true;
+  };
+
   const htmlContent = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -163,9 +249,20 @@ const Districts = () => {
                 'CITY COUNCIL': 4
             };
 
+            const resetForm = () => {
+                setBorough('');
+                setAddress('');
+                setDistricts(null);
+                setError('');
+            };
+
             const handleSubmit = async (e) => {
                 e.preventDefault();
                 if (!borough || !address) return;
+
+                // Check with parent component if search is allowed
+                const canSearch = await window.parent.incrementSearchCount();
+                if (!canSearch) return;
 
                 setLoading(true);
                 setError('');
@@ -227,7 +324,6 @@ const Districts = () => {
                             }
                         });
 
-                        // Sort districts according to the specified order
                         formattedDistricts.sort((a, b) => districtOrder[a.type] - districtOrder[b.type]);
                         setDistricts(formattedDistricts);
                     }
@@ -274,15 +370,39 @@ const Districts = () => {
                                 />
                             </div>
                             
-                            <button 
-                                className="button"
-                                type="submit"
-                                disabled={loading || !borough || !address}
-                            >
-                                {loading ? 'Looking Up Districts...' : 'Look Up Districts'}
-                            </button>
+                            <div className="button-group" style={{ display: 'flex', gap: '10px' }}>
+                                <button 
+                                    className="button"
+                                    type="submit"
+                                    disabled={loading || !borough || !address}
+                                    style={{ flex: 1 }}
+                                >
+                                    {loading ? 'Looking Up Districts...' : 'Look Up Districts'}
+                                </button>
+                                <button 
+                                    className="button"
+                                    type="button"
+                                    onClick={resetForm}
+                                    style={{ 
+                                        flex: 1,
+                                        backgroundColor: '#6B7280',
+                                    }}
+                                >
+                                    Reset
+                                </button>
+                            </div>
                         </form>
                     </div>
+
+                    {!isAdmin && searchLimit && (
+                        <div style={{ 
+                            textAlign: 'center', 
+                            margin: '10px 0', 
+                            color: searchCount >= searchLimit ? '#DC2626' : '#6B7280'
+                        }}>
+                            Searches today: {searchCount} / {searchLimit}
+                        </div>
+                    )}
 
                     {error && <div className="error">{error}</div>}
 
@@ -304,6 +424,11 @@ const Districts = () => {
                 </div>
             );
         }
+
+        // Add incrementSearchCount to window object so iframe can access it
+        window.incrementSearchCount = async function() {
+            return await window.parent.incrementSearchCount();
+        };
 
         ReactDOM.render(
             <DistrictLookup />,

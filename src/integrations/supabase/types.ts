@@ -1004,6 +1004,51 @@ export type Database = {
           },
         ]
       }
+      user_search_limits: {
+        Row: {
+          created_at: string
+          daily_limit: number | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          daily_limit?: number | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          daily_limit?: number | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_searches: {
+        Row: {
+          id: string
+          search_count: number
+          search_date: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          search_count?: number
+          search_date?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          search_count?: number
+          search_date?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       voter_list_items: {
         Row: {
           added_at: string
