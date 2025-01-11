@@ -37,9 +37,9 @@ export default function Landing() {
       annualPrice: 216.00,
       discount: "10%",
       features: [
+        "All Features Included",
         "1 User Seat",
-        "Basic Search Features",
-        "List Management",
+        "Basic Support",
       ],
       additionalSeats: null,
     },
@@ -51,13 +51,12 @@ export default function Landing() {
       discount: "10%",
       popular: true,
       features: [
+        "All Features Included",
         "3 User Seats",
-        "Advanced Search Features",
-        "Enhanced List Management",
         "Priority Support",
       ],
       additionalSeats: {
-        monthly: 14,
+        monthly: 14.00,
         annual: 151.20,
       },
     },
@@ -68,13 +67,12 @@ export default function Landing() {
       annualPrice: 1326.00,
       discount: "15%",
       features: [
-        "10 User Seats",
         "All Features Included",
-        "Advanced Analytics",
+        "10 User Seats",
         "24/7 Priority Support",
       ],
       additionalSeats: {
-        monthly: 12,
+        monthly: 12.00,
         annual: 108.00,
       },
     },
@@ -163,20 +161,20 @@ export default function Landing() {
                 <div className="text-center">
                   <h3 className="text-xl font-semibold mb-2">{plan.title}</h3>
                   <p className={`text-sm ${plan.popular ? "text-white/90" : "text-foreground/70"} mb-4`}>
-                    {plan.seats} User Seats
+                    {plan.seats} User {plan.seats === "1" ? "Seat" : "Seats"}
                   </p>
                   <div className="space-y-2 mb-6">
                     <div className="flex justify-center items-baseline">
-                      <span className="text-4xl font-bold">${plan.monthlyPrice}</span>
+                      <span className="text-4xl font-bold">${plan.monthlyPrice.toFixed(2)}</span>
                       <span className={`${plan.popular ? "text-white/90" : "text-foreground/70"} ml-1`}>/month</span>
                     </div>
                     <div className="flex flex-col items-center text-sm space-y-1">
                       <div className="flex items-center gap-2">
-                        <span className="font-semibold">${plan.annualPrice}</span>
+                        <span className="font-semibold">${plan.annualPrice.toFixed(2)}</span>
                         <span className={`${plan.popular ? "text-white/90" : "text-foreground/70"}`}>/year</span>
                       </div>
                       <span className={`${
-                        plan.popular ? "bg-white/20" : "bg-secondary/20"
+                        plan.popular ? "bg-white/20" : "bg-secondary"
                       } text-sm px-2 py-0.5 rounded-full`}>
                         Save {plan.discount}
                       </span>
@@ -203,8 +201,8 @@ export default function Landing() {
                     plan.popular ? "border-white/20" : "border-border/20"
                   } text-sm space-y-1`}>
                     <p className="font-medium">Additional seats:</p>
-                    <p>${plan.additionalSeats.monthly}/month per seat</p>
-                    <p>${plan.additionalSeats.annual}/year per seat</p>
+                    <p>${plan.additionalSeats.monthly.toFixed(2)}/month per seat</p>
+                    <p>${plan.additionalSeats.annual.toFixed(2)}/year per seat</p>
                   </div>
                 )}
               </div>
