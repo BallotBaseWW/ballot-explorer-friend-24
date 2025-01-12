@@ -27,7 +27,10 @@ const SurveyDetails = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("surveys")
-        .select("*, voter_lists(*)")
+        .select(`
+          *,
+          voter_lists:voter_lists(*)
+        `)
         .eq("id", id)
         .single();
 
