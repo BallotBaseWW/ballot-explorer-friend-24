@@ -975,6 +975,45 @@ export type Database = {
         }
         Relationships: []
       }
+      survey_assignments: {
+        Row: {
+          assigned_by: string
+          assigned_to: string
+          created_at: string
+          id: string
+          survey_id: string
+        }
+        Insert: {
+          assigned_by: string
+          assigned_to: string
+          created_at?: string
+          id?: string
+          survey_id: string
+        }
+        Update: {
+          assigned_by?: string
+          assigned_to?: string
+          created_at?: string
+          id?: string
+          survey_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "survey_assignments_survey_id_fkey"
+            columns: ["survey_id"]
+            isOneToOne: false
+            referencedRelation: "survey_analytics"
+            referencedColumns: ["survey_id"]
+          },
+          {
+            foreignKeyName: "survey_assignments_survey_id_fkey"
+            columns: ["survey_id"]
+            isOneToOne: false
+            referencedRelation: "surveys"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       survey_questions: {
         Row: {
           created_at: string
@@ -1004,6 +1043,13 @@ export type Database = {
           survey_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "survey_questions_survey_id_fkey"
+            columns: ["survey_id"]
+            isOneToOne: false
+            referencedRelation: "survey_analytics"
+            referencedColumns: ["survey_id"]
+          },
           {
             foreignKeyName: "survey_questions_survey_id_fkey"
             columns: ["survey_id"]
@@ -1051,6 +1097,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "survey_questions"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "survey_responses_survey_id_fkey"
+            columns: ["survey_id"]
+            isOneToOne: false
+            referencedRelation: "survey_analytics"
+            referencedColumns: ["survey_id"]
           },
           {
             foreignKeyName: "survey_responses_survey_id_fkey"
@@ -1183,6 +1236,7 @@ export type Database = {
           id: string
           list_id: string
           state_voter_id: string
+          survey_status: string | null
         }
         Insert: {
           added_at?: string
@@ -1190,6 +1244,7 @@ export type Database = {
           id?: string
           list_id: string
           state_voter_id: string
+          survey_status?: string | null
         }
         Update: {
           added_at?: string
@@ -1197,6 +1252,7 @@ export type Database = {
           id?: string
           list_id?: string
           state_voter_id?: string
+          survey_status?: string | null
         }
         Relationships: [
           {
@@ -1237,7 +1293,16 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      survey_analytics: {
+        Row: {
+          completion_rate: number | null
+          survey_id: string | null
+          survey_title: string | null
+          total_responses: number | null
+          total_voters: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       approve_access_request: {
