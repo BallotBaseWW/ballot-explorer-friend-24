@@ -5,7 +5,7 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { PlusIcon, ArrowLeftIcon } from "lucide-react";
+import { PlusIcon, ArrowLeftIcon, PlayIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AddQuestionDialog } from "@/components/surveys/AddQuestionDialog";
 import { useState } from "react";
@@ -73,10 +73,20 @@ const SurveyDetails = () => {
                     </p>
                   )}
                 </div>
-                <Button onClick={() => setShowAddQuestionDialog(true)}>
-                  <PlusIcon className="h-4 w-4 mr-2" />
-                  Add Question
-                </Button>
+                <div className="flex gap-4">
+                  <Button 
+                    variant="outline"
+                    onClick={() => navigate(`/surveys/${id}/respond`)}
+                    disabled={!questions?.length}
+                  >
+                    <PlayIcon className="h-4 w-4 mr-2" />
+                    Start Survey
+                  </Button>
+                  <Button onClick={() => setShowAddQuestionDialog(true)}>
+                    <PlusIcon className="h-4 w-4 mr-2" />
+                    Add Question
+                  </Button>
+                </div>
               </div>
             </div>
 
