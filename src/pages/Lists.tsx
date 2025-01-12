@@ -18,38 +18,33 @@ const Lists = () => {
     queryKey: ["voterLists"],
     queryFn: async () => {
       try {
-        console.log("Fetching voter lists...");
-        const { data: { user } } = await supabase.auth.getUser();
+        const userResponse = await supabase.auth.getUser();
+        const user = userResponse.data.user;
         
         if (!user) {
           throw new Error("No user found");
         }
 
-        console.log("User ID:", user.id);
-        const { data, error } = await supabase
+        const { data, error: listsError } = await supabase
           .from("voter_lists")
-          .select()
+          .select("*")
           .eq('user_id', user.id)
           .order('updated_at', { ascending: false });
 
-        if (error) {
-          throw error;
+        if (listsError) {
+          console.error("Supabase error:", listsError);
+          throw new Error(listsError.message);
         }
 
-        if (!data) {
-          return [];
-        }
-
-        console.log("Fetched lists:", data);
-        return data as VoterList[];
+        return (data || []) as VoterList[];
       } catch (error: any) {
-        console.error("Error fetching lists:", error);
-        throw error;
+        console.error("Error in query function:", error);
+        throw new Error(error.message);
       }
     },
     retry: false,
     refetchOnWindowFocus: false,
-    staleTime: 30000 // Cache data for 30 seconds
+    staleTime: 30000
   });
 
   const handleCreateList = async () => {
