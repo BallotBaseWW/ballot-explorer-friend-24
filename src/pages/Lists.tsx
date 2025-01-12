@@ -8,25 +8,43 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
+import type { VoterList } from "@/types/voter-list";
 
 const Lists = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const { data: lists, isLoading } = useQuery({
+  const { data: lists, isLoading, error } = useQuery({
     queryKey: ["voterLists"],
     queryFn: async () => {
+      console.log("Fetching voter lists...");
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("No user found");
+      
+      if (!user) {
+        console.error("No user found");
+        throw new Error("No user found");
+      }
 
+      console.log("User ID:", user.id);
       const { data, error } = await supabase
         .from("voter_lists")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("updated_at", { ascending: false });
+        .select(`
+          id,
+          name,
+          description,
+          created_at,
+          updated_at,
+          user_id
+        `)
+        .order('updated_at', { ascending: false });
 
-      if (error) throw error;
-      return data;
+      if (error) {
+        console.error("Error fetching lists:", error);
+        throw error;
+      }
+
+      console.log("Fetched lists:", data);
+      return data as VoterList[];
     },
   });
 
@@ -55,6 +73,7 @@ const Lists = () => {
 
       navigate(`/lists/${data.id}`);
     } catch (error: any) {
+      console.error("Error creating list:", error);
       toast({
         title: "Error creating list",
         description: error.message,
@@ -62,6 +81,27 @@ const Lists = () => {
       });
     }
   };
+
+  if (error) {
+    console.error("Error in lists query:", error);
+    return (
+      <div className="min-h-screen bg-background">
+        <SidebarProvider>
+          <div className="flex w-full">
+            <AppSidebar />
+            <div className="flex-1">
+              <Header />
+              <main className="max-w-7xl mx-auto p-4">
+                <div className="text-center py-12">
+                  <p className="text-destructive">Error loading lists: {error.message}</p>
+                </div>
+              </main>
+            </div>
+          </div>
+        </SidebarProvider>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -83,13 +123,13 @@ const Lists = () => {
                 <div className="flex justify-center">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-foreground"></div>
                 </div>
-              ) : lists?.length === 0 ? (
+              ) : !lists || lists.length === 0 ? (
                 <div className="text-center py-12">
                   <p className="text-muted-foreground">No lists created yet</p>
                 </div>
               ) : (
                 <div className="grid gap-4">
-                  {lists?.map((list) => (
+                  {lists.map((list) => (
                     <div
                       key={list.id}
                       className="p-4 rounded-lg border bg-card hover:bg-accent/50 cursor-pointer transition-colors"
