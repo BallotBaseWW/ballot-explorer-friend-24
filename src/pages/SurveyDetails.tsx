@@ -12,9 +12,13 @@ import { AssignSurveyDialog } from "@/components/surveys/AssignSurveyDialog";
 import { useState } from "react";
 import { ListSelector } from "@/components/search/voter-lists/ListSelector";
 import { useToast } from "@/hooks/use-toast";
+import { SurveyAnalyticsDashboard } from "@/components/surveys/analytics/SurveyAnalyticsDashboard";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+// ... keep existing code (imports and component setup)
 
 const SurveyDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -193,10 +197,6 @@ const SurveyDetails = () => {
 
   const isAdmin = userRole?.role === "admin";
 
-  if (surveyLoading) {
-    return <div>Loading...</div>;
-  }
-
   return (
     <SidebarProvider>
       <div className="min-h-screen bg-background flex w-full">
@@ -204,16 +204,16 @@ const SurveyDetails = () => {
         <div className="flex-1">
           <Header />
           <main className="max-w-7xl mx-auto px-4 py-8">
-            <div className="mb-8">
-              <Button
-                variant="ghost"
-                className="mb-4"
-                onClick={() => navigate("/surveys")}
-              >
-                <ArrowLeftIcon className="h-4 w-4 mr-2" />
-                Back to Surveys
-              </Button>
+            <Button
+              variant="ghost"
+              className="mb-4"
+              onClick={() => navigate("/surveys")}
+            >
+              <ArrowLeftIcon className="h-4 w-4 mr-2" />
+              Back to Surveys
+            </Button>
 
+            <div className="mb-8">
               <div className="flex justify-between items-center">
                 <div>
                   <h1 className="text-4xl font-bold">{survey?.title}</h1>
@@ -261,101 +261,114 @@ const SurveyDetails = () => {
               </div>
             </div>
 
-            {questionsLoading ? (
-              <div>Loading questions...</div>
-            ) : (
-              <div className="space-y-4">
-                {questions?.map((question) => (
-                  <Card key={question.id} className="p-6">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        {editingQuestion?.id === question.id ? (
-                          <div className="flex gap-4 items-center">
-                            <Input
-                              value={editingQuestion.question}
-                              onChange={(e) => setEditingQuestion({
-                                ...editingQuestion,
-                                question: e.target.value
-                              })}
-                              className="flex-1"
-                            />
-                            <Button 
-                              onClick={() => updateQuestion.mutate({
-                                questionId: question.id,
-                                question: editingQuestion.question
-                              })}
-                            >
-                              Save
-                            </Button>
-                            <Button 
+            <Tabs defaultValue="analytics" className="w-full">
+              <TabsList className="mb-4">
+                <TabsTrigger value="analytics">Analytics</TabsTrigger>
+                <TabsTrigger value="questions">Questions</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="analytics">
+                {id && <SurveyAnalyticsDashboard surveyId={id} />}
+              </TabsContent>
+
+              <TabsContent value="questions">
+                {questionsLoading ? (
+                  <div>Loading questions...</div>
+                ) : (
+                  <div className="space-y-4">
+                    {questions?.map((question) => (
+                      <Card key={question.id} className="p-6">
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            {editingQuestion?.id === question.id ? (
+                              <div className="flex gap-4 items-center">
+                                <Input
+                                  value={editingQuestion.question}
+                                  onChange={(e) => setEditingQuestion({
+                                    ...editingQuestion,
+                                    question: e.target.value
+                                  })}
+                                  className="flex-1"
+                                />
+                                <Button 
+                                  onClick={() => updateQuestion.mutate({
+                                    questionId: question.id,
+                                    question: editingQuestion.question
+                                  })}
+                                >
+                                  Save
+                                </Button>
+                                <Button 
+                                  variant="ghost"
+                                  onClick={() => setEditingQuestion(null)}
+                                >
+                                  Cancel
+                                </Button>
+                              </div>
+                            ) : (
+                              <h3 className="text-xl font-semibold mb-2">
+                                {question.question}
+                              </h3>
+                            )}
+                            <p className="text-sm text-muted-foreground">
+                              Type: {question.question_type}
+                            </p>
+                            {question.options && Array.isArray(question.options) && (
+                              <div className="mt-4">
+                                <p className="text-sm font-medium mb-2">Options:</p>
+                                <ul className="list-disc list-inside">
+                                  {question.options.map((option: string, index: number) => (
+                                    <li key={index} className="text-sm">
+                                      {option}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex gap-2 ml-4">
+                            <Button
                               variant="ghost"
-                              onClick={() => setEditingQuestion(null)}
+                              size="icon"
+                              onClick={() => setEditingQuestion({
+                                id: question.id,
+                                question: question.question
+                              })}
                             >
-                              Cancel
+                              <Pencil className="h-4 w-4" />
                             </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="ghost" size="icon">
+                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Delete Question</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Are you sure you want to delete this question? This action cannot be undone.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => deleteQuestion.mutate(question.id)}
+                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                  >
+                                    Delete
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
                           </div>
-                        ) : (
-                          <h3 className="text-xl font-semibold mb-2">
-                            {question.question}
-                          </h3>
-                        )}
-                        <p className="text-sm text-muted-foreground">
-                          Type: {question.question_type}
-                        </p>
-                        {question.options && Array.isArray(question.options) && (
-                          <div className="mt-4">
-                            <p className="text-sm font-medium mb-2">Options:</p>
-                            <ul className="list-disc list-inside">
-                              {question.options.map((option: string, index: number) => (
-                                <li key={index} className="text-sm">
-                                  {option}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex gap-2 ml-4">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => setEditingQuestion({
-                            id: question.id,
-                            question: question.question
-                          })}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Delete Question</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Are you sure you want to delete this question? This action cannot be undone.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => deleteQuestion.mutate(question.id)}
-                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                              >
-                                Delete
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
-                    </div>
-                  </Card>
-                ))}
-              </div>
-            )}
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
 
             {id && (
               <>
