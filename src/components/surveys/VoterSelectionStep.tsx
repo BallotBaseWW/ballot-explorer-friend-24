@@ -4,7 +4,7 @@ import { VoterCard } from "../search/voter-card/VoterCard";
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
 import { County } from "../search/types";
-import { Loader2 } from "lucide-react";
+import { Loader2, ListPlus } from "lucide-react";
 
 interface VoterSelectionStepProps {
   listId: string;
@@ -96,7 +96,13 @@ export const VoterSelectionStep = ({ listId, onVoterSelect }: VoterSelectionStep
             onPrint={() => {}}
           />
           <div className="absolute top-4 right-4">
-            <Button onClick={() => onVoterSelect(voter, voter.county)}>
+            <Button 
+              variant="outline"
+              size="sm"
+              onClick={() => onVoterSelect(voter, voter.county)}
+              className="gap-2"
+            >
+              <ListPlus className="h-4 w-4" />
               Survey this Voter
             </Button>
           </div>
