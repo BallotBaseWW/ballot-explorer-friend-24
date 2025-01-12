@@ -4,6 +4,7 @@ import { VoterCard } from "../search/voter-card/VoterCard";
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
 import { County } from "../search/types";
+import { Loader2 } from "lucide-react";
 
 interface VoterSelectionStepProps {
   listId: string;
@@ -14,6 +15,15 @@ export const VoterSelectionStep = ({ listId, onVoterSelect }: VoterSelectionStep
   const { data: voterItems, isLoading } = useQuery({
     queryKey: ['voter-list-items', listId],
     queryFn: async () => {
+      // First get total count of voters in list
+      const { count: totalCount, error: countError } = await supabase
+        .from('voter_list_items')
+        .select('*', { count: 'exact', head: true })
+        .eq('list_id', listId);
+
+      if (countError) throw countError;
+
+      // Then get pending voters
       const { data: items, error: itemsError } = await supabase
         .from('voter_list_items')
         .select('*')
@@ -22,8 +32,15 @@ export const VoterSelectionStep = ({ listId, onVoterSelect }: VoterSelectionStep
 
       if (itemsError) throw itemsError;
 
+      if (items.length === 0 && totalCount === 0) {
+        throw new Error('No voters found in this list.');
+      }
+
+      if (items.length === 0 && totalCount > 0) {
+        throw new Error('All voters in this list have been surveyed.');
+      }
+
       const voterPromises = items.map(async (item) => {
-        // Validate that the county is of type County before making the request
         if (!isValidCounty(item.county)) {
           throw new Error(`Invalid county: ${item.county}`);
         }
@@ -42,20 +59,27 @@ export const VoterSelectionStep = ({ listId, onVoterSelect }: VoterSelectionStep
     },
   });
 
-  // Helper function to validate county
   const isValidCounty = (county: string): county is County => {
     return ['bronx', 'brooklyn', 'manhattan', 'queens', 'statenisland'].includes(county);
   };
 
   if (isLoading) {
-    return <div>Loading voters...</div>;
+    return (
+      <div className="flex items-center justify-center p-8">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
   }
 
   if (!voterItems?.length) {
     return (
       <Card className="p-6">
         <p className="text-center text-muted-foreground">
-          No pending voters found in this list.
+          No pending voters found in this list. This could mean either:
+          <br />
+          1. The list is empty
+          <br />
+          2. All voters in this list have already been surveyed
         </p>
       </Card>
     );

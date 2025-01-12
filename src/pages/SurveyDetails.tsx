@@ -67,18 +67,27 @@ const SurveyDetails = () => {
 
   const assignList = useMutation({
     mutationFn: async (listId: string) => {
-      const { error } = await supabase
+      // First update the survey
+      const { error: surveyError } = await supabase
         .from("surveys")
         .update({ assigned_list_id: listId })
         .eq("id", id);
 
-      if (error) throw error;
+      if (surveyError) throw surveyError;
+
+      // Then set all voter_list_items to pending status
+      const { error: itemsError } = await supabase
+        .from("voter_list_items")
+        .update({ survey_status: 'pending' })
+        .eq("list_id", listId);
+
+      if (itemsError) throw itemsError;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["survey", id] });
       toast({
         title: "List assigned",
-        description: "The voter list has been assigned to this survey.",
+        description: "The voter list has been assigned to this survey and voters are ready for surveying.",
       });
       setShowListSelector(false);
     },
