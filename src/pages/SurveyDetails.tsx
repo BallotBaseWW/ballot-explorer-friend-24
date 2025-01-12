@@ -5,9 +5,10 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { PlusIcon, ArrowLeftIcon, PlayIcon, ListIcon } from "lucide-react";
+import { PlusIcon, ArrowLeftIcon, PlayIcon, ListIcon, UsersIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AddQuestionDialog } from "@/components/surveys/AddQuestionDialog";
+import { AssignSurveyDialog } from "@/components/surveys/AssignSurveyDialog";
 import { useState } from "react";
 import { ListSelector } from "@/components/search/voter-lists/ListSelector";
 import { useToast } from "@/components/ui/use-toast";
@@ -17,6 +18,7 @@ const SurveyDetails = () => {
   const navigate = useNavigate();
   const [showAddQuestionDialog, setShowAddQuestionDialog] = useState(false);
   const [showListSelector, setShowListSelector] = useState(false);
+  const [showAssignDialog, setShowAssignDialog] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -87,6 +89,25 @@ const SurveyDetails = () => {
     },
   });
 
+  const { data: userRole } = useQuery({
+    queryKey: ["user-role"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+
+      const { data, error } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const isAdmin = userRole?.role === "admin";
+
   if (surveyLoading) {
     return <div>Loading...</div>;
   }
@@ -123,6 +144,15 @@ const SurveyDetails = () => {
                   )}
                 </div>
                 <div className="flex gap-4">
+                  {isAdmin && (
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowAssignDialog(true)}
+                    >
+                      <UsersIcon className="h-4 w-4 mr-2" />
+                      Manage Assignments
+                    </Button>
+                  )}
                   <Button
                     variant="outline"
                     onClick={() => setShowListSelector(true)}
@@ -204,6 +234,13 @@ const SurveyDetails = () => {
                       </Button>
                     </Card>
                   </div>
+                )}
+                {isAdmin && (
+                  <AssignSurveyDialog
+                    surveyId={id}
+                    open={showAssignDialog}
+                    onOpenChange={setShowAssignDialog}
+                  />
                 )}
               </>
             )}
