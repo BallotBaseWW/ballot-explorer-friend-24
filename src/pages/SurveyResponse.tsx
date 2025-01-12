@@ -90,7 +90,7 @@ const SurveyResponse = () => {
       if (responseError) throw responseError;
 
       // If this is the last question, update the voter's survey status
-      if (currentQuestionIndex === questions.length - 1) {
+      if (currentQuestionIndex === questions?.length - 1) {
         const { error: statusError } = await supabase
           .from("voter_list_items")
           .update({ survey_status: "completed" })
@@ -101,8 +101,10 @@ const SurveyResponse = () => {
       }
     },
     onSuccess: () => {
+      // Invalidate both the survey responses and voter list queries
       queryClient.invalidateQueries({ queryKey: ["survey-responses"] });
       queryClient.invalidateQueries({ queryKey: ["survey-analytics"] });
+      queryClient.invalidateQueries({ queryKey: ["voter-list-items", survey?.assigned_list_id] });
       
       if (questions && currentQuestionIndex < questions.length - 1) {
         setCurrentQuestionIndex(prev => prev + 1);
