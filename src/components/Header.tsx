@@ -18,8 +18,8 @@ export function Header() {
             className="font-bold"
             onClick={() => navigate("/")}
           >
-            <span className="text-primary">Ballot</span>
-            <span className="text-rose-500">Base</span>
+            <span className="text-primary">Matching</span>
+            <span className="text-rose-500">Funds</span>
           </Button>
         </div>
         
