@@ -12,6 +12,7 @@ import MatchingFunds from "@/pages/MatchingFunds";
 import Districts from "@/pages/Districts";
 import Surveys from "@/pages/Surveys";
 import SurveyDetails from "@/pages/SurveyDetails";
+import SurveyResponse from "@/pages/SurveyResponse";
 import { AuthContainer } from "@/components/auth/AuthContainer";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 
@@ -86,6 +87,14 @@ function App() {
               element={
                 <AuthContainer>
                   <SurveyDetails />
+                </AuthContainer>
+              }
+            />
+            <Route
+              path="/surveys/:id/respond"
+              element={
+                <AuthContainer>
+                  <SurveyResponse />
                 </AuthContainer>
               }
             />
