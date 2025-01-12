@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
-import { UserNav } from "@/components/auth/UserNav";
+import { UserNav } from "@/components/auth/UserNav.tsx";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 
 export function Header() {
@@ -18,8 +18,8 @@ export function Header() {
             className="font-bold"
             onClick={() => navigate("/")}
           >
-            <span className="text-primary">Matching</span>
-            <span className="text-rose-500">Funds</span>
+            <span className="text-primary">Ballot</span>
+            <span className="text-rose-500">Base</span>
           </Button>
         </div>
         
