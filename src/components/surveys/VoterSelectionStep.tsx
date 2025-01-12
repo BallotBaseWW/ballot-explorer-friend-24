@@ -37,23 +37,6 @@ export const VoterSelectionStep = ({ listId, onVoterSelect }: VoterSelectionStep
         throw new Error('The assigned list could not be found.');
       }
 
-      // Then get total count of voters in list
-      const { count: totalCount, error: countError } = await supabase
-        .from('voter_list_items')
-        .select('*', { count: 'exact', head: true })
-        .eq('list_id', listId);
-
-      if (countError) {
-        console.error("Error getting count:", countError);
-        throw countError;
-      }
-
-      console.log("Total voters in list:", totalCount);
-
-      if (totalCount === 0) {
-        throw new Error('This list is empty. Please add voters to the list before conducting the survey.');
-      }
-
       // Then get pending voters
       const { data: items, error: itemsError } = await supabase
         .from('voter_list_items')
@@ -107,6 +90,8 @@ export const VoterSelectionStep = ({ listId, onVoterSelect }: VoterSelectionStep
         throw error;
       }
     },
+    // Add refetchInterval to periodically check for updates
+    refetchInterval: 1000,
   });
 
   const isValidCounty = (county: string): county is County => {
