@@ -17,7 +17,7 @@ export const PartyBadge = ({ party }: PartyBadgeProps) => {
   };
 
   return (
-    <Badge className={`${getPartyColor(party)} text-white`}>
+    <Badge className={`${getPartyColor(party)} text-white inline-flex items-center justify-center px-2.5 py-0.5 text-xs font-medium`}>
       {party || "No Party"}
     </Badge>
   );

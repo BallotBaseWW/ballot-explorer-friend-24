@@ -11,6 +11,7 @@ import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { SurveyResponseForm } from "@/components/surveys/SurveyResponseForm";
 import { VoterSelectionStep } from "@/components/surveys/VoterSelectionStep";
+import { SurveyProgress } from "@/components/surveys/SurveyProgress";
 import { Json } from "@/integrations/supabase/types";
 import { County } from "@/components/search/types";
 
@@ -22,6 +23,20 @@ const SurveyResponse = () => {
   const [selectedVoter, setSelectedVoter] = useState<any>(null);
   const [selectedCounty, setSelectedCounty] = useState<County | null>(null);
   const queryClient = useQueryClient();
+
+  const { data: surveyAnalytics } = useQuery({
+    queryKey: ["survey-analytics", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("survey_analytics")
+        .select("*")
+        .eq("survey_id", id)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const { data: survey } = useQuery({
     queryKey: ["survey", id],
@@ -87,6 +102,7 @@ const SurveyResponse = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["survey-responses"] });
+      queryClient.invalidateQueries({ queryKey: ["survey-analytics"] });
       
       if (questions && currentQuestionIndex < questions.length - 1) {
         setCurrentQuestionIndex(prev => prev + 1);
@@ -151,6 +167,14 @@ const SurveyResponse = () => {
               <h1 className="text-3xl font-bold">{survey.title}</h1>
               {survey.description && (
                 <p className="text-muted-foreground mt-2">{survey.description}</p>
+              )}
+              {surveyAnalytics && (
+                <div className="mt-4">
+                  <SurveyProgress 
+                    totalVoters={surveyAnalytics.total_voters || 0}
+                    completedVoters={surveyAnalytics.total_responses || 0}
+                  />
+                </div>
               )}
             </div>
 
