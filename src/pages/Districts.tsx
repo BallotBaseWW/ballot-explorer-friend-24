@@ -37,26 +37,15 @@ const Districts = () => {
             margin-bottom: 30px;
             text-align: center;
         }
-        @media (max-width: 768px) {
-            .gradient-text {
-                font-size: 1.5rem;
-                margin-bottom: 20px;
-            }
-        }
         .input-field, .select-field {
             width: 100%;
             padding: 12px;
-            margin: 10px 0;
             border: 1px solid #E5E7EB;
             border-radius: 8px;
             font-size: 16px;
             box-sizing: border-box;
             background: #fff;
-        }
-        .input-field:focus, .select-field:focus {
-            outline: none;
-            border-color: #60A5FA;
-            box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.2);
+            margin: 8px 0 16px;
         }
         .button {
             width: 100%;
@@ -67,15 +56,10 @@ const Districts = () => {
             border-radius: 8px;
             font-size: 16px;
             cursor: pointer;
-            margin-top: 10px;
             transition: background-color 0.2s;
-        }
-        .button:hover {
-            background-color: #3B82F6;
         }
         .button:disabled {
             background-color: #E5E7EB;
-            cursor: not-allowed;
         }
         .card {
             background: white;
@@ -84,36 +68,39 @@ const Districts = () => {
             padding: 20px;
             margin-bottom: 12px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
         }
-        @media (max-width: 480px) {
-            .card {
-                padding: 16px;
-            }
+        .district-content {
+            flex: 1;
         }
         .district-label {
-            font-weight: 600;
+            font-size: 18px;
+            font-weight: 700;
             color: #111827;
-            font-size: 16px;
+            margin-bottom: 4px;
         }
         .district-name {
             color: #374151;
-            margin: 4px 0;
-            font-size: 15px;
+            font-size: 16px;
+            margin-bottom: 8px;
         }
         .representative {
-            margin-top: 8px;
             color: #6B7280;
-            font-size: 14px;
+            font-size: 15px;
         }
-        .input-group {
-            margin-bottom: 20px;
-        }
-        .label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            color: #374151;
-            font-size: 14px;
+        .district-number {
+            font-size: 48px;
+            font-weight: 700;
+            margin-left: 20px;
+            line-height: 1;
+            background: linear-gradient(90deg, #60A5FA, #818CF8, #C084FC);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
         }
         .search-container {
             background: white;
@@ -123,17 +110,6 @@ const Districts = () => {
             margin-bottom: 24px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
-        @media (max-width: 480px) {
-            .search-container {
-                padding: 16px;
-            }
-            .container {
-                padding: 12px;
-            }
-            body {
-                padding: 12px;
-            }
-        }
         .error {
             color: #DC2626;
             background-color: #FEE2E2;
@@ -142,6 +118,31 @@ const Districts = () => {
             border-radius: 8px;
             margin-bottom: 12px;
             font-size: 14px;
+        }
+        .label {
+            font-weight: 500;
+            color: #374151;
+            font-size: 14px;
+        }
+        @media (max-width: 480px) {
+            .district-number {
+                font-size: 36px;
+            }
+            .card {
+                padding: 16px;
+            }
+            .district-label {
+                font-size: 16px;
+            }
+            .district-name {
+                font-size: 14px;
+            }
+            .representative {
+                font-size: 13px;
+            }
+            .container {
+                padding: 12px;
+            }
         }
     </style>
 </head>
@@ -163,6 +164,11 @@ const Districts = () => {
                 'CITY COUNCIL': 4
             };
 
+            const extractDistrictNumber = (name) => {
+                const matches = name.match(/\\d+/);
+                return matches ? matches[0] : '';
+            };
+
             const handleSubmit = async (e) => {
                 e.preventDefault();
                 if (!borough || !address) return;
@@ -175,7 +181,7 @@ const Districts = () => {
 
                 try {
                     const response = await fetch(
-                        \`https://civicinfo.googleapis.com/civicinfo/v2/representatives?address=\${encodeURIComponent(fullAddress)}&key=AIzaSyCKt9DPND5l1VbuunwgQuLbw01hU7EQ0sI&includeOffices=true\`
+                        \`https://civicinfo.googleapis.com/civicinfo/v2/representatives?address=\${encodeURIComponent(fullAddress)}&key=AIzaSyCKt9DPND5l1VbuunwgQuLbw01hU7EQ0sI&includeOffices=true&levels=country&levels=administrativeArea1&levels=administrativeArea2&levels=locality\`
                     );
                     const data = await response.json();
                     
@@ -187,43 +193,63 @@ const Districts = () => {
                         // Create a mapping of role to official
                         const roleToOfficial = {};
                         offices.forEach(office => {
+                            if (!office.officialIndices) return;
                             const officialName = officials[office.officialIndices[0]]?.name;
-                            if (office.name.includes('Representative')) {
+                            const officeLower = office.name.toLowerCase();
+                            
+                            // More comprehensive matching for different title variations
+                            if (officeLower.includes('representative')) {
                                 roleToOfficial['congressional'] = officialName;
-                            } else if (office.name.includes('State Senator')) {
+                            } else if (officeLower.includes('state senator') || officeLower.includes('senator')) {
                                 roleToOfficial['senate'] = officialName;
-                            } else if (office.name.includes('Assembly')) {
+                            } else if (officeLower.includes('assembly')) {
                                 roleToOfficial['assembly'] = officialName;
-                            } else if (office.name.includes('Council')) {
+                            } else if (
+                                officeLower.includes('council member') || 
+                                officeLower.includes('councilmember') ||
+                                officeLower.includes('councilor') ||
+                                officeLower.includes('city council')
+                            ) {
                                 roleToOfficial['council'] = officialName;
                             }
                         });
 
+                        // Additional console logging for debugging
+                        console.log('Offices found:', offices.map(o => o.name));
+                        console.log('Mapped officials:', roleToOfficial);
+
                         Object.entries(data.divisions).forEach(([id, info]) => {
+                            let district = null;
+                            
                             if (id.includes('cd:')) {
-                                formattedDistricts.push({
+                                district = {
                                     type: 'CONGRESSIONAL',
                                     name: \`New York's \${info.name}\`,
                                     representative: roleToOfficial['congressional']
-                                });
+                                };
                             } else if (id.includes('sldu:')) {
-                                formattedDistricts.push({
+                                district = {
                                     type: 'STATE SENATE',
                                     name: \`New York State Senate District \${info.name.replace(/\\D/g, '')}\`,
                                     representative: roleToOfficial['senate']
-                                });
+                                };
                             } else if (id.includes('sldl:')) {
-                                formattedDistricts.push({
+                                district = {
                                     type: 'STATE ASSEMBLY',
                                     name: \`New York Assembly District \${info.name.replace(/\\D/g, '')}\`,
                                     representative: roleToOfficial['assembly']
-                                });
+                                };
                             } else if (id.includes('council_district:')) {
-                                formattedDistricts.push({
+                                district = {
                                     type: 'CITY COUNCIL',
                                     name: \`New York City Council District \${info.name.replace(/\\D/g, '')}\`,
                                     representative: roleToOfficial['council']
-                                });
+                                };
+                            }
+
+                            if (district) {
+                                district.number = extractDistrictNumber(district.name);
+                                formattedDistricts.push(district);
                             }
                         });
 
@@ -245,7 +271,7 @@ const Districts = () => {
                     
                     <div className="search-container">
                         <form onSubmit={handleSubmit}>
-                            <div className="input-group">
+                            <div>
                                 <label className="label">Borough</label>
                                 <select 
                                     className="select-field"
@@ -262,7 +288,7 @@ const Districts = () => {
                                 </select>
                             </div>
 
-                            <div className="input-group">
+                            <div>
                                 <label className="label">Street Address</label>
                                 <input
                                     type="text"
@@ -290,13 +316,16 @@ const Districts = () => {
                         <div>
                             {districts.map((district, index) => (
                                 <div key={index} className="card">
-                                    <div className="district-label">{district.type}</div>
-                                    <div className="district-name">{district.name}</div>
-                                    {district.representative && (
-                                        <div className="representative">
-                                            Representative: {district.representative}
-                                        </div>
-                                    )}
+                                    <div className="district-content">
+                                        <div className="district-label">{district.type}</div>
+                                        <div className="district-name">{district.name}</div>
+                                        {district.representative && (
+                                            <div className="representative">
+                                                Representative: {district.representative}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="district-number">{district.number}</div>
                                 </div>
                             ))}
                         </div>
