@@ -69,12 +69,19 @@ const SurveyResponse = () => {
       const currentQuestion = questions?.[currentQuestionIndex];
       if (!currentQuestion) return;
 
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      
+      if (!user) throw new Error("User not authenticated");
+
       const { error } = await supabase.from("survey_responses").insert({
         survey_id: id,
         question_id: currentQuestion.id,
         response: values.response,
         state_voter_id: "temp", // This will need to be updated with actual voter ID
         county: "temp", // This will need to be updated with actual county
+        created_by: user.id
       });
 
       if (error) throw error;
@@ -154,7 +161,7 @@ const SurveyResponse = () => {
                                 defaultValue={field.value}
                                 className="space-y-3"
                               >
-                                {currentQuestion.options?.map((option: string) => (
+                                {Array.isArray(currentQuestion.options) && currentQuestion.options.map((option: string) => (
                                   <FormItem
                                     key={option}
                                     className="flex items-center space-x-3 space-y-0"
