@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { SurveyResponseForm } from "@/components/surveys/SurveyResponseForm";
+import { Json } from "@/integrations/supabase/types";
 
 const SurveyResponse = () => {
   const { id } = useParams<{ id: string }>();
@@ -101,7 +102,9 @@ const SurveyResponse = () => {
     id: currentQuestion.id,
     question: currentQuestion.question,
     question_type: currentQuestion.question_type,
-    options: Array.isArray(currentQuestion.options) ? currentQuestion.options : undefined
+    options: Array.isArray(currentQuestion.options) 
+      ? (currentQuestion.options as Json[]).map(opt => String(opt))
+      : undefined
   } : null;
 
   return (
