@@ -32,6 +32,7 @@ const SurveyDetails = () => {
         .single();
 
       if (error) throw error;
+      console.log("Survey data:", data); // Debug log
       return data;
     },
   });
@@ -46,6 +47,7 @@ const SurveyDetails = () => {
         .order("order_index");
 
       if (error) throw error;
+      console.log("Questions data:", data); // Debug log
       return data;
     },
   });
@@ -108,6 +110,13 @@ const SurveyDetails = () => {
 
   const isAdmin = userRole?.role === "admin";
 
+  // Debug log for button state
+  console.log("Button state:", {
+    questionsLength: questions?.length,
+    assignedListId: survey?.assigned_list_id,
+    isDisabled: !questions?.length || !survey?.assigned_list_id
+  });
+
   if (surveyLoading) {
     return <div>Loading...</div>;
   }
@@ -129,50 +138,49 @@ const SurveyDetails = () => {
                 Back to Surveys
               </Button>
 
-              <div className="flex justify-between items-center">
-                <div>
-                  <h1 className="text-4xl font-bold">{survey?.title}</h1>
-                  {survey?.description && (
-                    <p className="text-muted-foreground mt-2">
-                      {survey.description}
-                    </p>
-                  )}
-                  {survey?.voter_lists && (
-                    <p className="text-sm text-muted-foreground mt-2">
-                      Assigned List: {survey.voter_lists?.name || "None"}
-                    </p>
-                  )}
-                </div>
-                <div className="flex gap-4">
-                  {isAdmin && (
-                    <Button
-                      variant="outline"
-                      onClick={() => setShowAssignDialog(true)}
-                    >
-                      <UsersIcon className="h-4 w-4 mr-2" />
-                      Manage Assignments
-                    </Button>
-                  )}
+            <div className="flex justify-between items-center">
+              <div>
+                <h1 className="text-4xl font-bold">{survey?.title}</h1>
+                {survey?.description && (
+                  <p className="text-muted-foreground mt-2">
+                    {survey.description}
+                  </p>
+                )}
+                {survey?.voter_lists && (
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Assigned List: {survey.voter_lists?.name || "None"}
+                  </p>
+                )}
+              </div>
+              <div className="flex gap-4">
+                {isAdmin && (
                   <Button
                     variant="outline"
-                    onClick={() => setShowListSelector(true)}
+                    onClick={() => setShowAssignDialog(true)}
                   >
-                    <ListIcon className="h-4 w-4 mr-2" />
-                    {survey?.assigned_list_id ? "Change List" : "Assign List"}
+                    <UsersIcon className="h-4 w-4 mr-2" />
+                    Manage Assignments
                   </Button>
-                  <Button 
-                    variant="outline"
-                    onClick={() => navigate(`/surveys/${id}/respond`)}
-                    disabled={!questions?.length || !survey?.assigned_list_id}
-                  >
-                    <PlayIcon className="h-4 w-4 mr-2" />
-                    Start Survey
-                  </Button>
-                  <Button onClick={() => setShowAddQuestionDialog(true)}>
-                    <PlusIcon className="h-4 w-4 mr-2" />
-                    Add Question
-                  </Button>
-                </div>
+                )}
+                <Button
+                  variant="outline"
+                  onClick={() => setShowListSelector(true)}
+                >
+                  <ListIcon className="h-4 w-4 mr-2" />
+                  {survey?.assigned_list_id ? "Change List" : "Assign List"}
+                </Button>
+                <Button 
+                  variant="outline"
+                  onClick={() => navigate(`/surveys/${id}/respond`)}
+                  disabled={!questions?.length || !survey?.assigned_list_id}
+                >
+                  <PlayIcon className="h-4 w-4 mr-2" />
+                  Start Survey
+                </Button>
+                <Button onClick={() => setShowAddQuestionDialog(true)}>
+                  <PlusIcon className="h-4 w-4 mr-2" />
+                  Add Question
+                </Button>
               </div>
             </div>
 
