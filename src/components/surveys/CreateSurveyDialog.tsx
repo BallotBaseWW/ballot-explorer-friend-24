@@ -8,7 +8,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@supabase/auth-helpers-react";
 
 interface CreateSurveyDialogProps {
   open: boolean;
@@ -25,28 +24,29 @@ export function CreateSurveyDialog({ open, onOpenChange }: CreateSurveyDialogPro
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
-  const auth = useAuth();
 
   const onSubmit = async (data: FormData) => {
-    if (!auth?.user?.id) {
-      toast({
-        title: "Error",
-        description: "You must be logged in to create a survey.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     try {
       setIsSubmitting(true);
       
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session?.user?.id) {
+        toast({
+          title: "Error",
+          description: "You must be logged in to create a survey.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const { data: survey, error } = await supabase
         .from("surveys")
         .insert({
           title: data.title,
           description: data.description,
           is_active: true,
-          created_by: auth.user.id,
+          created_by: session.user.id,
         })
         .select()
         .single();
