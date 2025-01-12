@@ -46,12 +46,10 @@ export function AddQuestionDialog({ surveyId, open, onOpenChange }: AddQuestionD
       setIsSubmitting(true);
 
       // Get the current count of questions for this survey
-      const { count, error: countError } = await supabase
+      const { count } = await supabase
         .from("survey_questions")
         .select("*", { count: "exact" })
         .eq("survey_id", surveyId);
-
-      if (countError) throw countError;
 
       const { error } = await supabase
         .from("survey_questions")
@@ -63,7 +61,15 @@ export function AddQuestionDialog({ surveyId, open, onOpenChange }: AddQuestionD
           options: ["multiple_choice", "poll"].includes(data.questionType) ? options : null,
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error adding question:", error);
+        toast({
+          title: "Error",
+          description: "Failed to add question. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
 
       toast({
         title: "Question added",
@@ -75,10 +81,10 @@ export function AddQuestionDialog({ surveyId, open, onOpenChange }: AddQuestionD
       setOptions([]);
       onOpenChange(false);
     } catch (error) {
-      console.error("Error adding question:", error);
+      console.error("Error in try-catch:", error);
       toast({
         title: "Error",
-        description: "Failed to add question. Please try again.",
+        description: "An unexpected error occurred. Please try again.",
         variant: "destructive",
       });
     } finally {
