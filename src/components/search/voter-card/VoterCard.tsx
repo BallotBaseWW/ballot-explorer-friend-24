@@ -21,9 +21,10 @@ interface VoterCardProps {
   voter: VoterRecord;
   county: County;
   onPrint: (voter: VoterRecord) => void;
+  hideAddToList?: boolean;
 }
 
-export const VoterCard = ({ voter, county, onPrint }: VoterCardProps) => {
+export const VoterCard = ({ voter, county, onPrint, hideAddToList }: VoterCardProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
