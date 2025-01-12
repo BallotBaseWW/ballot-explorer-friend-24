@@ -28,14 +28,8 @@ const Lists = () => {
       console.log("User ID:", user.id);
       const { data, error } = await supabase
         .from("voter_lists")
-        .select(`
-          id,
-          name,
-          description,
-          created_at,
-          updated_at,
-          user_id
-        `)
+        .select()
+        .eq('user_id', user.id)
         .order('updated_at', { ascending: false });
 
       if (error) {
@@ -46,6 +40,8 @@ const Lists = () => {
       console.log("Fetched lists:", data);
       return data as VoterList[];
     },
+    retry: 1,
+    refetchOnWindowFocus: false
   });
 
   const handleCreateList = async () => {
