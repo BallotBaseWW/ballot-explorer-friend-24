@@ -4,7 +4,8 @@ import { VoterCard } from "../search/voter-card/VoterCard";
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
 import { County } from "../search/types";
-import { Loader2, ListPlus } from "lucide-react";
+import { Loader2, ListPlus, CheckCircle2 } from "lucide-react";
+import { Badge } from "../ui/badge";
 
 interface VoterSelectionStepProps {
   listId: string;
@@ -37,7 +38,7 @@ export const VoterSelectionStep = ({ listId, onVoterSelect }: VoterSelectionStep
         throw new Error('The assigned list could not be found.');
       }
 
-      // Get pending voters with strict status check and use a direct join
+      // Get all voters with their survey status
       const { data: items, error: itemsError } = await supabase
         .from('voter_list_items')
         .select(`
@@ -45,21 +46,20 @@ export const VoterSelectionStep = ({ listId, onVoterSelect }: VoterSelectionStep
           county,
           survey_status
         `)
-        .eq('list_id', listId)
-        .eq('survey_status', 'pending');
+        .eq('list_id', listId);
 
       if (itemsError) {
         console.error("Error getting items:", itemsError);
         throw itemsError;
       }
 
-      console.log("Pending voters found:", items?.length);
+      console.log("Voters found:", items?.length);
 
       if (!items || items.length === 0) {
-        throw new Error('All voters in this list have been surveyed.');
+        throw new Error('No voters found in this list.');
       }
 
-      // Fetch voter details for each pending voter
+      // Fetch voter details for each voter
       const voterPromises = items.map(async (item) => {
         if (!isValidCounty(item.county)) {
           console.error("Invalid county:", item.county);
@@ -82,7 +82,11 @@ export const VoterSelectionStep = ({ listId, onVoterSelect }: VoterSelectionStep
           return null;
         }
 
-        return { ...voter, county: item.county as County };
+        return { 
+          ...voter, 
+          county: item.county as County,
+          survey_status: item.survey_status 
+        };
       });
 
       try {
@@ -127,11 +131,7 @@ export const VoterSelectionStep = ({ listId, onVoterSelect }: VoterSelectionStep
     return (
       <Card className="p-6">
         <p className="text-center text-muted-foreground">
-          No pending voters found in this list. This could mean either:
-          <br />
-          1. The list is empty
-          <br />
-          2. All voters in this list have already been surveyed
+          No voters found in this list.
         </p>
       </Card>
     );
@@ -148,14 +148,22 @@ export const VoterSelectionStep = ({ listId, onVoterSelect }: VoterSelectionStep
             onPrint={() => {}}
             hideAddToList
           />
-          <div className="absolute top-4 right-4">
-            <Button 
-              onClick={() => onVoterSelect(voter, voter.county)}
-              className="gap-2"
-            >
-              <ListPlus className="h-4 w-4" />
-              Survey this Voter
-            </Button>
+          <div className="absolute top-4 right-4 flex items-center gap-2">
+            {voter.survey_status === 'completed' ? (
+              <Badge variant="success" className="flex items-center gap-1">
+                <CheckCircle2 className="h-4 w-4" />
+                Completed
+              </Badge>
+            ) : (
+              <Button 
+                onClick={() => onVoterSelect(voter, voter.county)}
+                className="gap-2"
+                disabled={voter.survey_status === 'completed'}
+              >
+                <ListPlus className="h-4 w-4" />
+                Survey this Voter
+              </Button>
+            )}
           </div>
         </div>
       ))}
