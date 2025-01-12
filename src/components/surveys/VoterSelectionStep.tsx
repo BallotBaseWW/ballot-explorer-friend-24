@@ -12,16 +12,23 @@ interface VoterSelectionStepProps {
 }
 
 export const VoterSelectionStep = ({ listId, onVoterSelect }: VoterSelectionStepProps) => {
-  const { data: voterItems, isLoading } = useQuery({
+  const { data: voterItems, isLoading, error } = useQuery({
     queryKey: ['voter-list-items', listId],
     queryFn: async () => {
+      console.log("Fetching voters for list:", listId);
+
       // First get total count of voters in list
       const { count: totalCount, error: countError } = await supabase
         .from('voter_list_items')
         .select('*', { count: 'exact', head: true })
         .eq('list_id', listId);
 
-      if (countError) throw countError;
+      if (countError) {
+        console.error("Error getting count:", countError);
+        throw countError;
+      }
+
+      console.log("Total voters in list:", totalCount);
 
       // Then get pending voters
       const { data: items, error: itemsError } = await supabase
@@ -30,7 +37,12 @@ export const VoterSelectionStep = ({ listId, onVoterSelect }: VoterSelectionStep
         .eq('list_id', listId)
         .eq('survey_status', 'pending');
 
-      if (itemsError) throw itemsError;
+      if (itemsError) {
+        console.error("Error getting items:", itemsError);
+        throw itemsError;
+      }
+
+      console.log("Pending voters found:", items?.length);
 
       if (!items || items.length === 0) {
         if (totalCount === 0) {
@@ -42,6 +54,7 @@ export const VoterSelectionStep = ({ listId, onVoterSelect }: VoterSelectionStep
 
       const voterPromises = items.map(async (item) => {
         if (!isValidCounty(item.county)) {
+          console.error("Invalid county:", item.county);
           throw new Error(`Invalid county: ${item.county}`);
         }
 
@@ -51,14 +64,28 @@ export const VoterSelectionStep = ({ listId, onVoterSelect }: VoterSelectionStep
           .eq('state_voter_id', item.state_voter_id)
           .maybeSingle();
 
-        if (voterError) throw voterError;
-        if (!voter) throw new Error(`Voter not found in ${item.county} county`);
+        if (voterError) {
+          console.error("Error getting voter:", voterError);
+          throw voterError;
+        }
         
+        if (!voter) {
+          console.error(`Voter not found in ${item.county} county`);
+          return null;
+        }
+
         return { ...voter, county: item.county as County };
       });
 
-      const voters = await Promise.all(voterPromises);
-      return voters.filter(voter => voter !== null);
+      try {
+        const voters = await Promise.all(voterPromises);
+        const filteredVoters = voters.filter(voter => voter !== null);
+        console.log("Successfully fetched voters:", filteredVoters.length);
+        return filteredVoters;
+      } catch (error) {
+        console.error("Error processing voters:", error);
+        throw error;
+      }
     },
   });
 
@@ -71,6 +98,16 @@ export const VoterSelectionStep = ({ listId, onVoterSelect }: VoterSelectionStep
       <div className="flex items-center justify-center p-8">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className="p-6">
+        <p className="text-center text-muted-foreground">
+          {error instanceof Error ? error.message : 'An error occurred while loading voters.'}
+        </p>
+      </Card>
     );
   }
 
@@ -97,11 +134,10 @@ export const VoterSelectionStep = ({ listId, onVoterSelect }: VoterSelectionStep
             voter={voter}
             county={voter.county}
             onPrint={() => {}}
+            hideAddToList
           />
           <div className="absolute top-4 right-4">
             <Button 
-              variant="outline"
-              size="sm"
               onClick={() => onVoterSelect(voter, voter.county)}
               className="gap-2"
             >
