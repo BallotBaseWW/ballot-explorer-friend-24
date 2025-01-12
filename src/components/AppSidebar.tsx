@@ -9,7 +9,15 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { Home, Search, ListTodo, Shield, MapPin, Calculator } from "lucide-react";
+import { 
+  Home, 
+  Search, 
+  ListTodo, 
+  Shield, 
+  MapPin, 
+  Calculator,
+  ClipboardList,
+} from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -47,7 +55,6 @@ export function AppSidebar() {
       title: "Search",
       url: "/search",
       icon: Search,
-      disabled: true,
     },
     {
       title: "Lists",
@@ -63,6 +70,11 @@ export function AppSidebar() {
       title: "Matching Funds",
       url: "/matching-funds",
       icon: Calculator,
+    },
+    {
+      title: "Surveys",
+      url: "/surveys",
+      icon: ClipboardList,
     },
   ];
 
@@ -84,7 +96,6 @@ export function AppSidebar() {
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
-                    disabled={item.disabled}
                     onClick={() => navigate(item.url)}
                   >
                     <item.icon className="h-4 w-4 mr-2" />
