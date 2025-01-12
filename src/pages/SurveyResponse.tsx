@@ -25,7 +25,7 @@ const SurveyResponse = () => {
         .from("surveys")
         .select("*")
         .eq("id", id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       return data;
@@ -96,6 +96,14 @@ const SurveyResponse = () => {
 
   const currentQuestion = questions?.[currentQuestionIndex];
 
+  // Transform the question to match the expected type
+  const formattedQuestion = currentQuestion ? {
+    id: currentQuestion.id,
+    question: currentQuestion.question,
+    question_type: currentQuestion.question_type,
+    options: Array.isArray(currentQuestion.options) ? currentQuestion.options : undefined
+  } : null;
+
   return (
     <SidebarProvider>
       <div className="min-h-screen bg-background flex w-full">
@@ -122,10 +130,10 @@ const SurveyResponse = () => {
               </div>
             </div>
 
-            {currentQuestion && (
+            {formattedQuestion && (
               <Card className="p-6">
                 <SurveyResponseForm
-                  question={currentQuestion}
+                  question={formattedQuestion}
                   onSubmit={(response) => submitResponse.mutate(response)}
                   onBack={() => setCurrentQuestionIndex(prev => Math.max(0, prev - 1))}
                   isFirst={currentQuestionIndex === 0}
