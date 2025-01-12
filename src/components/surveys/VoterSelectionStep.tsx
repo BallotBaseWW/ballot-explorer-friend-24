@@ -15,9 +15,29 @@ export const VoterSelectionStep = ({ listId, onVoterSelect }: VoterSelectionStep
   const { data: voterItems, isLoading, error } = useQuery({
     queryKey: ['voter-list-items', listId],
     queryFn: async () => {
+      if (!listId) {
+        throw new Error('No list assigned to this survey. Please assign a list first.');
+      }
+
       console.log("Fetching voters for list:", listId);
 
-      // First get total count of voters in list
+      // First verify the list exists
+      const { data: list, error: listError } = await supabase
+        .from('voter_lists')
+        .select('*')
+        .eq('id', listId)
+        .maybeSingle();
+
+      if (listError) {
+        console.error("Error getting list:", listError);
+        throw listError;
+      }
+
+      if (!list) {
+        throw new Error('The assigned list could not be found.');
+      }
+
+      // Then get total count of voters in list
       const { count: totalCount, error: countError } = await supabase
         .from('voter_list_items')
         .select('*', { count: 'exact', head: true })
@@ -29,6 +49,10 @@ export const VoterSelectionStep = ({ listId, onVoterSelect }: VoterSelectionStep
       }
 
       console.log("Total voters in list:", totalCount);
+
+      if (totalCount === 0) {
+        throw new Error('This list is empty. Please add voters to the list before conducting the survey.');
+      }
 
       // Then get pending voters
       const { data: items, error: itemsError } = await supabase
@@ -45,11 +69,7 @@ export const VoterSelectionStep = ({ listId, onVoterSelect }: VoterSelectionStep
       console.log("Pending voters found:", items?.length);
 
       if (!items || items.length === 0) {
-        if (totalCount === 0) {
-          throw new Error('No voters found in this list.');
-        } else {
-          throw new Error('All voters in this list have been surveyed.');
-        }
+        throw new Error('All voters in this list have been surveyed.');
       }
 
       const voterPromises = items.map(async (item) => {
