@@ -10,6 +10,8 @@ import Admin from "@/pages/Admin";
 import RequestAccess from "@/pages/RequestAccess";
 import MatchingFunds from "@/pages/MatchingFunds";
 import Districts from "@/pages/Districts";
+import Surveys from "@/pages/Surveys";
+import SurveyDetails from "@/pages/SurveyDetails";
 import { AuthContainer } from "@/components/auth/AuthContainer";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 
@@ -68,6 +70,22 @@ function App() {
               element={
                 <AuthContainer>
                   <Districts />
+                </AuthContainer>
+              }
+            />
+            <Route
+              path="/surveys"
+              element={
+                <AuthContainer>
+                  <Surveys />
+                </AuthContainer>
+              }
+            />
+            <Route
+              path="/surveys/:id"
+              element={
+                <AuthContainer>
+                  <SurveyDetails />
                 </AuthContainer>
               }
             />

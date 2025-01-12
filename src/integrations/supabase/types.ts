@@ -975,6 +975,133 @@ export type Database = {
         }
         Relationships: []
       }
+      survey_questions: {
+        Row: {
+          created_at: string
+          id: string
+          options: Json | null
+          order_index: number
+          question: string
+          question_type: Database["public"]["Enums"]["survey_question_type"]
+          survey_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          options?: Json | null
+          order_index: number
+          question: string
+          question_type: Database["public"]["Enums"]["survey_question_type"]
+          survey_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          options?: Json | null
+          order_index?: number
+          question?: string
+          question_type?: Database["public"]["Enums"]["survey_question_type"]
+          survey_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "survey_questions_survey_id_fkey"
+            columns: ["survey_id"]
+            isOneToOne: false
+            referencedRelation: "surveys"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      survey_responses: {
+        Row: {
+          county: string
+          created_at: string
+          created_by: string
+          id: string
+          question_id: string
+          response: string
+          state_voter_id: string
+          survey_id: string
+        }
+        Insert: {
+          county: string
+          created_at?: string
+          created_by: string
+          id?: string
+          question_id: string
+          response: string
+          state_voter_id: string
+          survey_id: string
+        }
+        Update: {
+          county?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          question_id?: string
+          response?: string
+          state_voter_id?: string
+          survey_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "survey_responses_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "survey_questions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "survey_responses_survey_id_fkey"
+            columns: ["survey_id"]
+            isOneToOne: false
+            referencedRelation: "surveys"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      surveys: {
+        Row: {
+          assigned_list_id: string | null
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          is_active: boolean | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_list_id?: string | null
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_list_id?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "surveys_assigned_list_id_fkey"
+            columns: ["assigned_list_id"]
+            isOneToOne: false
+            referencedRelation: "voter_lists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -1176,6 +1303,7 @@ export type Database = {
       app_role: "admin" | "user"
       gender_type: "M" | "F" | "X" | "U"
       interaction_type: "call" | "email" | "meeting" | "door_knock" | "other"
+      survey_question_type: "multiple_choice" | "open_ended" | "poll" | "rating"
       voter_status_type: "ACTIVE" | "INACTIVE" | "PURGED" | "OTHER"
     }
     CompositeTypes: {
