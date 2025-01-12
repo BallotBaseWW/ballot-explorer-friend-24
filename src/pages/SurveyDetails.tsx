@@ -1,26 +1,31 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Header } from "@/components/Header";
 import { AppSidebar } from "@/components/AppSidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { PlusIcon, ArrowLeftIcon, PlayIcon } from "lucide-react";
+import { PlusIcon, ArrowLeftIcon, PlayIcon, ListIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AddQuestionDialog } from "@/components/surveys/AddQuestionDialog";
 import { useState } from "react";
+import { ListSelector } from "@/components/search/voter-lists/ListSelector";
+import { useToast } from "@/components/ui/use-toast";
 
 const SurveyDetails = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [showAddQuestionDialog, setShowAddQuestionDialog] = useState(false);
+  const [showListSelector, setShowListSelector] = useState(false);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const { data: survey, isLoading: surveyLoading } = useQuery({
     queryKey: ["survey", id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("surveys")
-        .select("*")
+        .select("*, voter_lists(*)")
         .eq("id", id)
         .single();
 
@@ -40,6 +45,45 @@ const SurveyDetails = () => {
 
       if (error) throw error;
       return data;
+    },
+  });
+
+  const { data: lists } = useQuery({
+    queryKey: ["voter-lists"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("voter_lists")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const assignList = useMutation({
+    mutationFn: async (listId: string) => {
+      const { error } = await supabase
+        .from("surveys")
+        .update({ assigned_list_id: listId })
+        .eq("id", id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["survey", id] });
+      toast({
+        title: "List assigned",
+        description: "The voter list has been assigned to this survey.",
+      });
+      setShowListSelector(false);
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to assign list. Please try again.",
+        variant: "destructive",
+      });
     },
   });
 
@@ -72,8 +116,20 @@ const SurveyDetails = () => {
                       {survey.description}
                     </p>
                   )}
+                  {survey?.voter_lists && (
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Assigned List: {survey.voter_lists?.name || "None"}
+                    </p>
+                  )}
                 </div>
                 <div className="flex gap-4">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowListSelector(true)}
+                  >
+                    <ListIcon className="h-4 w-4 mr-2" />
+                    {survey?.assigned_list_id ? "Change List" : "Assign List"}
+                  </Button>
                   <Button 
                     variant="outline"
                     onClick={() => navigate(`/surveys/${id}/respond`)}
@@ -124,11 +180,32 @@ const SurveyDetails = () => {
             )}
 
             {id && (
-              <AddQuestionDialog
-                surveyId={id}
-                open={showAddQuestionDialog}
-                onOpenChange={setShowAddQuestionDialog}
-              />
+              <>
+                <AddQuestionDialog
+                  surveyId={id}
+                  open={showAddQuestionDialog}
+                  onOpenChange={setShowAddQuestionDialog}
+                />
+                {showListSelector && lists && (
+                  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                    <Card className="w-full max-w-md p-6">
+                      <h2 className="text-xl font-semibold mb-4">Assign Voter List</h2>
+                      <ListSelector
+                        lists={lists}
+                        onSelect={(listId) => assignList.mutate(listId)}
+                        onCreateNew={() => navigate("/lists/new")}
+                      />
+                      <Button
+                        variant="ghost"
+                        className="mt-4"
+                        onClick={() => setShowListSelector(false)}
+                      >
+                        Cancel
+                      </Button>
+                    </Card>
+                  </div>
+                )}
+              </>
             )}
           </main>
         </div>
