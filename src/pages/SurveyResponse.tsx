@@ -43,11 +43,12 @@ const SurveyResponse = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("surveys")
-        .select("*")
+        .select("*, voter_lists(*)")
         .eq("id", id)
         .maybeSingle();
 
       if (error) throw error;
+      console.log("Survey data:", data);
       return data;
     },
   });
@@ -62,6 +63,7 @@ const SurveyResponse = () => {
         .order("order_index");
 
       if (error) throw error;
+      console.log("Questions data:", data);
       return data;
     },
   });
@@ -91,20 +93,28 @@ const SurveyResponse = () => {
 
       // If this is the last question, update the voter's survey status
       if (currentQuestionIndex === questions?.length - 1) {
+        console.log("Updating survey status for voter:", selectedVoter.state_voter_id);
         const { error: statusError } = await supabase
           .from("voter_list_items")
           .update({ survey_status: "completed" })
           .eq("list_id", survey?.assigned_list_id)
           .eq("state_voter_id", selectedVoter.state_voter_id);
 
-        if (statusError) throw statusError;
+        if (statusError) {
+          console.error("Error updating survey status:", statusError);
+          throw statusError;
+        }
+        
+        // Force refetch of voter list items
+        await queryClient.invalidateQueries({ 
+          queryKey: ["voter-list-items", survey?.assigned_list_id]
+        });
       }
     },
     onSuccess: () => {
       // Invalidate both the survey responses and voter list queries
       queryClient.invalidateQueries({ queryKey: ["survey-responses"] });
       queryClient.invalidateQueries({ queryKey: ["survey-analytics"] });
-      queryClient.invalidateQueries({ queryKey: ["voter-list-items", survey?.assigned_list_id] });
       
       if (questions && currentQuestionIndex < questions.length - 1) {
         setCurrentQuestionIndex(prev => prev + 1);
@@ -119,7 +129,8 @@ const SurveyResponse = () => {
         setSelectedCounty(null);
       }
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("Error submitting response:", error);
       toast({
         title: "Error",
         description: "Failed to submit response. Please try again.",
