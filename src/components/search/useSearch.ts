@@ -64,6 +64,10 @@ export const useSearch = (county: string) => {
       }
 
       // District filters
+      if (data.election_district) {
+        console.log('Applying election district filter:', data.election_district);
+        query = query.eq('election_district', data.election_district);
+      }
       if (data.assembly_district) {
         console.log('Applying assembly district filter:', data.assembly_district);
         query = query.eq('assembly_district', data.assembly_district);
