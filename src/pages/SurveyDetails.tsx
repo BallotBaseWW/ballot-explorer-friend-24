@@ -11,7 +11,7 @@ import { AddQuestionDialog } from "@/components/surveys/AddQuestionDialog";
 import { AssignSurveyDialog } from "@/components/surveys/AssignSurveyDialog";
 import { useState } from "react";
 import { ListSelector } from "@/components/search/voter-lists/ListSelector";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 const SurveyDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -29,12 +29,20 @@ const SurveyDetails = () => {
         .from("surveys")
         .select(`
           *,
-          voter_lists(*)
+          voter_lists!inner (
+            id,
+            name,
+            description
+          )
         `)
         .eq("id", id)
         .maybeSingle();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching survey:", error);
+        throw error;
+      }
+      
       console.log("Survey data:", data);
       return data;
     },
@@ -49,7 +57,11 @@ const SurveyDetails = () => {
         .eq("survey_id", id)
         .order("order_index");
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching questions:", error);
+        throw error;
+      }
+      
       console.log("Questions data:", data);
       return data;
     },
@@ -63,7 +75,11 @@ const SurveyDetails = () => {
         .select("*")
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching lists:", error);
+        throw error;
+      }
+      
       return data;
     },
   });
@@ -72,6 +88,19 @@ const SurveyDetails = () => {
     mutationFn: async (listId: string) => {
       console.log("Assigning list:", listId, "to survey:", id);
       
+      // First, verify the list exists
+      const { data: listExists, error: listCheckError } = await supabase
+        .from("voter_lists")
+        .select("id")
+        .eq("id", listId)
+        .maybeSingle();
+
+      if (listCheckError || !listExists) {
+        console.error("List check error:", listCheckError);
+        throw new Error("Selected list not found");
+      }
+
+      // Update the survey with the new list ID
       const { error: updateError } = await supabase
         .from("surveys")
         .update({ assigned_list_id: listId })
