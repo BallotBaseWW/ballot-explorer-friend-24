@@ -24,6 +24,25 @@ const SurveyResponse = () => {
   const [selectedCounty, setSelectedCounty] = useState<County | null>(null);
   const queryClient = useQueryClient();
 
+  // Add a new query to fetch existing responses for the selected voter
+  const { data: existingResponses } = useQuery({
+    queryKey: ["voter-responses", id, selectedVoter?.state_voter_id],
+    queryFn: async () => {
+      if (!selectedVoter) return null;
+
+      const { data, error } = await supabase
+        .from("survey_responses")
+        .select("*")
+        .eq("survey_id", id)
+        .eq("state_voter_id", selectedVoter.state_voter_id);
+
+      if (error) throw error;
+      console.log("Existing responses for voter:", data);
+      return data;
+    },
+    enabled: !!selectedVoter,
+  });
+
   const { data: surveyAnalytics } = useQuery({
     queryKey: ["survey-analytics", id],
     queryFn: async () => {
@@ -71,35 +90,19 @@ const SurveyResponse = () => {
   const submitResponse = useMutation({
     mutationFn: async (response: string) => {
       const currentQuestion = questions?.[currentQuestionIndex];
-      if (!currentQuestion || !selectedVoter) return;
+      if (!currentQuestion || !selectedVoter || !selectedCounty) return;
 
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      
+      const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not authenticated");
 
       console.log("Submitting response for voter:", {
         voterId: selectedVoter.state_voter_id,
         county: selectedCounty,
-        questionId: currentQuestion.id
+        questionId: currentQuestion.id,
+        response
       });
 
-      // First check if a response already exists for this voter and question
-      const { data: existingResponse } = await supabase
-        .from("survey_responses")
-        .select("*")
-        .eq("survey_id", id)
-        .eq("question_id", currentQuestion.id)
-        .eq("state_voter_id", selectedVoter.state_voter_id)
-        .maybeSingle();
-
-      if (existingResponse) {
-        console.log("Response already exists for this voter and question");
-        return;
-      }
-
-      // Save the response
+      // Insert the response
       const { error: responseError } = await supabase
         .from("survey_responses")
         .insert({
@@ -120,40 +123,27 @@ const SurveyResponse = () => {
       if (currentQuestionIndex === questions.length - 1) {
         console.log("Updating survey status for voter:", selectedVoter.state_voter_id);
         
-        // Get all responses for this voter in this survey
-        const { data: voterResponses, error: responsesError } = await supabase
-          .from("survey_responses")
-          .select("*")
-          .eq("survey_id", id)
+        // Update the voter's survey status to completed
+        const { error: statusError } = await supabase
+          .from("voter_list_items")
+          .update({ survey_status: "completed" })
+          .eq("list_id", survey?.assigned_list_id)
           .eq("state_voter_id", selectedVoter.state_voter_id);
 
-        if (responsesError) {
-          console.error("Error checking responses:", responsesError);
-          throw responsesError;
+        if (statusError) {
+          console.error("Error updating survey status:", statusError);
+          throw statusError;
         }
-
-        // Only mark as completed if all questions have been answered
-        if (voterResponses && voterResponses.length === questions.length) {
-          const { error: statusError } = await supabase
-            .from("voter_list_items")
-            .update({ survey_status: "completed" })
-            .eq("list_id", survey?.assigned_list_id)
-            .eq("state_voter_id", selectedVoter.state_voter_id);
-
-          if (statusError) {
-            console.error("Error updating survey status:", statusError);
-            throw statusError;
-          }
-          
-          console.log("Successfully marked voter as completed");
-        }
+        
+        console.log("Successfully marked voter as completed");
       }
     },
     onSuccess: () => {
-      // Invalidate both the survey responses and voter list queries
+      // Invalidate relevant queries
       queryClient.invalidateQueries({ queryKey: ["survey-responses"] });
       queryClient.invalidateQueries({ queryKey: ["survey-analytics"] });
       queryClient.invalidateQueries({ queryKey: ["voter-list-items"] });
+      queryClient.invalidateQueries({ queryKey: ["voter-responses"] });
       
       if (questions && currentQuestionIndex < questions.length - 1) {
         setCurrentQuestionIndex(prev => prev + 1);
@@ -162,7 +152,6 @@ const SurveyResponse = () => {
           title: "Survey completed",
           description: "Thank you for your responses!",
         });
-        // Reset state and go back to voter selection
         setCurrentQuestionIndex(0);
         setSelectedVoter(null);
         setSelectedCounty(null);
@@ -179,8 +168,18 @@ const SurveyResponse = () => {
   });
 
   const handleVoterSelect = (voter: any, county: County) => {
+    // Check if voter has already completed the survey
+    if (voter.survey_status === 'completed') {
+      toast({
+        title: "Voter already surveyed",
+        description: "This voter has already completed the survey.",
+        variant: "destructive",
+      });
+      return;
+    }
     setSelectedVoter(voter);
     setSelectedCounty(county);
+    setCurrentQuestionIndex(0); // Reset to first question when selecting a new voter
   };
 
   if (!survey || !questions) {
@@ -189,7 +188,6 @@ const SurveyResponse = () => {
 
   const currentQuestion = questions[currentQuestionIndex];
 
-  // Transform the question to match the expected type
   const formattedQuestion = currentQuestion ? {
     id: currentQuestion.id,
     question: currentQuestion.question,
