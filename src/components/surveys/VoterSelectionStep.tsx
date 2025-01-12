@@ -37,7 +37,7 @@ export const VoterSelectionStep = ({ listId, onVoterSelect }: VoterSelectionStep
         throw new Error('The assigned list could not be found.');
       }
 
-      // Then get pending voters
+      // Then get pending voters with explicit status check
       const { data: items, error: itemsError } = await supabase
         .from('voter_list_items')
         .select('*')
@@ -55,6 +55,7 @@ export const VoterSelectionStep = ({ listId, onVoterSelect }: VoterSelectionStep
         throw new Error('All voters in this list have been surveyed.');
       }
 
+      // Fetch voter details for each pending voter
       const voterPromises = items.map(async (item) => {
         if (!isValidCounty(item.county)) {
           console.error("Invalid county:", item.county);
@@ -92,6 +93,10 @@ export const VoterSelectionStep = ({ listId, onVoterSelect }: VoterSelectionStep
     },
     // Add refetchInterval to periodically check for updates
     refetchInterval: 1000,
+    // Force refetch on window focus
+    refetchOnWindowFocus: true,
+    // Disable stale time to ensure fresh data
+    staleTime: 0,
   });
 
   const isValidCounty = (county: string): county is County => {
