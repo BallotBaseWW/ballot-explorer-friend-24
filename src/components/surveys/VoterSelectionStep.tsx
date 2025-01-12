@@ -32,12 +32,12 @@ export const VoterSelectionStep = ({ listId, onVoterSelect }: VoterSelectionStep
 
       if (itemsError) throw itemsError;
 
-      if (items.length === 0 && totalCount === 0) {
-        throw new Error('No voters found in this list.');
-      }
-
-      if (items.length === 0 && totalCount > 0) {
-        throw new Error('All voters in this list have been surveyed.');
+      if (!items || items.length === 0) {
+        if (totalCount === 0) {
+          throw new Error('No voters found in this list.');
+        } else {
+          throw new Error('All voters in this list have been surveyed.');
+        }
       }
 
       const voterPromises = items.map(async (item) => {
@@ -49,13 +49,16 @@ export const VoterSelectionStep = ({ listId, onVoterSelect }: VoterSelectionStep
           .from(item.county as County)
           .select('*')
           .eq('state_voter_id', item.state_voter_id)
-          .single();
+          .maybeSingle();
 
         if (voterError) throw voterError;
+        if (!voter) throw new Error(`Voter not found in ${item.county} county`);
+        
         return { ...voter, county: item.county as County };
       });
 
-      return Promise.all(voterPromises);
+      const voters = await Promise.all(voterPromises);
+      return voters.filter(voter => voter !== null);
     },
   });
 
