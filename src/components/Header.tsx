@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
-import { UserNav } from "@/components/UserNav";
+import { UserNav } from "@/components/auth/UserNav";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 
 export function Header() {
