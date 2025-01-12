@@ -37,10 +37,14 @@ export const VoterSelectionStep = ({ listId, onVoterSelect }: VoterSelectionStep
         throw new Error('The assigned list could not be found.');
       }
 
-      // Then get pending voters with strict status check
+      // Get pending voters with strict status check and use a direct join
       const { data: items, error: itemsError } = await supabase
         .from('voter_list_items')
-        .select('*')
+        .select(`
+          state_voter_id,
+          county,
+          survey_status
+        `)
         .eq('list_id', listId)
         .eq('survey_status', 'pending');
 
@@ -57,19 +61,6 @@ export const VoterSelectionStep = ({ listId, onVoterSelect }: VoterSelectionStep
 
       // Fetch voter details for each pending voter
       const voterPromises = items.map(async (item) => {
-        // Double check the survey status before proceeding
-        const { data: statusCheck } = await supabase
-          .from('voter_list_items')
-          .select('survey_status')
-          .eq('list_id', listId)
-          .eq('state_voter_id', item.state_voter_id)
-          .single();
-
-        if (statusCheck?.survey_status !== 'pending') {
-          console.log(`Skipping voter ${item.state_voter_id} - status is ${statusCheck?.survey_status}`);
-          return null;
-        }
-
         if (!isValidCounty(item.county)) {
           console.error("Invalid county:", item.county);
           throw new Error(`Invalid county: ${item.county}`);
@@ -104,10 +95,10 @@ export const VoterSelectionStep = ({ listId, onVoterSelect }: VoterSelectionStep
         throw error;
       }
     },
-    refetchInterval: 1000,
-    refetchOnWindowFocus: true,
     gcTime: 0,
-    staleTime: 0
+    staleTime: 0,
+    refetchInterval: 1000,
+    refetchOnWindowFocus: true
   });
 
   const isValidCounty = (county: string): county is County => {
