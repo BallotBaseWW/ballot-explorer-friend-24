@@ -94,12 +94,12 @@ const SurveyDetails = () => {
                         <p className="text-sm text-muted-foreground">
                           Type: {question.question_type}
                         </p>
-                        {question.options && (
+                        {question.options && Array.isArray(question.options) && (
                           <div className="mt-4">
                             <p className="text-sm font-medium mb-2">Options:</p>
                             <ul className="list-disc list-inside">
-                              {question.options.map((option: string) => (
-                                <li key={option} className="text-sm">
+                              {question.options.map((option: string, index: number) => (
+                                <li key={index} className="text-sm">
                                   {option}
                                 </li>
                               ))}
