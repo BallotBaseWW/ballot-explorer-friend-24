@@ -17,31 +17,39 @@ const Lists = () => {
   const { data: lists, isLoading, error } = useQuery({
     queryKey: ["voterLists"],
     queryFn: async () => {
-      console.log("Fetching voter lists...");
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        console.error("No user found");
-        throw new Error("No user found");
-      }
+      try {
+        console.log("Fetching voter lists...");
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (!user) {
+          throw new Error("No user found");
+        }
 
-      console.log("User ID:", user.id);
-      const { data, error } = await supabase
-        .from("voter_lists")
-        .select()
-        .eq('user_id', user.id)
-        .order('updated_at', { ascending: false });
+        console.log("User ID:", user.id);
+        const { data, error } = await supabase
+          .from("voter_lists")
+          .select()
+          .eq('user_id', user.id)
+          .order('updated_at', { ascending: false });
 
-      if (error) {
+        if (error) {
+          throw error;
+        }
+
+        if (!data) {
+          return [];
+        }
+
+        console.log("Fetched lists:", data);
+        return data as VoterList[];
+      } catch (error: any) {
         console.error("Error fetching lists:", error);
         throw error;
       }
-
-      console.log("Fetched lists:", data);
-      return data as VoterList[];
     },
-    retry: 1,
-    refetchOnWindowFocus: false
+    retry: false,
+    refetchOnWindowFocus: false,
+    staleTime: 30000 // Cache data for 30 seconds
   });
 
   const handleCreateList = async () => {
@@ -79,7 +87,6 @@ const Lists = () => {
   };
 
   if (error) {
-    console.error("Error in lists query:", error);
     return (
       <div className="min-h-screen bg-background">
         <SidebarProvider>
