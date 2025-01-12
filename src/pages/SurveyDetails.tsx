@@ -5,13 +5,16 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { PlusIcon, ArrowLeftIcon, PlayIcon, ListIcon, UsersIcon } from "lucide-react";
+import { PlusIcon, ArrowLeftIcon, PlayIcon, ListIcon, UsersIcon, Pencil, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AddQuestionDialog } from "@/components/surveys/AddQuestionDialog";
 import { AssignSurveyDialog } from "@/components/surveys/AssignSurveyDialog";
 import { useState } from "react";
 import { ListSelector } from "@/components/search/voter-lists/ListSelector";
 import { useToast } from "@/hooks/use-toast";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 
 const SurveyDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -19,6 +22,7 @@ const SurveyDetails = () => {
   const [showAddQuestionDialog, setShowAddQuestionDialog] = useState(false);
   const [showListSelector, setShowListSelector] = useState(false);
   const [showAssignDialog, setShowAssignDialog] = useState(false);
+  const [editingQuestion, setEditingQuestion] = useState<any>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -27,16 +31,9 @@ const SurveyDetails = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("surveys")
-        .select(`
-          *,
-          voter_lists!inner (
-            id,
-            name,
-            description
-          )
-        `)
+        .select("*, voter_lists(*)")
         .eq("id", id)
-        .maybeSingle();
+        .single();
 
       if (error) {
         console.error("Error fetching survey:", error);
@@ -88,19 +85,6 @@ const SurveyDetails = () => {
     mutationFn: async (listId: string) => {
       console.log("Assigning list:", listId, "to survey:", id);
       
-      // First, verify the list exists
-      const { data: listExists, error: listCheckError } = await supabase
-        .from("voter_lists")
-        .select("id")
-        .eq("id", listId)
-        .maybeSingle();
-
-      if (listCheckError || !listExists) {
-        console.error("List check error:", listCheckError);
-        throw new Error("Selected list not found");
-      }
-
-      // Update the survey with the new list ID
       const { error: updateError } = await supabase
         .from("surveys")
         .update({ assigned_list_id: listId })
@@ -111,7 +95,6 @@ const SurveyDetails = () => {
         throw updateError;
       }
 
-      // Reset all voter_list_items to pending status
       const { error: itemsError } = await supabase
         .from("voter_list_items")
         .update({ survey_status: 'pending' })
@@ -126,7 +109,7 @@ const SurveyDetails = () => {
       queryClient.invalidateQueries({ queryKey: ["survey", id] });
       toast({
         title: "List assigned",
-        description: "The voter list has been assigned to this survey and voters are ready for surveying.",
+        description: "The voter list has been assigned to this survey.",
       });
       setShowListSelector(false);
     },
@@ -135,6 +118,57 @@ const SurveyDetails = () => {
       toast({
         title: "Error",
         description: "Failed to assign list. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteQuestion = useMutation({
+    mutationFn: async (questionId: string) => {
+      const { error } = await supabase
+        .from("survey_questions")
+        .delete()
+        .eq("id", questionId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["survey-questions", id] });
+      toast({
+        title: "Question deleted",
+        description: "The question has been removed from the survey.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to delete question. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateQuestion = useMutation({
+    mutationFn: async ({ questionId, question }: { questionId: string; question: string }) => {
+      const { error } = await supabase
+        .from("survey_questions")
+        .update({ question })
+        .eq("id", questionId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["survey-questions", id] });
+      setEditingQuestion(null);
+      toast({
+        title: "Question updated",
+        description: "The question has been updated successfully.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update question. Please try again.",
         variant: "destructive",
       });
     },
@@ -158,13 +192,6 @@ const SurveyDetails = () => {
   });
 
   const isAdmin = userRole?.role === "admin";
-
-  // Debug log for button state
-  console.log("Button state:", {
-    questionsLength: questions?.length,
-    assignedListId: survey?.assigned_list_id,
-    isDisabled: !questions?.length || !survey?.assigned_list_id
-  });
 
   if (surveyLoading) {
     return <div>Loading...</div>;
@@ -241,10 +268,37 @@ const SurveyDetails = () => {
                 {questions?.map((question) => (
                   <Card key={question.id} className="p-6">
                     <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="text-xl font-semibold mb-2">
-                          {question.question}
-                        </h3>
+                      <div className="flex-1">
+                        {editingQuestion?.id === question.id ? (
+                          <div className="flex gap-4 items-center">
+                            <Input
+                              value={editingQuestion.question}
+                              onChange={(e) => setEditingQuestion({
+                                ...editingQuestion,
+                                question: e.target.value
+                              })}
+                              className="flex-1"
+                            />
+                            <Button 
+                              onClick={() => updateQuestion.mutate({
+                                questionId: question.id,
+                                question: editingQuestion.question
+                              })}
+                            >
+                              Save
+                            </Button>
+                            <Button 
+                              variant="ghost"
+                              onClick={() => setEditingQuestion(null)}
+                            >
+                              Cancel
+                            </Button>
+                          </div>
+                        ) : (
+                          <h3 className="text-xl font-semibold mb-2">
+                            {question.question}
+                          </h3>
+                        )}
                         <p className="text-sm text-muted-foreground">
                           Type: {question.question_type}
                         </p>
@@ -261,6 +315,42 @@ const SurveyDetails = () => {
                           </div>
                         )}
                       </div>
+                      <div className="flex gap-2 ml-4">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setEditingQuestion({
+                            id: question.id,
+                            question: question.question
+                          })}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Question</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete this question? This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => deleteQuestion.mutate(question.id)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
                     </div>
                   </Card>
                 ))}
@@ -275,23 +365,18 @@ const SurveyDetails = () => {
                   onOpenChange={setShowAddQuestionDialog}
                 />
                 {showListSelector && lists && (
-                  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <Card className="w-full max-w-md p-6">
-                      <h2 className="text-xl font-semibold mb-4">Assign Voter List</h2>
+                  <Dialog open={showListSelector} onOpenChange={setShowListSelector}>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Select a Voter List</DialogTitle>
+                      </DialogHeader>
                       <ListSelector
                         lists={lists}
                         onSelect={(listId) => assignList.mutate(listId)}
                         onCreateNew={() => navigate("/lists/new")}
                       />
-                      <Button
-                        variant="ghost"
-                        className="mt-4"
-                        onClick={() => setShowListSelector(false)}
-                      >
-                        Cancel
-                      </Button>
-                    </Card>
-                  </div>
+                    </DialogContent>
+                  </Dialog>
                 )}
                 {isAdmin && (
                   <AssignSurveyDialog
