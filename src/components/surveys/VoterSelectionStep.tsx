@@ -106,8 +106,8 @@ export const VoterSelectionStep = ({ listId, onVoterSelect }: VoterSelectionStep
     },
     refetchInterval: 1000,
     refetchOnWindowFocus: true,
-    staleTime: 0,
-    cacheTime: 0
+    gcTime: 0,
+    staleTime: 0
   });
 
   const isValidCounty = (county: string): county is County => {

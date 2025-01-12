@@ -26,7 +26,7 @@ interface ResponsesChartProps {
 
 export const ResponsesChart = ({ responses, showDetailed = false }: ResponsesChartProps) => {
   const processResponses = () => {
-    const questionMap = new Map();
+    const questionMap = new Map<string, Map<string, number>>();
 
     responses.forEach((response) => {
       const question = response.survey_questions.question;
@@ -36,7 +36,7 @@ export const ResponsesChart = ({ responses, showDetailed = false }: ResponsesCha
         questionMap.set(question, new Map());
       }
 
-      const answerMap = questionMap.get(question);
+      const answerMap = questionMap.get(question)!;
       answerMap.set(answer, (answerMap.get(answer) || 0) + 1);
     });
 

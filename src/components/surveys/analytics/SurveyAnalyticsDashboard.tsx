@@ -6,6 +6,7 @@ import { ResponsesTable } from "./ResponsesTable";
 import { ResponsesChart } from "./ResponsesChart";
 import { CompletionStats } from "./CompletionStats";
 import { Loader2 } from "lucide-react";
+import { Json } from "@/integrations/supabase/types";
 
 interface SurveyAnalyticsDashboardProps {
   surveyId: string;
@@ -43,7 +44,16 @@ export const SurveyAnalyticsDashboard = ({ surveyId }: SurveyAnalyticsDashboardP
 
       if (responsesError) throw responsesError;
 
-      return surveyResponses;
+      // Transform the responses to match the expected format
+      return surveyResponses?.map(response => ({
+        ...response,
+        survey_questions: {
+          ...response.survey_questions,
+          options: Array.isArray(response.survey_questions.options) 
+            ? response.survey_questions.options.map(opt => String(opt))
+            : undefined
+        }
+      })) || [];
     },
   });
 
