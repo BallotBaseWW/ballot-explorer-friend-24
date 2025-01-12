@@ -39,6 +39,32 @@ const Login = () => {
       console.log("Auth state changed:", event, session);
       
       if (event === 'SIGNED_IN' && session) {
+        // Check if user is approved before redirecting
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('approved')
+          .eq('id', session.user.id)
+          .single();
+        
+        if (profileError) {
+          console.error("Profile check error:", profileError);
+          toast({
+            title: "Error",
+            description: "There was a problem checking your account status.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        if (!profile?.approved) {
+          toast({
+            title: "Account Pending Approval",
+            description: "Your account is pending administrator approval.",
+          });
+          await supabase.auth.signOut();
+          return;
+        }
+
         navigate("/");
       }
     });
