@@ -23,6 +23,11 @@ export const VoterSelectionStep = ({ listId, onVoterSelect }: VoterSelectionStep
       if (itemsError) throw itemsError;
 
       const voterPromises = items.map(async (item) => {
+        // Validate that the county is of type County before making the request
+        if (!isValidCounty(item.county)) {
+          throw new Error(`Invalid county: ${item.county}`);
+        }
+
         const { data: voter, error: voterError } = await supabase
           .from(item.county as County)
           .select('*')
@@ -30,12 +35,17 @@ export const VoterSelectionStep = ({ listId, onVoterSelect }: VoterSelectionStep
           .single();
 
         if (voterError) throw voterError;
-        return { ...voter, county: item.county };
+        return { ...voter, county: item.county as County };
       });
 
       return Promise.all(voterPromises);
     },
   });
+
+  // Helper function to validate county
+  const isValidCounty = (county: string): county is County => {
+    return ['bronx', 'brooklyn', 'manhattan', 'queens', 'statenisland'].includes(county);
+  };
 
   if (isLoading) {
     return <div>Loading voters...</div>;
