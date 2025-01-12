@@ -10,16 +10,20 @@ import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { SurveyResponseForm } from "@/components/surveys/SurveyResponseForm";
+import { VoterSelectionStep } from "@/components/surveys/VoterSelectionStep";
 import { Json } from "@/integrations/supabase/types";
+import { County } from "@/components/search/types";
 
 const SurveyResponse = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [selectedVoter, setSelectedVoter] = useState<any>(null);
+  const [selectedCounty, setSelectedCounty] = useState<County | null>(null);
   const queryClient = useQueryClient();
 
-  const { data: survey, isLoading: surveyLoading } = useQuery({
+  const { data: survey } = useQuery({
     queryKey: ["survey", id],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -33,7 +37,7 @@ const SurveyResponse = () => {
     },
   });
 
-  const { data: questions, isLoading: questionsLoading } = useQuery({
+  const { data: questions } = useQuery({
     queryKey: ["survey-questions", id],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -50,7 +54,7 @@ const SurveyResponse = () => {
   const submitResponse = useMutation({
     mutationFn: async (response: string) => {
       const currentQuestion = questions?.[currentQuestionIndex];
-      if (!currentQuestion) return;
+      if (!currentQuestion || !selectedVoter) return;
 
       const {
         data: { user },
@@ -58,16 +62,28 @@ const SurveyResponse = () => {
       
       if (!user) throw new Error("User not authenticated");
 
-      const { error } = await supabase.from("survey_responses").insert({
+      // Save the response
+      const { error: responseError } = await supabase.from("survey_responses").insert({
         survey_id: id,
         question_id: currentQuestion.id,
         response,
-        state_voter_id: "temp", // This will need to be updated with actual voter ID
-        county: "temp", // This will need to be updated with actual county
+        state_voter_id: selectedVoter.state_voter_id,
+        county: selectedCounty,
         created_by: user.id
       });
 
-      if (error) throw error;
+      if (responseError) throw responseError;
+
+      // If this is the last question, update the voter's survey status
+      if (currentQuestionIndex === questions.length - 1) {
+        const { error: statusError } = await supabase
+          .from("voter_list_items")
+          .update({ survey_status: "completed" })
+          .eq("list_id", survey?.assigned_list_id)
+          .eq("state_voter_id", selectedVoter.state_voter_id);
+
+        if (statusError) throw statusError;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["survey-responses"] });
@@ -79,7 +95,10 @@ const SurveyResponse = () => {
           title: "Survey completed",
           description: "Thank you for your responses!",
         });
-        navigate(`/surveys/${id}`);
+        // Reset state and go back to voter selection
+        setCurrentQuestionIndex(0);
+        setSelectedVoter(null);
+        setSelectedCounty(null);
       }
     },
     onError: () => {
@@ -91,11 +110,16 @@ const SurveyResponse = () => {
     },
   });
 
-  if (surveyLoading || questionsLoading) {
+  const handleVoterSelect = (voter: any, county: County) => {
+    setSelectedVoter(voter);
+    setSelectedCounty(county);
+  };
+
+  if (!survey || !questions) {
     return <div>Loading...</div>;
   }
 
-  const currentQuestion = questions?.[currentQuestionIndex];
+  const currentQuestion = questions[currentQuestionIndex];
 
   // Transform the question to match the expected type
   const formattedQuestion = currentQuestion ? {
@@ -124,25 +148,34 @@ const SurveyResponse = () => {
             </Button>
 
             <div className="mb-8">
-              <h1 className="text-3xl font-bold">{survey?.title}</h1>
-              {survey?.description && (
+              <h1 className="text-3xl font-bold">{survey.title}</h1>
+              {survey.description && (
                 <p className="text-muted-foreground mt-2">{survey.description}</p>
               )}
-              <div className="text-sm text-muted-foreground mt-2">
-                Question {currentQuestionIndex + 1} of {questions?.length}
-              </div>
             </div>
 
-            {formattedQuestion && (
-              <Card className="p-6">
-                <SurveyResponseForm
-                  question={formattedQuestion}
-                  onSubmit={(response) => submitResponse.mutate(response)}
-                  onBack={() => setCurrentQuestionIndex(prev => Math.max(0, prev - 1))}
-                  isFirst={currentQuestionIndex === 0}
-                  isLast={currentQuestionIndex === (questions?.length ?? 0) - 1}
-                />
-              </Card>
+            {!selectedVoter ? (
+              <VoterSelectionStep
+                listId={survey.assigned_list_id}
+                onVoterSelect={handleVoterSelect}
+              />
+            ) : (
+              formattedQuestion && (
+                <Card className="p-6">
+                  <div className="mb-6">
+                    <h3 className="font-medium text-muted-foreground">
+                      Currently surveying: {selectedVoter.first_name} {selectedVoter.last_name}
+                    </h3>
+                  </div>
+                  <SurveyResponseForm
+                    question={formattedQuestion}
+                    onSubmit={(response) => submitResponse.mutate(response)}
+                    onBack={() => setCurrentQuestionIndex(prev => Math.max(0, prev - 1))}
+                    isFirst={currentQuestionIndex === 0}
+                    isLast={currentQuestionIndex === questions.length - 1}
+                  />
+                </Card>
+              )
             )}
           </main>
         </div>

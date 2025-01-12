@@ -163,7 +163,7 @@ const SurveyDetails = () => {
                   <Button 
                     variant="outline"
                     onClick={() => navigate(`/surveys/${id}/respond`)}
-                    disabled={!questions?.length}
+                    disabled={!questions?.length || !survey?.assigned_list_id}
                   >
                     <PlayIcon className="h-4 w-4 mr-2" />
                     Start Survey
