@@ -20,10 +20,20 @@ export const SurveyAnalyticsDashboard = ({ surveyId }: SurveyAnalyticsDashboardP
         .from("survey_analytics")
         .select("*")
         .eq("survey_id", surveyId)
-        .single();
+        .maybeSingle();
 
-      if (error) throw error;
-      return data;
+      if (error) {
+        console.error("Error fetching analytics:", error);
+        throw error;
+      }
+
+      // Return default values if no data found
+      return data || {
+        total_voters: 0,
+        total_responses: 0,
+        completion_rate: 0,
+        survey_id: surveyId,
+      };
     },
   });
 
@@ -42,7 +52,10 @@ export const SurveyAnalyticsDashboard = ({ surveyId }: SurveyAnalyticsDashboardP
         `)
         .eq("survey_id", surveyId);
 
-      if (responsesError) throw responsesError;
+      if (responsesError) {
+        console.error("Error fetching responses:", responsesError);
+        throw responsesError;
+      }
 
       // Transform the responses to match the expected format
       return surveyResponses?.map(response => ({
