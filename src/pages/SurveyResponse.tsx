@@ -79,42 +79,81 @@ const SurveyResponse = () => {
       
       if (!user) throw new Error("User not authenticated");
 
-      // Save the response
-      const { error: responseError } = await supabase.from("survey_responses").insert({
-        survey_id: id,
-        question_id: currentQuestion.id,
-        response,
-        state_voter_id: selectedVoter.state_voter_id,
+      console.log("Submitting response for voter:", {
+        voterId: selectedVoter.state_voter_id,
         county: selectedCounty,
-        created_by: user.id
+        questionId: currentQuestion.id
       });
 
-      if (responseError) throw responseError;
+      // First check if a response already exists for this voter and question
+      const { data: existingResponse } = await supabase
+        .from("survey_responses")
+        .select("*")
+        .eq("survey_id", id)
+        .eq("question_id", currentQuestion.id)
+        .eq("state_voter_id", selectedVoter.state_voter_id)
+        .maybeSingle();
 
-      // If this is the last question, update the voter's survey status
-      if (currentQuestionIndex === questions?.length - 1) {
+      if (existingResponse) {
+        console.log("Response already exists for this voter and question");
+        return;
+      }
+
+      // Save the response
+      const { error: responseError } = await supabase
+        .from("survey_responses")
+        .insert({
+          survey_id: id,
+          question_id: currentQuestion.id,
+          response,
+          state_voter_id: selectedVoter.state_voter_id,
+          county: selectedCounty,
+          created_by: user.id
+        });
+
+      if (responseError) {
+        console.error("Error submitting response:", responseError);
+        throw responseError;
+      }
+
+      // Check if this was the last question
+      if (currentQuestionIndex === questions.length - 1) {
         console.log("Updating survey status for voter:", selectedVoter.state_voter_id);
-        const { error: statusError } = await supabase
-          .from("voter_list_items")
-          .update({ survey_status: "completed" })
-          .eq("list_id", survey?.assigned_list_id)
+        
+        // Get all responses for this voter in this survey
+        const { data: voterResponses, error: responsesError } = await supabase
+          .from("survey_responses")
+          .select("*")
+          .eq("survey_id", id)
           .eq("state_voter_id", selectedVoter.state_voter_id);
 
-        if (statusError) {
-          console.error("Error updating survey status:", statusError);
-          throw statusError;
+        if (responsesError) {
+          console.error("Error checking responses:", responsesError);
+          throw responsesError;
         }
-        
-        // Force refetch of voter list items
-        await queryClient.invalidateQueries({ 
-          queryKey: ["voter-list-items", survey?.assigned_list_id]
-        });
+
+        // Only mark as completed if all questions have been answered
+        if (voterResponses && voterResponses.length === questions.length) {
+          const { error: statusError } = await supabase
+            .from("voter_list_items")
+            .update({ survey_status: "completed" })
+            .eq("list_id", survey?.assigned_list_id)
+            .eq("state_voter_id", selectedVoter.state_voter_id);
+
+          if (statusError) {
+            console.error("Error updating survey status:", statusError);
+            throw statusError;
+          }
+          
+          console.log("Successfully marked voter as completed");
+        }
       }
     },
     onSuccess: () => {
       // Invalidate both the survey responses and voter list queries
       queryClient.invalidateQueries({ queryKey: ["survey-responses"] });
       queryClient.invalidateQueries({ queryKey: ["survey-analytics"] });
+      queryClient.invalidateQueries({ queryKey: ["voter-list-items"] });
       
       if (questions && currentQuestionIndex < questions.length - 1) {
         setCurrentQuestionIndex(prev => prev + 1);
