@@ -29,13 +29,13 @@ const SurveyDetails = () => {
         .from("surveys")
         .select(`
           *,
-          voter_lists:voter_lists(*)
+          voter_lists(*)
         `)
         .eq("id", id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
-      console.log("Survey data:", data); // Debug log
+      console.log("Survey data:", data);
       return data;
     },
   });
@@ -50,7 +50,7 @@ const SurveyDetails = () => {
         .order("order_index");
 
       if (error) throw error;
-      console.log("Questions data:", data); // Debug log
+      console.log("Questions data:", data);
       return data;
     },
   });
@@ -70,21 +70,28 @@ const SurveyDetails = () => {
 
   const assignList = useMutation({
     mutationFn: async (listId: string) => {
-      // First update the survey
-      const { error: surveyError } = await supabase
+      console.log("Assigning list:", listId, "to survey:", id);
+      
+      const { error: updateError } = await supabase
         .from("surveys")
         .update({ assigned_list_id: listId })
         .eq("id", id);
 
-      if (surveyError) throw surveyError;
+      if (updateError) {
+        console.error("Error updating survey:", updateError);
+        throw updateError;
+      }
 
-      // Then set all voter_list_items to pending status
+      // Reset all voter_list_items to pending status
       const { error: itemsError } = await supabase
         .from("voter_list_items")
         .update({ survey_status: 'pending' })
         .eq("list_id", listId);
 
-      if (itemsError) throw itemsError;
+      if (itemsError) {
+        console.error("Error updating voter list items:", itemsError);
+        throw itemsError;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["survey", id] });
@@ -94,7 +101,8 @@ const SurveyDetails = () => {
       });
       setShowListSelector(false);
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("Error in assignList mutation:", error);
       toast({
         title: "Error",
         description: "Failed to assign list. Please try again.",
@@ -113,7 +121,7 @@ const SurveyDetails = () => {
         .from("user_roles")
         .select("role")
         .eq("user_id", user.id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       return data;
