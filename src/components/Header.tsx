@@ -101,6 +101,23 @@ export const Header = () => {
           </span>
         </div>
         
+        {/* Desktop Navigation */}
+        <nav className="hidden md:flex items-center space-x-4">
+          {navigationItems.map((item) => (
+            <Button
+              key={item.path}
+              variant="ghost"
+              size="sm"
+              onClick={handleNavigate(item.path)}
+              disabled={item.disabled}
+              className="flex items-center gap-2"
+            >
+              <item.icon className="h-4 w-4" />
+              {item.label}
+            </Button>
+          ))}
+        </nav>
+        
         <div className="flex items-center gap-4">
           <ThemeToggle />
           
