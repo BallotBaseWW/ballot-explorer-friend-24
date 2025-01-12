@@ -13,6 +13,8 @@ interface ResponsesTableProps {
     id: string;
     response: string;
     created_at: string;
+    state_voter_id: string;
+    county: string;
     survey_questions: {
       question: string;
       question_type: string;
@@ -28,6 +30,8 @@ export const ResponsesTable = ({ responses }: ResponsesTableProps) => {
           <TableRow>
             <TableHead>Question</TableHead>
             <TableHead>Response</TableHead>
+            <TableHead>Voter</TableHead>
+            <TableHead>County</TableHead>
             <TableHead>Date</TableHead>
           </TableRow>
         </TableHeader>
@@ -38,6 +42,8 @@ export const ResponsesTable = ({ responses }: ResponsesTableProps) => {
                 {response.survey_questions.question}
               </TableCell>
               <TableCell>{response.response}</TableCell>
+              <TableCell>ID: {response.state_voter_id}</TableCell>
+              <TableCell>{response.county}</TableCell>
               <TableCell>
                 {format(new Date(response.created_at), "MMM d, yyyy HH:mm")}
               </TableCell>
