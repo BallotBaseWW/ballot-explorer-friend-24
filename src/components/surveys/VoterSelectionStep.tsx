@@ -82,10 +82,19 @@ export const VoterSelectionStep = ({ listId, onVoterSelect }: VoterSelectionStep
           return null;
         }
 
+        // Get survey responses for this voter
+        const { data: responses } = await supabase
+          .from('survey_responses')
+          .select('*')
+          .eq('state_voter_id', item.state_voter_id)
+          .eq('county', item.county);
+
+        const hasCompletedSurvey = responses && responses.length > 0;
+
         return { 
           ...voter, 
           county: item.county as County,
-          survey_status: item.survey_status 
+          survey_status: hasCompletedSurvey ? 'completed' : 'pending'
         };
       });
 
@@ -93,7 +102,13 @@ export const VoterSelectionStep = ({ listId, onVoterSelect }: VoterSelectionStep
         const voters = await Promise.all(voterPromises);
         const filteredVoters = voters.filter(voter => voter !== null);
         console.log("Successfully fetched voters:", filteredVoters.length);
-        return filteredVoters;
+        
+        // Sort voters to show pending first
+        return filteredVoters.sort((a, b) => {
+          if (a.survey_status === 'pending' && b.survey_status === 'completed') return -1;
+          if (a.survey_status === 'completed' && b.survey_status === 'pending') return 1;
+          return 0;
+        });
       } catch (error) {
         console.error("Error processing voters:", error);
         throw error;
@@ -158,7 +173,6 @@ export const VoterSelectionStep = ({ listId, onVoterSelect }: VoterSelectionStep
               <Button 
                 onClick={() => onVoterSelect(voter, voter.county)}
                 className="gap-2"
-                disabled={voter.survey_status === 'completed'}
               >
                 <ListPlus className="h-4 w-4" />
                 Survey this Voter
