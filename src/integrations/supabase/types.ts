@@ -426,6 +426,38 @@ export type Database = {
         }
         Relationships: []
       }
+      list_shares: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          list_id: string
+          shared_with: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          list_id: string
+          shared_with: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          list_id?: string
+          shared_with?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "list_shares_list_id_fkey"
+            columns: ["list_id"]
+            isOneToOne: false
+            referencedRelation: "voter_lists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       manhattan: {
         Row: {
           application_date: string | null

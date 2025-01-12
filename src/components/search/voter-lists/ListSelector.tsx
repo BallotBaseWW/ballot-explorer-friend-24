@@ -7,14 +7,23 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useState } from "react";
+import { Share2 } from "lucide-react";
 
 interface ListSelectorProps {
   lists: Array<{ id: string; name: string }>;
   onSelect: (listId: string) => void;
   onCreateNew: () => void;
+  onShare?: (listId: string) => void;
+  showShareButton?: boolean;
 }
 
-export function ListSelector({ lists, onSelect, onCreateNew }: ListSelectorProps) {
+export function ListSelector({ 
+  lists, 
+  onSelect, 
+  onCreateNew, 
+  onShare,
+  showShareButton = false 
+}: ListSelectorProps) {
   const [selectedListId, setSelectedListId] = useState<string>("");
 
   return (
@@ -45,12 +54,23 @@ export function ListSelector({ lists, onSelect, onCreateNew }: ListSelectorProps
             >
               Create New List
             </Button>
-            <Button
-              onClick={() => selectedListId && onSelect(selectedListId)}
-              disabled={!selectedListId}
-            >
-              Add to Selected List
-            </Button>
+            <div className="flex gap-2">
+              {showShareButton && selectedListId && onShare && (
+                <Button
+                  variant="outline"
+                  onClick={() => onShare(selectedListId)}
+                >
+                  <Share2 className="h-4 w-4 mr-2" />
+                  Share List
+                </Button>
+              )}
+              <Button
+                onClick={() => selectedListId && onSelect(selectedListId)}
+                disabled={!selectedListId}
+              >
+                Add to Selected List
+              </Button>
+            </div>
           </div>
         </>
       ) : (

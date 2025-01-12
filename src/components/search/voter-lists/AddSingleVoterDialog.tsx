@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { ListPlus } from "lucide-react";
 import { ListSelector } from "./ListSelector";
 import { NewListForm } from "./NewListForm";
+import { ShareListDialog } from "./ShareListDialog";
 import { County } from "../types";
 
 interface AddSingleVoterDialogProps {
@@ -25,6 +26,7 @@ interface AddSingleVoterDialogProps {
 export function AddSingleVoterDialog({ voter, county, variant = "outline", size = "sm" }: AddSingleVoterDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isCreatingNew, setIsCreatingNew] = useState(false);
+  const [shareListId, setShareListId] = useState<string | null>(null);
   const { toast } = useToast();
 
   const { data: lists, refetch: refetchLists } = useQuery({
@@ -68,34 +70,46 @@ export function AddSingleVoterDialog({ voter, county, variant = "outline", size 
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button variant={variant} size={size} className="gap-2">
-          <ListPlus className="h-4 w-4" />
-          Add to List
-        </Button>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Add Voter to List</DialogTitle>
-        </DialogHeader>
-        
-        {isCreatingNew ? (
-          <NewListForm
-            onSuccess={(listId) => {
-              handleAddToList(listId);
-              refetchLists();
-            }}
-            onCancel={() => setIsCreatingNew(false)}
-          />
-        ) : (
-          <ListSelector
-            lists={lists || []}
-            onSelect={handleAddToList}
-            onCreateNew={() => setIsCreatingNew(true)}
-          />
-        )}
-      </DialogContent>
-    </Dialog>
+    <>
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogTrigger asChild>
+          <Button variant={variant} size={size} className="gap-2">
+            <ListPlus className="h-4 w-4" />
+            Add to List
+          </Button>
+        </DialogTrigger>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Voter to List</DialogTitle>
+          </DialogHeader>
+          
+          {isCreatingNew ? (
+            <NewListForm
+              onSuccess={(listId) => {
+                handleAddToList(listId);
+                refetchLists();
+              }}
+              onCancel={() => setIsCreatingNew(false)}
+            />
+          ) : (
+            <ListSelector
+              lists={lists || []}
+              onSelect={handleAddToList}
+              onCreateNew={() => setIsCreatingNew(true)}
+              onShare={(listId) => setShareListId(listId)}
+              showShareButton
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {shareListId && (
+        <ShareListDialog
+          listId={shareListId}
+          open={!!shareListId}
+          onOpenChange={(open) => !open && setShareListId(null)}
+        />
+      )}
+    </>
   );
 }
