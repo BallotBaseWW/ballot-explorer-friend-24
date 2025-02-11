@@ -14,6 +14,7 @@ import { PersonalInfo } from "./PersonalInfo";
 import { AddressInfo } from "./AddressInfo";
 import { formatDate } from "@/lib/utils";
 import { County } from "../types";
+import { AddSingleVoterDialog } from "../voter-lists/AddSingleVoterDialog";
 
 type VoterRecord = Database["public"]["Tables"]["bronx"]["Row"];
 
@@ -24,7 +25,7 @@ interface VoterCardProps {
   hideAddToList?: boolean;
 }
 
-export const VoterCard = ({ voter, county, onPrint, hideAddToList }: VoterCardProps) => {
+export const VoterCard = ({ voter, county, onPrint, hideAddToList = false }: VoterCardProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -53,6 +54,12 @@ export const VoterCard = ({ voter, county, onPrint, hideAddToList }: VoterCardPr
             />
           </div>
           <div className="flex flex-wrap items-center gap-2">
+            {!hideAddToList && (
+              <AddSingleVoterDialog 
+                voter={{ state_voter_id: voter.state_voter_id }} 
+                county={county}
+              />
+            )}
             <PartyBadge party={voter.enrolled_party} />
           </div>
         </div>

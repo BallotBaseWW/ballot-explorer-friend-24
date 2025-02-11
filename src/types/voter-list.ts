@@ -1,3 +1,4 @@
+
 export interface VoterList {
   id: string;
   user_id: string;
