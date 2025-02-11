@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { VoterCard } from "../search/voter-card/VoterCard";
@@ -163,7 +164,7 @@ export const VoterSelectionStep = ({ listId, onVoterSelect }: VoterSelectionStep
             onPrint={() => {}}
             hideAddToList
           />
-          <div className="absolute top-4 right-4 flex items-center gap-2">
+          <div className="absolute top-4 right-20 flex items-center gap-2">
             {voter.survey_status === 'completed' ? (
               <Badge variant="success" className="flex items-center gap-1">
                 <CheckCircle2 className="h-4 w-4" />
@@ -183,4 +184,4 @@ export const VoterSelectionStep = ({ listId, onVoterSelect }: VoterSelectionStep
       ))}
     </div>
   );
-};
+}
