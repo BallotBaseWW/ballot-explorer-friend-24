@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -16,7 +17,18 @@ export const useAuthCheck = () => {
         console.log("Checking auth in useAuthCheck...");
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
-        if (sessionError) throw sessionError;
+        if (sessionError) {
+          // Don't throw error for token refresh issues
+          if (!sessionError.message.includes('refresh_token')) {
+            throw sessionError;
+          }
+          // For refresh token errors, just handle as if no session
+          console.log("Session refresh failed, treating as no session");
+          if (mounted) {
+            navigate("/login");
+          }
+          return false;
+        }
         
         console.log("Session in useAuthCheck:", session);
         

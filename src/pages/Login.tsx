@@ -1,3 +1,4 @@
+
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Auth } from "@supabase/auth-ui-react";
@@ -19,11 +20,14 @@ const Login = () => {
       
       if (error) {
         console.error("Auth check error:", error);
-        toast({
-          title: "Error",
-          description: "There was a problem checking your authentication status.",
-          variant: "destructive",
-        });
+        // Don't show error toast for token refresh errors
+        if (!error.message.includes('refresh_token')) {
+          toast({
+            title: "Error",
+            description: "There was a problem checking your authentication status.",
+            variant: "destructive",
+          });
+        }
         return;
       }
 
