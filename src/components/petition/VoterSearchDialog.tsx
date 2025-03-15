@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -99,7 +98,10 @@ export const VoterSearchDialog = ({ open, onOpenChange, onVoterSelect }: VoterSe
 
         <div className="grid grid-cols-1 gap-4 py-4">
           <div className="flex items-center gap-2 mb-4">
-            <CountySwitcher currentCounty={county} onCountyChange={handleCountyChange} />
+            <CountySwitcher 
+              county={county} 
+              setCounty={setCounty} 
+            />
           </div>
           
           <div className="grid grid-cols-2 gap-4">

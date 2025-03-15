@@ -1,3 +1,4 @@
+
 import {
   Sheet,
   SheetContent,
@@ -13,7 +14,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion"
 import { Separator } from "@/components/ui/separator"
-import { useMobile } from "@/hooks/use-mobile"
+import { useIsMobile } from "@/hooks/use-mobile"
 import {
   Home,
   Search,
@@ -29,7 +30,7 @@ import { FileText } from 'lucide-react';
 
 export const AppSidebar = () => {
   const navigate = useNavigate();
-  const { isMobile } = useMobile();
+  const { isMobile } = useIsMobile();
   const pathName = window.location.pathname;
   const { pathname } = useLocation();
 

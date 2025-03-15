@@ -1,3 +1,4 @@
+
 import {
   BrowserRouter,
   Routes,
@@ -15,6 +16,9 @@ import { Toaster } from "@/components/ui/toaster";
 import VoterList from "./pages/VoterList";
 import Survey from "./pages/Survey";
 import DesignatingPetition from "./pages/DesignatingPetition";
+
+// Create a client
+const queryClient = new QueryClient();
 
 function App() {
   return (
