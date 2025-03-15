@@ -5,6 +5,7 @@ import { PetitionPreview } from "@/components/petition/PetitionPreview";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import { PetitionData } from "@/components/petition/types";
+import { PetitionWizard } from "@/components/petition/PetitionWizard";
 
 export default function DesignatingPetition() {
   const [petitionData, setPetitionData] = useState<PetitionData>({
@@ -12,7 +13,7 @@ export default function DesignatingPetition() {
     electionDate: "",
     electionYear: new Date().getFullYear().toString(),
     candidates: [],
-    committee: "",
+    committeeMembers: [],
     showNotary: true,
     showWitness: true,
     signatureCount: 10,
@@ -34,7 +35,7 @@ export default function DesignatingPetition() {
         </TabsList>
         <TabsContent value="form" className="mt-4">
           <Card className="p-6">
-            <PetitionForm petitionData={petitionData} setPetitionData={setPetitionData} />
+            <PetitionWizard petitionData={petitionData} setPetitionData={setPetitionData} />
           </Card>
         </TabsContent>
         <TabsContent value="preview" className="mt-4">
