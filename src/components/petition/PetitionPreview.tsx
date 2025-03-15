@@ -1,6 +1,20 @@
+
 import { PetitionData } from "./types";
 
 export function PetitionPreview({ petitionData }: { petitionData: PetitionData }) {
+  const renderCommitteeMembers = () => {
+    if (petitionData.committeeMembers && petitionData.committeeMembers.length > 0) {
+      return petitionData.committeeMembers.map((member, index) => (
+        <div key={member.id} className="mb-1 leading-tight">
+          {member.name}, residing at {member.residence}
+        </div>
+      ));
+    } else if (petitionData.committee) {
+      return <div className="mb-2">{petitionData.committee}</div>;
+    }
+    return null;
+  };
+  
   return (
     <div className="space-y-4">
       <h2 className="text-2xl font-semibold">Petition Preview</h2>
@@ -28,17 +42,4 @@ export function PetitionPreview({ petitionData }: { petitionData: PetitionData }
       </div>
     </div>
   );
-
-  const renderCommitteeMembers = () => {
-    if (petitionData.committeeMembers && petitionData.committeeMembers.length > 0) {
-      return petitionData.committeeMembers.map((member, index) => (
-        <div key={member.id} className="mb-1 leading-tight">
-          {member.name}, residing at {member.residence}
-        </div>
-      ));
-    } else if (petitionData.committee) {
-      return <div className="mb-2">{petitionData.committee}</div>;
-    }
-    return null;
-  };
 }

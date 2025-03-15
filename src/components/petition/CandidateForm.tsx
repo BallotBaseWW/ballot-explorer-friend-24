@@ -55,7 +55,7 @@ export function CandidateForm({
               <Button 
                 variant="outline" 
                 size="icon" 
-                onClick={() => onSearch(index)}
+                onClick={() => onSearch()}
                 title="Search Voter Database"
               >
                 <Search className="h-4 w-4" />

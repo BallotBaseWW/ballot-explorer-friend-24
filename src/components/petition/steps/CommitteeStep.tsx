@@ -75,7 +75,7 @@ export function CommitteeStep({ petitionData, updatePetitionData, onNext, onBack
           Add at least three persons as committee members, all of whom must be enrolled voters of the party.
         </p>
         {!isValid && petitionData.committeeMembers.length > 0 && (
-          <Alert variant="warning">
+          <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Validation</AlertTitle>
             <AlertDescription>
