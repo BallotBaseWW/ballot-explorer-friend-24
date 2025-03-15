@@ -201,24 +201,70 @@ export function PetitionPreview({ petitionData }: PetitionPreviewProps) {
           y += 6;
           verificationHeight += 6;
           
-          const witnessText = "I (name of witness) __________________________ state: I am a duly qualified voter of the State of New York and am an enrolled voter of the __________________________ Party. I now reside at (residence address) __________________________________________________. Each of the individuals whose names are subscribed to this petition sheet containing (fill in number) __________ signatures, subscribed the same in my presence on the dates above indicated and identified himself or herself to be the individual who signed this sheet. I understand that this statement will be accepted for all purposes as the equivalent of an affidavit and, if it contains a material false statement, shall subject me to the same penalties as if I had been duly sworn.";
+          // Updated witness text with longer underlines
+          const witnessText = "I (name of witness) ";
+          doc.text(witnessText, 20, y);
           
-          const splitWitnessText = doc.splitTextToSize(witnessText, doc.internal.pageSize.width - 40);
-          doc.text(splitWitnessText, 20, y);
+          // Draw the first long underline for name
+          const nameStart = 20 + doc.getTextWidth(witnessText);
+          doc.line(nameStart, y, nameStart + 70, y);
           
-          verificationHeight += (splitWitnessText.length * lineHeight);
-          y += (splitWitnessText.length * lineHeight) + 12;
+          // Continue with text
+          y += lineHeight;
+          verificationHeight += lineHeight;
+          
+          doc.text("state: I am a duly qualified voter of the State of New York and am an enrolled voter of the ", 20, y);
+          // Draw party underline
+          const partyStart = 20 + doc.getTextWidth("state: I am a duly qualified voter of the State of New York and am an enrolled voter of the ");
+          doc.line(partyStart, y, partyStart + 60, y);
+          doc.text(" Party.", partyStart + 61, y);
+          
+          y += lineHeight * 2;
+          verificationHeight += lineHeight * 2;
+          
+          doc.text("I now reside at (residence address) ", 20, y);
+          // Draw residence address underline
+          const addressStart = 20 + doc.getTextWidth("I now reside at (residence address) ");
+          doc.line(addressStart, y, addressStart + 90, y);
+          doc.text(".", 20 + doc.getTextWidth("I now reside at (residence address) ") + 91, y);
+          
+          y += lineHeight * 2;
+          verificationHeight += lineHeight * 2;
+          
+          const fillText = "Each of the individuals whose names are subscribed to this petition sheet containing (fill in number) ";
+          doc.text(fillText, 20, y);
+          // Draw number underline
+          const numberStart = 20 + doc.getTextWidth(fillText);
+          doc.line(numberStart, y, numberStart + 10, y);
+          
+          const remainderText = " signatures, subscribed the same in my presence on the dates above indicated and identified himself or herself to be the individual who signed this sheet.";
+          doc.text(remainderText, numberStart + 11, y);
+          
+          y += lineHeight * 2;
+          verificationHeight += lineHeight * 2;
+          
+          const statementText = "I understand that this statement will be accepted for all purposes as the equivalent of an affidavit and, if it contains a material false statement, shall subject me to the same penalties as if I had been duly sworn.";
+          const splitStatementText = doc.splitTextToSize(statementText, doc.internal.pageSize.width - 40);
+          doc.text(splitStatementText, 20, y);
+          
+          verificationHeight += (splitStatementText.length * lineHeight);
+          y += (splitStatementText.length * lineHeight) + 12;
           verificationHeight += 12;
           
-          // Date and Signature lines
-          doc.line(40, y, 100, y);
-          doc.line(140, y, 180, y);
+          // Date and Signature lines - make these longer
+          const dateLineStart = 20;
+          const dateLineEnd = 70;
+          const signatureLineStart = 90;
+          const signatureLineEnd = 190;
+          
+          doc.line(dateLineStart, y, dateLineEnd, y);
+          doc.line(signatureLineStart, y, signatureLineEnd, y);
           
           y += 5;
           verificationHeight += 5;
           
-          doc.text("Date", 70, y);
-          doc.text("Signature of Witness", 160, y);
+          doc.text("Date", (dateLineStart + dateLineEnd) / 2, y, { align: "center" });
+          doc.text("Signature of Witness", (signatureLineStart + signatureLineEnd) / 2, y, { align: "center" });
           
           y += 10;
           verificationHeight += 10;
@@ -235,15 +281,20 @@ export function PetitionPreview({ petitionData }: PetitionPreviewProps) {
           y += 10;
           verificationHeight += 10;
           
-          // Town/City and County
-          doc.line(30, y, 140, y);
-          doc.line(150, y, 190, y);
+          // Town/City and County - make these lines longer too
+          const townLineStart = 20;
+          const townLineEnd = 100;
+          const countyLineStart = 120;
+          const countyLineEnd = 190;
+          
+          doc.line(townLineStart, y, townLineEnd, y);
+          doc.line(countyLineStart, y, countyLineEnd, y);
           
           y += 5;
           verificationHeight += 5;
           
-          doc.text("Town or City Where Witness Resides", 85, y);
-          doc.text("County Where Witness Resides", 170, y);
+          doc.text("Town or City Where Witness Resides", (townLineStart + townLineEnd) / 2, y, { align: "center" });
+          doc.text("County Where Witness Resides", (countyLineStart + countyLineEnd) / 2, y, { align: "center" });
           
           y += 10;
           verificationHeight += 10;
@@ -257,24 +308,41 @@ export function PetitionPreview({ petitionData }: PetitionPreviewProps) {
           y += 6;
           verificationHeight += 6;
           
-          const notaryText = "On the dates above indicated before me personally came each of the voters whose signatures appear on this petition sheet containing (fill in number) __________ signatures, who signed same in my presence and who, being by me duly sworn, each for himself or herself, said that the foregoing statement made and subscribed by him or her was true.";
+          const notaryText = "On the dates above indicated before me personally came each of the voters whose signatures appear on this petition sheet containing (fill in number) ";
+          doc.text(notaryText, 20, y);
           
-          const splitNotaryText = doc.splitTextToSize(notaryText, doc.internal.pageSize.width - 40);
-          doc.text(splitNotaryText, 20, y);
+          // Draw number underline
+          const numberStartNotary = 20 + doc.getTextWidth(notaryText);
+          doc.line(numberStartNotary, y, numberStartNotary + 10, y);
           
-          verificationHeight += (splitNotaryText.length * lineHeight);
-          y += (splitNotaryText.length * lineHeight) + 12;
-          verificationHeight += 12;
+          const remainderTextNotary = " signatures, who signed same in my presence and who, being by me duly sworn, each for himself or herself, said that the foregoing statement made and subscribed by him or her was true.";
           
-          // Date and Signature lines
-          doc.line(40, y, 100, y);
-          doc.line(140, y, 180, y);
+          // Continue with text on next line if needed
+          if (numberStartNotary + 11 + doc.getTextWidth(remainderTextNotary) > doc.internal.pageSize.width - 20) {
+            y += lineHeight;
+            verificationHeight += lineHeight;
+            doc.text(remainderTextNotary, 20, y);
+          } else {
+            doc.text(remainderTextNotary, numberStartNotary + 11, y);
+          }
+          
+          y += lineHeight * 3;
+          verificationHeight += lineHeight * 3;
+          
+          // Date and Signature lines - make these longer
+          const dateLineStartNotary = 20;
+          const dateLineEndNotary = 70;
+          const signatureLineStartNotary = 90;
+          const signatureLineEndNotary = 190;
+          
+          doc.line(dateLineStartNotary, y, dateLineEndNotary, y);
+          doc.line(signatureLineStartNotary, y, signatureLineEndNotary, y);
           
           y += 5;
           verificationHeight += 5;
           
-          doc.text("Date", 70, y);
-          doc.text("Signature and Official Title of Officer Administering Oath", 160, y);
+          doc.text("Date", (dateLineStartNotary + dateLineEndNotary) / 2, y, { align: "center" });
+          doc.text("Signature and Official Title of Officer Administering Oath", (signatureLineStartNotary + signatureLineEndNotary) / 2, y, { align: "center" });
           
           verificationHeight += 5;
         }
@@ -471,12 +539,23 @@ export function PetitionPreview({ petitionData }: PetitionPreviewProps) {
               {petitionData.showWitness && (
                 <div className="mb-6">
                   <p className="font-bold text-sm">1. Statement of Witness:</p>
+                  <p className="text-sm ml-4 mb-1">
+                    I (name of witness) <span className="border-b border-black inline-block" style={{ width: "300px" }}>&nbsp;</span> state: I am a duly qualified voter of the State of New York and am an enrolled voter of the 
+                  </p>
+                  <p className="text-sm ml-4 mb-2">
+                    <span className="border-b border-black inline-block" style={{ width: "280px" }}>&nbsp;</span> Party.
+                  </p>
+                  <p className="text-sm ml-4 mb-2">
+                    I now reside at (residence address) <span className="border-b border-black inline-block" style={{ width: "420px" }}>&nbsp;</span>.
+                  </p>
+                  <p className="text-sm ml-4 mb-2">
+                    Each of the individuals whose names are subscribed to this petition sheet containing (fill in number) <span className="border-b border-black inline-block" style={{ width: "50px" }}>&nbsp;</span> signatures,
+                  </p>
                   <p className="text-sm ml-4 mb-4">
-                    I (name of witness) <u>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u> state: I am a duly qualified voter of the State of New York and am an enrolled voter of the <u>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u> Party.
-                    <br />I now reside at (residence address) <u>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u>.
-                    <br />Each of the individuals whose names are subscribed to this petition sheet containing (fill in number) <u>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u> signatures, 
                     subscribed the same in my presence on the dates above indicated and identified himself or herself to be the individual who signed this sheet.
-                    <br />I understand that this statement will be accepted for all purposes as the equivalent of an affidavit and, if it contains a material false 
+                  </p>
+                  <p className="text-sm ml-4 mb-6">
+                    I understand that this statement will be accepted for all purposes as the equivalent of an affidavit and, if it contains a material false 
                     statement, shall subject me to the same penalties as if I had been duly sworn.
                   </p>
                   
@@ -512,9 +591,11 @@ export function PetitionPreview({ petitionData }: PetitionPreviewProps) {
               {petitionData.showNotary && (
                 <div className="mb-4">
                   <p className="font-bold text-sm">2. Notary Public or Commissioner of Deeds:</p>
-                  <p className="text-sm ml-4 mb-4">
+                  <p className="text-sm ml-4 mb-2">
                     On the dates above indicated before me personally came each of the voters whose signatures appear on this petition sheet containing 
-                    (fill in number) <u>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u> signatures, who signed same in my presence and who, being by me duly sworn, each for himself or herself, 
+                  </p>
+                  <p className="text-sm ml-4 mb-4">
+                    (fill in number) <span className="border-b border-black inline-block" style={{ width: "50px" }}>&nbsp;</span> signatures, who signed same in my presence and who, being by me duly sworn, each for himself or herself, 
                     said that the foregoing statement made and subscribed by him or her was true.
                   </p>
                   
