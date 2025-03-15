@@ -1,3 +1,4 @@
+
 import { useNavigate } from "react-router-dom";
 import {
   Sidebar,
@@ -9,7 +10,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { Home, Search, ListTodo, Shield, MapPin, Calculator } from "lucide-react";
+import { Home, Search, ListTodo, Shield, MapPin, Calculator, FileText } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -63,6 +64,11 @@ export function AppSidebar() {
       title: "Matching Funds",
       url: "/matching-funds",
       icon: Calculator,
+    },
+    {
+      title: "Designating Petition",
+      url: "/designating-petition",
+      icon: FileText,
     },
   ];
 
