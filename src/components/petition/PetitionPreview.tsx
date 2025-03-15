@@ -16,28 +16,28 @@ export function PetitionPreview({ petitionData }: { petitionData: PetitionData }
   };
   
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <h2 className="text-2xl font-semibold">Petition Preview</h2>
-      <div className="space-y-2">
-        <div className="text-lg font-bold">Political Party: {petitionData.party}</div>
-        <div className="text-lg font-bold">Election Date: {petitionData.electionDate}</div>
-        <div className="text-lg font-bold">Election Year: {petitionData.electionYear}</div>
-        <div className="text-lg font-bold">Number of Signature Lines: {petitionData.signatureCount}</div>
+      <div className="space-y-3">
+        <div className="text-lg"><strong>Political Party:</strong> {petitionData.party}</div>
+        <div className="text-lg"><strong>Election Date:</strong> {petitionData.electionDate}</div>
+        <div className="text-lg"><strong>Election Year:</strong> {petitionData.electionYear}</div>
+        <div className="text-lg"><strong>Number of Signature Lines:</strong> {petitionData.signatureCount}</div>
       </div>
 
       {/* Candidates */}
-      <div className="text-center font-bold mt-3 mb-1 uppercase">Candidates</div>
-      <div className="border-solid border-black border-2 p-2 mb-3 text-sm">
+      <div className="text-center font-bold mt-6 mb-2 uppercase">CANDIDATES</div>
+      <div className="border-solid border-black border-2 p-4">
         {petitionData.candidates.map((candidate) => (
-          <div key={candidate.id} className="mb-1 leading-tight">
-            {candidate.name}, {candidate.position}, residing at {candidate.residence}
+          <div key={candidate.id} className="leading-relaxed">
+            {candidate.name}{candidate.position ? `, ${candidate.position}` : ""}, residing at {candidate.residence}
           </div>
         ))}
       </div>
 
       {/* Committee to Fill Vacancies */}
-      <div className="text-center font-bold mt-3 mb-1 uppercase">Committee to Fill Vacancies</div>
-      <div className="border-solid border-black border-2 p-2 mb-3 text-sm">
+      <div className="text-center font-bold mt-6 mb-2 uppercase">COMMITTEE TO FILL VACANCIES</div>
+      <div className="border-solid border-black border-2 p-4">
         {renderCommitteeMembers()}
       </div>
     </div>

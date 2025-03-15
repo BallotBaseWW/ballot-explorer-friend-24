@@ -8,6 +8,7 @@ import { PetitionData } from "@/components/petition/types";
 import { PetitionWizard } from "@/components/petition/PetitionWizard";
 
 export default function DesignatingPetition() {
+  const [activeTab, setActiveTab] = useState("form");
   const [petitionData, setPetitionData] = useState<PetitionData>({
     party: "",
     electionDate: "",
@@ -28,10 +29,14 @@ export default function DesignatingPetition() {
         </p>
       </div>
 
-      <Tabs defaultValue="form" className="w-full">
+      <Tabs 
+        value={activeTab} 
+        onValueChange={setActiveTab} 
+        className="w-full"
+      >
         <TabsList className="grid w-full md:w-[400px] grid-cols-2">
-          <TabsTrigger value="form">Form</TabsTrigger>
-          <TabsTrigger value="preview">Preview</TabsTrigger>
+          <TabsTrigger value="form" data-value="form">Form</TabsTrigger>
+          <TabsTrigger value="preview" data-value="preview">Preview</TabsTrigger>
         </TabsList>
         <TabsContent value="form" className="mt-4">
           <Card className="p-6">

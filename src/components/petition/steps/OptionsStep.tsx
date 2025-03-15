@@ -4,8 +4,34 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { WizardStepProps } from "../types";
 import { ArrowLeft, CheckCircle } from "lucide-react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export function OptionsStep({ petitionData, updatePetitionData, onBack }: WizardStepProps) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const navigate = useNavigate();
+
+  const handleComplete = () => {
+    setIsSubmitting(true);
+    
+    // Simulate processing
+    setTimeout(() => {
+      // Switch to preview tab
+      const previewTab = document.querySelector('[data-value="preview"]') as HTMLButtonElement;
+      if (previewTab) {
+        previewTab.click();
+      }
+      
+      toast.success("Petition completed successfully!", {
+        description: "You can now view and print your petition."
+      });
+      
+      setIsSubmitting(false);
+    }, 800);
+  };
+
   return (
     <div className="space-y-6">
       <div className="space-y-4">
@@ -48,9 +74,13 @@ export function OptionsStep({ petitionData, updatePetitionData, onBack }: Wizard
           Back
         </Button>
         
-        <Button className="bg-green-600 hover:bg-green-700">
+        <Button 
+          className="bg-green-600 hover:bg-green-700"
+          onClick={handleComplete}
+          disabled={isSubmitting}
+        >
           <CheckCircle className="h-4 w-4 mr-2" />
-          Complete
+          {isSubmitting ? "Processing..." : "Complete"}
         </Button>
       </div>
     </div>
