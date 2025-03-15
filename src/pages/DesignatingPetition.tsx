@@ -1,11 +1,13 @@
 
 import { useState } from "react";
-import { PetitionForm } from "@/components/petition/PetitionForm";
 import { PetitionPreview } from "@/components/petition/PetitionPreview";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import { PetitionData } from "@/components/petition/types";
 import { PetitionWizard } from "@/components/petition/PetitionWizard";
+import { Button } from "@/components/ui/button";
+import { FileDown, Printer } from "lucide-react";
+import { toast } from "sonner";
 
 export default function DesignatingPetition() {
   const [activeTab, setActiveTab] = useState("form");
@@ -19,6 +21,16 @@ export default function DesignatingPetition() {
     showWitness: true,
     signatureCount: 10,
   });
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const handleDownload = () => {
+    toast.info("Download functionality will be implemented soon", {
+      description: "This feature is currently in development."
+    });
+  };
 
   return (
     <div className="container mx-auto py-6 space-y-6">
@@ -34,18 +46,70 @@ export default function DesignatingPetition() {
         onValueChange={setActiveTab} 
         className="w-full"
       >
-        <TabsList className="grid w-full md:w-[400px] grid-cols-2">
-          <TabsTrigger value="form" data-value="form">Form</TabsTrigger>
-          <TabsTrigger value="preview" data-value="preview">Preview</TabsTrigger>
-        </TabsList>
+        <div className="flex justify-between items-center mb-2">
+          <TabsList className="grid w-full md:w-[400px] grid-cols-2">
+            <TabsTrigger value="form" data-value="form">Form</TabsTrigger>
+            <TabsTrigger value="preview" data-value="preview">Preview</TabsTrigger>
+          </TabsList>
+          
+          {activeTab === "preview" && (
+            <div className="space-x-2 hidden md:block">
+              <Button
+                variant="outline"
+                onClick={handlePrint}
+                className="bg-gray-50"
+              >
+                <Printer className="h-4 w-4 mr-2" />
+                Print
+              </Button>
+              
+              <Button
+                variant="outline"
+                onClick={handleDownload}
+                className="bg-gray-50"
+              >
+                <FileDown className="h-4 w-4 mr-2" />
+                Download
+              </Button>
+            </div>
+          )}
+        </div>
+        
         <TabsContent value="form" className="mt-4">
           <Card className="p-6">
-            <PetitionWizard petitionData={petitionData} setPetitionData={setPetitionData} />
+            <PetitionWizard 
+              petitionData={petitionData} 
+              setPetitionData={setPetitionData} 
+            />
           </Card>
         </TabsContent>
+        
         <TabsContent value="preview" className="mt-4">
-          <Card className="p-6">
-            <PetitionPreview petitionData={petitionData} />
+          <Card className="p-0 overflow-hidden border print:border-none print:shadow-none">
+            <div className="md:hidden flex justify-center gap-2 p-2 border-b">
+              <Button
+                variant="outline"
+                onClick={handlePrint}
+                className="bg-gray-50"
+                size="sm"
+              >
+                <Printer className="h-4 w-4 mr-2" />
+                Print
+              </Button>
+              
+              <Button
+                variant="outline"
+                onClick={handleDownload}
+                className="bg-gray-50"
+                size="sm"
+              >
+                <FileDown className="h-4 w-4 mr-2" />
+                Download
+              </Button>
+            </div>
+            <div className="p-2 md:p-4 overflow-auto print:p-0">
+              <PetitionPreview petitionData={petitionData} />
+            </div>
           </Card>
         </TabsContent>
       </Tabs>
