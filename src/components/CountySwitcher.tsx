@@ -1,3 +1,4 @@
+
 import { useNavigate } from "react-router-dom";
 import {
   Select,
@@ -17,23 +18,34 @@ const counties = [
 ];
 
 interface CountySwitcherProps {
-  currentCounty: County;
+  currentCounty?: County;
+  county?: County;
+  setCounty?: (county: County) => void;
 }
 
-export const CountySwitcher = ({ currentCounty }: CountySwitcherProps) => {
+export const CountySwitcher = ({ currentCounty, county, setCounty }: CountySwitcherProps) => {
   const navigate = useNavigate();
+  
+  const activeCounty = county || currentCounty;
 
   const handleCountyChange = (value: string) => {
-    navigate(`/search/${value}`);
+    // If used as a controlled component with setCounty prop
+    if (setCounty) {
+      setCounty(value as County);
+    } 
+    // If used for navigation
+    else {
+      navigate(`/search/${value}`);
+    }
   };
 
   const getCurrentCountyName = () => {
-    const county = counties.find(c => c.id === currentCounty);
+    const county = counties.find(c => c.id === activeCounty);
     return county ? county.name : '';
   };
 
   return (
-    <Select defaultValue={currentCounty} onValueChange={handleCountyChange}>
+    <Select defaultValue={activeCounty} onValueChange={handleCountyChange}>
       <SelectTrigger className="w-[180px]">
         <SelectValue placeholder={getCurrentCountyName()} />
       </SelectTrigger>

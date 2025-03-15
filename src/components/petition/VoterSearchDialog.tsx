@@ -91,8 +91,8 @@ export function VoterSearchDialog({ open, setOpen, onSelectVoter }: VoterSearchD
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-medium">Search Criteria</h3>
               <CountySwitcher 
-                setCounty={setCounty} 
                 county={county}
+                setCounty={setCounty}
               />
             </div>
             
