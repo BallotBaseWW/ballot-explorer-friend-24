@@ -1,3 +1,4 @@
+
 import { jsPDF } from "jspdf";
 import { Database } from "@/integrations/supabase/types";
 import { formatDate } from "@/lib/utils";
@@ -34,8 +35,12 @@ export const printVoterRecord = async (voter: VoterRecord) => {
     doc.setFont("helvetica", "bold");
     doc.text(`Voter Record: ${voter.first_name} ${voter.middle || ''} ${voter.last_name} ${voter.suffix || ''}`.trim(), 20, 60);
     
-    // Helper function to add sections
+    // Helper function to add sections with border
     const addSection = (title: string, content: { label: string; value: string | null }[], startY: number): number => {
+      // Add border around the section
+      doc.setDrawColor(0);
+      doc.setLineWidth(0.5);
+      
       doc.setFontSize(12);
       doc.setFont("helvetica", "bold");
       doc.text(title, 20, startY);
@@ -45,13 +50,19 @@ export const printVoterRecord = async (voter: VoterRecord) => {
       
       let currentY = startY + 10;
       const lineHeight = 7;
+      const sectionStartY = startY - 5;
+      let sectionHeight = 15; // Initial height for title and padding
       
       content.forEach(({ label, value }) => {
         if (value) {
           doc.text(`${label}: ${value}`, 25, currentY);
           currentY += lineHeight;
+          sectionHeight += lineHeight;
         }
       });
+      
+      // Draw border around the section (with some padding)
+      doc.rect(15, sectionStartY, 180, sectionHeight);
       
       return currentY + 5;
     };
