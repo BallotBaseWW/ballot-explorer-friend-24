@@ -21,8 +21,19 @@ import Petitions from "@/pages/Petitions";
 import PetitionDetail from "@/pages/PetitionDetail";
 import { AuthContainer } from "@/components/auth/AuthContainer";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
+import { AppSidebar } from "@/components/AppSidebar";
 
 const queryClient = new QueryClient();
+
+// Layout component to wrap authenticated routes
+const AppLayout = ({ children }: { children: React.ReactNode }) => (
+  <div className="flex min-h-screen bg-background">
+    <AppSidebar />
+    <main className="flex-1 ml-16 md:ml-64">
+      {children}
+    </main>
+  </div>
+);
 
 function App() {
   return (
@@ -44,7 +55,9 @@ function App() {
               path="/search/:county"
               element={
                 <AuthContainer>
-                  <Search />
+                  <AppLayout>
+                    <Search />
+                  </AppLayout>
                 </AuthContainer>
               }
             />
@@ -52,7 +65,9 @@ function App() {
               path="/search"
               element={
                 <AuthContainer>
-                  <Search />
+                  <AppLayout>
+                    <Search />
+                  </AppLayout>
                 </AuthContainer>
               }
             />
@@ -60,7 +75,9 @@ function App() {
               path="/voter-lists"
               element={
                 <AuthContainer>
-                  <Lists />
+                  <AppLayout>
+                    <Lists />
+                  </AppLayout>
                 </AuthContainer>
               }
             />
@@ -68,7 +85,9 @@ function App() {
               path="/lists/:id"
               element={
                 <AuthContainer>
-                  <ListDetails />
+                  <AppLayout>
+                    <ListDetails />
+                  </AppLayout>
                 </AuthContainer>
               }
             />
@@ -76,7 +95,9 @@ function App() {
               path="/matching-funds"
               element={
                 <AuthContainer>
-                  <MatchingFunds />
+                  <AppLayout>
+                    <MatchingFunds />
+                  </AppLayout>
                 </AuthContainer>
               }
             />
@@ -84,7 +105,9 @@ function App() {
               path="/districts"
               element={
                 <AuthContainer>
-                  <Districts />
+                  <AppLayout>
+                    <Districts />
+                  </AppLayout>
                 </AuthContainer>
               }
             />
@@ -92,7 +115,9 @@ function App() {
               path="/surveys"
               element={
                 <AuthContainer>
-                  <Surveys />
+                  <AppLayout>
+                    <Surveys />
+                  </AppLayout>
                 </AuthContainer>
               }
             />
@@ -100,7 +125,9 @@ function App() {
               path="/surveys/:id"
               element={
                 <AuthContainer>
-                  <SurveyDetails />
+                  <AppLayout>
+                    <SurveyDetails />
+                  </AppLayout>
                 </AuthContainer>
               }
             />
@@ -108,7 +135,9 @@ function App() {
               path="/surveys/:id/respond"
               element={
                 <AuthContainer>
-                  <SurveyResponse />
+                  <AppLayout>
+                    <SurveyResponse />
+                  </AppLayout>
                 </AuthContainer>
               }
             />
@@ -116,7 +145,9 @@ function App() {
               path="/designating-petition"
               element={
                 <AuthContainer>
-                  <DesignatingPetition />
+                  <AppLayout>
+                    <DesignatingPetition />
+                  </AppLayout>
                 </AuthContainer>
               }
             />
@@ -124,13 +155,42 @@ function App() {
               path="/admin"
               element={
                 <AuthContainer adminOnly>
-                  <Admin />
+                  <AppLayout>
+                    <Admin />
+                  </AppLayout>
                 </AuthContainer>
               }
             />
-            <Route path="/signature-validator" element={<SignatureValidator />} />
-            <Route path="/petitions" element={<Petitions />} />
-            <Route path="/petitions/:id" element={<PetitionDetail />} />
+            <Route 
+              path="/signature-validator" 
+              element={
+                <AuthContainer>
+                  <AppLayout>
+                    <SignatureValidator />
+                  </AppLayout>
+                </AuthContainer>
+              } 
+            />
+            <Route 
+              path="/petitions" 
+              element={
+                <AuthContainer>
+                  <AppLayout>
+                    <Petitions />
+                  </AppLayout>
+                </AuthContainer>
+              } 
+            />
+            <Route 
+              path="/petitions/:id" 
+              element={
+                <AuthContainer>
+                  <AppLayout>
+                    <PetitionDetail />
+                  </AppLayout>
+                </AuthContainer>
+              } 
+            />
             <Route path="*" element={<Navigate to="/login" replace />} />
           </Routes>
           <Toaster />
