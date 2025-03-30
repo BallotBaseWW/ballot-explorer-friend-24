@@ -26,10 +26,12 @@ const queryClient = new QueryClient();
 
 // Layout component to wrap authenticated routes
 const AppLayout = ({ children }: { children: React.ReactNode }) => (
-  <div className="flex min-h-screen bg-background">
+  <div className="flex h-screen w-full overflow-hidden bg-background">
     <AppSidebar />
-    <main className="flex-1 pl-[64px] md:pl-64 transition-all duration-300">
-      {children}
+    <main className="flex-1 overflow-y-auto transition-all duration-300">
+      <div className="container mx-auto px-4 py-4 md:px-6 md:py-6 lg:px-8">
+        {children}
+      </div>
     </main>
   </div>
 );
@@ -39,175 +41,177 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="light" storageKey="ballotbase-theme">
         <Router>
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/request-access" element={<RequestAccess />} />
-            <Route
-              path="/"
-              element={
-                <AuthContainer>
-                  <AppLayout>
-                    <Index />
-                  </AppLayout>
-                </AuthContainer>
-              }
-            />
-            <Route
-              path="/search/:county"
-              element={
-                <AuthContainer>
-                  <AppLayout>
-                    <Search />
-                  </AppLayout>
-                </AuthContainer>
-              }
-            />
-            <Route
-              path="/search"
-              element={
-                <AuthContainer>
-                  <AppLayout>
-                    <Search />
-                  </AppLayout>
-                </AuthContainer>
-              }
-            />
-            <Route
-              path="/voter-lists"
-              element={
-                <AuthContainer>
-                  <AppLayout>
-                    <Lists />
-                  </AppLayout>
-                </AuthContainer>
-              }
-            />
-            <Route
-              path="/lists/:id"
-              element={
-                <AuthContainer>
-                  <AppLayout>
-                    <ListDetails />
-                  </AppLayout>
-                </AuthContainer>
-              }
-            />
-            <Route
-              path="/matching-funds"
-              element={
-                <AuthContainer>
-                  <AppLayout>
-                    <MatchingFunds />
-                  </AppLayout>
-                </AuthContainer>
-              }
-            />
-            <Route
-              path="/districts"
-              element={
-                <AuthContainer>
-                  <AppLayout>
-                    <Districts />
-                  </AppLayout>
-                </AuthContainer>
-              }
-            />
-            <Route
-              path="/surveys"
-              element={
-                <AuthContainer>
-                  <AppLayout>
-                    <Surveys />
-                  </AppLayout>
-                </AuthContainer>
-              }
-            />
-            <Route
-              path="/surveys/:id"
-              element={
-                <AuthContainer>
-                  <AppLayout>
-                    <SurveyDetails />
-                  </AppLayout>
-                </AuthContainer>
-              }
-            />
-            <Route
-              path="/surveys/:id/respond"
-              element={
-                <AuthContainer>
-                  <AppLayout>
-                    <SurveyResponse />
-                  </AppLayout>
-                </AuthContainer>
-              }
-            />
-            <Route
-              path="/designating-petition"
-              element={
-                <AuthContainer>
-                  <AppLayout>
-                    <DesignatingPetition />
-                  </AppLayout>
-                </AuthContainer>
-              }
-            />
-            <Route
-              path="/admin"
-              element={
-                <AuthContainer adminOnly>
-                  <AppLayout>
-                    <Admin />
-                  </AppLayout>
-                </AuthContainer>
-              }
-            />
-            <Route 
-              path="/signature-validator" 
-              element={
-                <AuthContainer>
-                  <AppLayout>
-                    <SignatureValidator />
-                  </AppLayout>
-                </AuthContainer>
-              } 
-            />
-            <Route 
-              path="/petitions" 
-              element={
-                <AuthContainer>
-                  <AppLayout>
-                    <Petitions />
-                  </AppLayout>
-                </AuthContainer>
-              } 
-            />
-            <Route 
-              path="/petitions/:id" 
-              element={
-                <AuthContainer>
-                  <AppLayout>
-                    <PetitionDetail />
-                  </AppLayout>
-                </AuthContainer>
-              } 
-            />
-            <Route
-              path="/resources"
-              element={
-                <AuthContainer>
-                  <AppLayout>
-                    <div className="container py-8">
-                      <h1 className="text-3xl font-bold mb-6">Resources</h1>
-                      <p className="text-muted-foreground">Resources will be available here.</p>
-                    </div>
-                  </AppLayout>
-                </AuthContainer>
-              }
-            />
-            <Route path="*" element={<Navigate to="/login" replace />} />
-          </Routes>
-          <Toaster />
+          <div className="min-h-screen bg-background">
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/request-access" element={<RequestAccess />} />
+              <Route
+                path="/"
+                element={
+                  <AuthContainer>
+                    <AppLayout>
+                      <Index />
+                    </AppLayout>
+                  </AuthContainer>
+                }
+              />
+              <Route
+                path="/search/:county"
+                element={
+                  <AuthContainer>
+                    <AppLayout>
+                      <Search />
+                    </AppLayout>
+                  </AuthContainer>
+                }
+              />
+              <Route
+                path="/search"
+                element={
+                  <AuthContainer>
+                    <AppLayout>
+                      <Search />
+                    </AppLayout>
+                  </AuthContainer>
+                }
+              />
+              <Route
+                path="/voter-lists"
+                element={
+                  <AuthContainer>
+                    <AppLayout>
+                      <Lists />
+                    </AppLayout>
+                  </AuthContainer>
+                }
+              />
+              <Route
+                path="/lists/:id"
+                element={
+                  <AuthContainer>
+                    <AppLayout>
+                      <ListDetails />
+                    </AppLayout>
+                  </AuthContainer>
+                }
+              />
+              <Route
+                path="/matching-funds"
+                element={
+                  <AuthContainer>
+                    <AppLayout>
+                      <MatchingFunds />
+                    </AppLayout>
+                  </AuthContainer>
+                }
+              />
+              <Route
+                path="/districts"
+                element={
+                  <AuthContainer>
+                    <AppLayout>
+                      <Districts />
+                    </AppLayout>
+                  </AuthContainer>
+                }
+              />
+              <Route
+                path="/surveys"
+                element={
+                  <AuthContainer>
+                    <AppLayout>
+                      <Surveys />
+                    </AppLayout>
+                  </AuthContainer>
+                }
+              />
+              <Route
+                path="/surveys/:id"
+                element={
+                  <AuthContainer>
+                    <AppLayout>
+                      <SurveyDetails />
+                    </AppLayout>
+                  </AuthContainer>
+                }
+              />
+              <Route
+                path="/surveys/:id/respond"
+                element={
+                  <AuthContainer>
+                    <AppLayout>
+                      <SurveyResponse />
+                    </AppLayout>
+                  </AuthContainer>
+                }
+              />
+              <Route
+                path="/designating-petition"
+                element={
+                  <AuthContainer>
+                    <AppLayout>
+                      <DesignatingPetition />
+                    </AppLayout>
+                  </AuthContainer>
+                }
+              />
+              <Route
+                path="/admin"
+                element={
+                  <AuthContainer adminOnly>
+                    <AppLayout>
+                      <Admin />
+                    </AppLayout>
+                  </AuthContainer>
+                }
+              />
+              <Route 
+                path="/signature-validator" 
+                element={
+                  <AuthContainer>
+                    <AppLayout>
+                      <SignatureValidator />
+                    </AppLayout>
+                  </AuthContainer>
+                } 
+              />
+              <Route 
+                path="/petitions" 
+                element={
+                  <AuthContainer>
+                    <AppLayout>
+                      <Petitions />
+                    </AppLayout>
+                  </AuthContainer>
+                } 
+              />
+              <Route 
+                path="/petitions/:id" 
+                element={
+                  <AuthContainer>
+                    <AppLayout>
+                      <PetitionDetail />
+                    </AppLayout>
+                  </AuthContainer>
+                } 
+              />
+              <Route
+                path="/resources"
+                element={
+                  <AuthContainer>
+                    <AppLayout>
+                      <div>
+                        <h1 className="text-3xl font-bold mb-6">Resources</h1>
+                        <p className="text-muted-foreground">Resources will be available here.</p>
+                      </div>
+                    </AppLayout>
+                  </AuthContainer>
+                }
+              />
+              <Route path="*" element={<Navigate to="/login" replace />} />
+            </Routes>
+            <Toaster />
+          </div>
         </Router>
       </ThemeProvider>
     </QueryClientProvider>
