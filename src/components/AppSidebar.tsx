@@ -34,7 +34,6 @@ export function AppSidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const { user, isLoading } = useUser();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const isMobile = useIsMobile();
   const navigate = useNavigate();
 
   const { data: isAdmin } = useQuery({
@@ -187,7 +186,7 @@ export function AppSidebar() {
           </nav>
         </div>
 
-        <div className="p-3 border-t mt-auto">
+        <div className="p-3 border-t">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
@@ -199,12 +198,12 @@ export function AppSidebar() {
               >
                 <div className={cn("flex items-center", collapsed ? "gap-0" : "gap-2")}>
                   <Avatar className="h-6 w-6">
-                    <AvatarImage src={user?.user_metadata?.avatar_url} />
+                    <AvatarImage src={user?.user_metadata?.avatar_url} alt="User avatar" />
                     <AvatarFallback>
-                      {user?.user_metadata?.name?.slice(0, 1)}
+                      {user?.user_metadata?.name?.slice(0, 1) || "U"}
                     </AvatarFallback>
                   </Avatar>
-                  {!collapsed && <span className="text-sm">{user?.user_metadata?.name}</span>}
+                  {!collapsed && <span className="text-sm">{user?.user_metadata?.name || "User"}</span>}
                 </div>
               </Button>
             </DropdownMenuTrigger>

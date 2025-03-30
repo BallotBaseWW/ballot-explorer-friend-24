@@ -28,7 +28,7 @@ const queryClient = new QueryClient();
 const AppLayout = ({ children }: { children: React.ReactNode }) => (
   <div className="flex min-h-screen bg-background">
     <AppSidebar />
-    <main className="flex-1">
+    <main className="flex-1 pl-[64px] md:pl-64 transition-all duration-300">
       {children}
     </main>
   </div>
@@ -191,6 +191,19 @@ function App() {
                   </AppLayout>
                 </AuthContainer>
               } 
+            />
+            <Route
+              path="/resources"
+              element={
+                <AuthContainer>
+                  <AppLayout>
+                    <div className="container py-8">
+                      <h1 className="text-3xl font-bold mb-6">Resources</h1>
+                      <p className="text-muted-foreground">Resources will be available here.</p>
+                    </div>
+                  </AppLayout>
+                </AuthContainer>
+              }
             />
             <Route path="*" element={<Navigate to="/login" replace />} />
           </Routes>
