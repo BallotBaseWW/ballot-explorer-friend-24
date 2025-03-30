@@ -1,5 +1,6 @@
 
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   FileSignature,
   LayoutDashboard,
@@ -11,6 +12,7 @@ import {
   ChevronRight,
   FileText,
   Shield,
+  Settings,
 } from "lucide-react";
 import { NavItem } from "@/components/ui/nav-item";
 import { Button } from "@/components/ui/button";
@@ -22,19 +24,19 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useUser } from "@/hooks/use-user";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
-import { useQuery } from "@tanstack/react-query";
 
 export function AppSidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const { user, isLoading } = useUser();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
 
   const { data: isAdmin } = useQuery({
     queryKey: ["isAdmin"],
@@ -61,6 +63,7 @@ export function AppSidebar() {
     setIsLoggingOut(true);
     try {
       await supabase.auth.signOut();
+      navigate("/login");
     } finally {
       setIsLoggingOut(false);
     }
@@ -71,7 +74,7 @@ export function AppSidebar() {
       open={!collapsed} 
       onOpenChange={(open) => setCollapsed(!open)}
       className={cn(
-        "h-screen fixed left-0 top-0 z-20 bg-gray-50 border-r shadow-sm transition-all duration-300",
+        "h-screen fixed left-0 top-0 z-20 bg-gray-50 border-r shadow-sm transition-all duration-300 flex flex-col",
         collapsed ? "w-16" : "w-64"
       )}
     >
@@ -103,90 +106,102 @@ export function AppSidebar() {
           </Button>
         )}
 
-        <CollapsibleContent 
-          forceMount 
-          className={cn("flex-1 flex flex-col overflow-y-auto", 
-            collapsed ? "hidden" : "block"
-          )}
-        >
+        <div className="flex-1 flex flex-col overflow-y-auto">
           <nav className="flex-1 flex flex-col space-y-1 p-2">
-            <NavItem icon={<LayoutDashboard />} to="/">
-              Dashboard
-            </NavItem>
-            <NavItem icon={<Search />} to="/search">
-              Voter Search
-            </NavItem>
-            <NavItem icon={<ListPlus />} to="/voter-lists">
-              Voter Lists
-            </NavItem>
-            <NavItem icon={<FileSignature />} to="/signature-validator">
-              Signature Validator
-            </NavItem>
-            <NavItem icon={<ClipboardList />} to="/petitions">
-              My Petitions
-            </NavItem>
-            <NavItem icon={<ListChecks />} to="/surveys">
-              Surveys
-            </NavItem>
-            <NavItem icon={<FileText />} to="/resources">
-              Resources
-            </NavItem>
-            {isAdmin && (
-              <NavItem icon={<Shield />} to="/admin">
-                Admin
-              </NavItem>
+            {!collapsed && (
+              <>
+                <NavItem icon={<LayoutDashboard />} to="/">
+                  Dashboard
+                </NavItem>
+                <NavItem icon={<Search />} to="/search">
+                  Voter Search
+                </NavItem>
+                <NavItem icon={<ListPlus />} to="/voter-lists">
+                  Voter Lists
+                </NavItem>
+                <NavItem icon={<FileSignature />} to="/signature-validator">
+                  Signature Validator
+                </NavItem>
+                <NavItem icon={<ClipboardList />} to="/petitions">
+                  My Petitions
+                </NavItem>
+                <NavItem icon={<ListChecks />} to="/surveys">
+                  Surveys
+                </NavItem>
+                <NavItem icon={<FileText />} to="/resources">
+                  Resources
+                </NavItem>
+                {isAdmin && (
+                  <NavItem icon={<Shield />} to="/admin">
+                    Admin
+                  </NavItem>
+                )}
+              </>
+            )}
+
+            {collapsed && (
+              <>
+                <NavItem
+                  to="/"
+                  className="justify-center"
+                  icon={<LayoutDashboard />}
+                />
+                <NavItem
+                  to="/search"
+                  className="justify-center"
+                  icon={<Search />}
+                />
+                <NavItem
+                  to="/voter-lists"
+                  className="justify-center"
+                  icon={<ListPlus />}
+                />
+                <NavItem
+                  to="/signature-validator"
+                  className="justify-center"
+                  icon={<FileSignature />}
+                />
+                <NavItem
+                  to="/petitions"
+                  className="justify-center"
+                  icon={<ClipboardList />}
+                />
+                <NavItem
+                  to="/surveys"
+                  className="justify-center"
+                  icon={<ListChecks />}
+                />
+                <NavItem
+                  to="/resources"
+                  className="justify-center"
+                  icon={<FileText />}
+                />
+                {isAdmin && (
+                  <NavItem
+                    to="/admin"
+                    className="justify-center"
+                    icon={<Shield />}
+                  />
+                )}
+              </>
             )}
           </nav>
-        </CollapsibleContent>
+        </div>
 
-        {collapsed && (
-          <div className="flex-1 flex flex-col space-y-1 p-2">
-            <NavItem
-              to="/"
-              className="justify-center"
-              icon={<LayoutDashboard />}
-            />
-            <NavItem
-              to="/search"
-              className="justify-center"
-              icon={<Search />}
-            />
-            <NavItem
-              to="/voter-lists"
-              className="justify-center"
-              icon={<ListPlus />}
-            />
-            <NavItem
-              to="/signature-validator"
-              className="justify-center"
-              icon={<FileSignature />}
-            />
-            <NavItem
-              to="/petitions"
-              className="justify-center"
-              icon={<ClipboardList />}
-            />
-            <NavItem
-              to="/surveys"
-              className="justify-center"
-              icon={<ListChecks />}
-            />
-            <NavItem
-              to="/resources"
-              className="justify-center"
-              icon={<FileText />}
-            />
-            {isAdmin && (
+        <div className="p-3 border-t mt-auto">
+          <div className="mb-2">
+            {!collapsed ? (
+              <NavItem icon={<Settings />} to="/settings">
+                Settings
+              </NavItem>
+            ) : (
               <NavItem
-                to="/admin"
+                to="/settings"
                 className="justify-center"
-                icon={<Shield />}
+                icon={<Settings />}
               />
             )}
           </div>
-        )}
-
-        <div className="p-3 border-t">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button

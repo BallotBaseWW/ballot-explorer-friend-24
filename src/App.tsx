@@ -22,8 +22,6 @@ import PetitionDetail from "@/pages/PetitionDetail";
 import { AuthContainer } from "@/components/auth/AuthContainer";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { AppSidebar } from "@/components/AppSidebar";
-import { CountySelector } from "@/components/CountySelector";
-import { SiteUpdates } from "@/components/SiteUpdates";
 
 const queryClient = new QueryClient();
 
@@ -31,7 +29,7 @@ const queryClient = new QueryClient();
 const AppLayout = ({ children }: { children: React.ReactNode }) => (
   <div className="flex min-h-screen bg-background">
     <AppSidebar />
-    <main className="flex-1 ml-16">
+    <main className="flex-1">
       {children}
     </main>
   </div>
