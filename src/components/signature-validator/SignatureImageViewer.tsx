@@ -44,7 +44,7 @@ export function SignatureImageViewer({
     switch (status) {
       case "valid": return "green";
       case "invalid": return "red";
-      case "uncertain": return "orange";
+      case "uncertain": return "yellow";
       default: return "gray";
     }
   };

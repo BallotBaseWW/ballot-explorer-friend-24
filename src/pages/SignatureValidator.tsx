@@ -74,7 +74,7 @@ export default function SignatureValidator() {
           <AppSidebar />
           <div className="flex-1 overflow-hidden">
             <Header />
-            <main className="p-4 overflow-auto" style={{ height: 'calc(100vh - 64px)' }}>
+            <main className="p-4 md:p-6 overflow-auto" style={{ height: 'calc(100vh - 64px)' }}>
               <div className="max-w-7xl mx-auto">
                 <div className="mb-6">
                   <h1 className="text-3xl font-bold">Signature Validator</h1>
@@ -85,10 +85,10 @@ export default function SignatureValidator() {
 
                 <Alert variant="default" className="mb-6 bg-blue-50 border-blue-200">
                   <InfoIcon className="h-4 w-4" />
-                  <AlertTitle>This tool is in beta</AlertTitle>
+                  <AlertTitle>AI-Powered Signature Detection</AlertTitle>
                   <AlertDescription>
-                    The signature validator uses AI to extract and validate petition signatures.
-                    Results should be manually verified for official purposes.
+                    This tool uses AI to extract signatures from petition pages, then matches them against voter records.
+                    The AI analyzes each page to find signatures, extracts names and addresses, and validates them against your voter database.
                   </AlertDescription>
                 </Alert>
 
@@ -151,8 +151,8 @@ export default function SignatureValidator() {
                             <h3 className="text-lg font-medium mb-4">How It Works</h3>
                             <ol className="list-decimal list-inside space-y-2 text-sm">
                               <li>Upload petition pages (PDF or images)</li>
-                              <li>AI extracts signatures from the documents</li>
-                              <li>Signatures are matched against voter database</li>
+                              <li>AI extracts signatures, names, and addresses</li>
+                              <li>Extracted data is matched against voter database</li>
                               <li>Results show valid, invalid, and uncertain signatures</li>
                             </ol>
                           </div>
