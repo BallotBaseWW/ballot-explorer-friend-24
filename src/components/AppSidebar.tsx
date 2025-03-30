@@ -12,7 +12,6 @@ import {
   ChevronRight,
   FileText,
   Shield,
-  Settings,
 } from "lucide-react";
 import { NavItem } from "@/components/ui/nav-item";
 import { Button } from "@/components/ui/button";
@@ -189,19 +188,6 @@ export function AppSidebar() {
         </div>
 
         <div className="p-3 border-t mt-auto">
-          <div className="mb-2">
-            {!collapsed ? (
-              <NavItem icon={<Settings />} to="/settings">
-                Settings
-              </NavItem>
-            ) : (
-              <NavItem
-                to="/settings"
-                className="justify-center"
-                icon={<Settings />}
-              />
-            )}
-          </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button

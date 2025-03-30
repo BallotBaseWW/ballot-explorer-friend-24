@@ -1,7 +1,6 @@
 
 import { CountySelector } from "@/components/CountySelector";
 import { SiteUpdates } from "@/components/SiteUpdates";
-import { AuthContainer } from "@/components/auth/AuthContainer";
 
 const Index = () => {
   return (
