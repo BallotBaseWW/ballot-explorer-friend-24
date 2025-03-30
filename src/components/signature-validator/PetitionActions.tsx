@@ -106,40 +106,40 @@ export function PetitionActions({ validationResults, district, currentPage, onSa
   return (
     <div className="space-y-4">
       <Card className="p-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
           <Button 
             variant="outline" 
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 h-auto py-2"
             onClick={() => setIsSaveDialogOpen(true)}
           >
             <Save className="h-4 w-4" />
-            Save Petition Page
+            <span className="text-sm">Save Petition Page</span>
           </Button>
           
           <Button
             variant="outline"
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 h-auto py-2"
             onClick={() => setShowAddVoterDialog(true)}
             disabled={validSignaturesWithVoters.length === 0}
           >
             <ListPlus className="h-4 w-4" />
-            Add Valid Signatures to List ({validSignaturesWithVoters.length})
+            <span className="text-sm">Add Valid Signatures ({validSignaturesWithVoters.length})</span>
           </Button>
           
           <Button 
             variant="outline" 
-            className="flex items-center gap-2" 
+            className="flex items-center gap-2 h-auto py-2" 
             onClick={() => window.location.href = '/petitions'}
           >
             <BookmarkIcon className="h-4 w-4" />
-            My Petitions
+            <span className="text-sm">My Petitions</span>
           </Button>
         </div>
       </Card>
       
       {/* Save Petition Dialog */}
       <Dialog open={isSaveDialogOpen} onOpenChange={setIsSaveDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Save Petition Page</DialogTitle>
           </DialogHeader>

@@ -88,12 +88,14 @@ export function VoterSearchDialog({ open, setOpen, onSelectVoter }: VoterSearchD
         
         <div className="space-y-6">
           <div className="space-y-4">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
               <h3 className="text-lg font-medium">Search Criteria</h3>
-              <CountySwitcher 
-                county={county}
-                setCounty={setCounty}
-              />
+              <div className="w-full sm:w-auto">
+                <CountySwitcher 
+                  county={county}
+                  setCounty={setCounty}
+                />
+              </div>
             </div>
             
             <div className="grid gap-4 md:grid-cols-2">

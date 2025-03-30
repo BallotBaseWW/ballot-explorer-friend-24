@@ -16,11 +16,11 @@ const Search = () => {
   const isMobile = useIsMobile();
 
   return (
-    <div className="w-full p-4">
+    <div className="w-full py-6 px-4 md:px-6 pb-16 mb-8">
       <div className={`flex ${isMobile ? 'flex-col' : 'flex-row'} justify-between items-start gap-4 mb-6`}>
-        <div>
+        <div className="mt-2">
           <h1 className="text-2xl md:text-3xl font-bold">Voter Search</h1>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground mt-1">
             Searching in {formatCountyName(county || 'bronx')}
           </p>
         </div>

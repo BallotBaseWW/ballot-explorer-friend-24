@@ -22,7 +22,7 @@ export const BasicSearch = ({ form }: BasicSearchProps) => {
             <Input
               placeholder={isMobile ? "Enter name to search" : "Search by last name or full name (e.g. 'Smith' or 'John Smith')"}
               {...field}
-              className={isMobile ? "h-10 text-base" : "h-12"}
+              className="h-10 md:h-12 text-base"
             />
           </FormControl>
         </FormItem>

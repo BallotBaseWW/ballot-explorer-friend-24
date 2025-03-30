@@ -73,10 +73,10 @@ export default function SignatureValidator() {
   };
 
   return (
-    <div>
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold">Signature Validator</h1>
-        <p className="text-muted-foreground">
+    <div className="w-full py-6 px-4 md:px-6 pb-16 mb-16">
+      <div className="mb-6 mt-2">
+        <h1 className="text-2xl md:text-3xl font-bold">Signature Validator</h1>
+        <p className="text-muted-foreground mt-1">
           Upload petition pages to validate signatures using AI
         </p>
       </div>
@@ -105,7 +105,7 @@ export default function SignatureValidator() {
         </TabsList>
         
         <TabsContent value="upload" className="mt-4">
-          <Card className="p-6">
+          <Card className="p-4 md:p-6">
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -156,7 +156,7 @@ export default function SignatureValidator() {
                 </div>
               </div>
               
-              <div className="pt-6">
+              <div className="pt-4">
                 <FileUploader onFilesSelected={handleFileSelection} />
               </div>
 
@@ -186,7 +186,7 @@ export default function SignatureValidator() {
         </TabsContent>
         
         <TabsContent value="results" className="mt-4">
-          <Card className="p-6">
+          <Card className="p-4 md:p-6">
             {validationResults && (
               <div className="space-y-8">
                 <PetitionActions 

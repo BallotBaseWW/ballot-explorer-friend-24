@@ -40,9 +40,9 @@ export function FileUploader({ onFilesSelected }: FileUploaderProps) {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-        <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+    <div className="space-y-4">
+      <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 md:p-6 text-center">
+        <Upload className="h-10 w-10 text-gray-400 mx-auto mb-3" />
         <h3 className="text-lg font-medium">Upload Petition Pages</h3>
         <p className="text-sm text-muted-foreground mb-4">
           Drag and drop PDF, JPG, or PNG files, or click to browse
@@ -55,7 +55,7 @@ export function FileUploader({ onFilesSelected }: FileUploaderProps) {
           onChange={handleFileChange}
           className="hidden"
         />
-        <Button asChild>
+        <Button asChild className="mt-2">
           <label htmlFor="file-upload" className="cursor-pointer">
             Select Files
           </label>
@@ -63,19 +63,20 @@ export function FileUploader({ onFilesSelected }: FileUploaderProps) {
       </div>
 
       {selectedFiles.length > 0 && (
-        <div className="mt-6">
+        <div>
           <h4 className="text-md font-medium mb-2">Uploaded Files</h4>
           <div className="space-y-2">
             {selectedFiles.map((file, index) => (
               <div key={index} className="flex items-center justify-between bg-gray-50 p-3 rounded-md">
-                <div className="flex items-center">
-                  <FileCheck className="h-5 w-5 text-green-500 mr-2" />
-                  <span className="text-sm">{file.name}</span>
+                <div className="flex items-center truncate mr-2">
+                  <FileCheck className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
+                  <span className="text-sm truncate">{file.name}</span>
                 </div>
                 <Button 
                   variant="ghost" 
                   size="sm" 
                   onClick={() => removeFile(index)}
+                  className="flex-shrink-0"
                 >
                   Remove
                 </Button>
