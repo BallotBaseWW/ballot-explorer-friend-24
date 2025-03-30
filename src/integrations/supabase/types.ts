@@ -608,6 +608,110 @@ export type Database = {
         }
         Relationships: []
       }
+      petition_signatures: {
+        Row: {
+          address: string
+          confidence: number | null
+          county: string | null
+          created_at: string | null
+          id: string
+          image_region: Json | null
+          name: string
+          page_number: number
+          petition_id: string | null
+          reason: string | null
+          state_voter_id: string | null
+          status: string
+        }
+        Insert: {
+          address: string
+          confidence?: number | null
+          county?: string | null
+          created_at?: string | null
+          id?: string
+          image_region?: Json | null
+          name: string
+          page_number: number
+          petition_id?: string | null
+          reason?: string | null
+          state_voter_id?: string | null
+          status: string
+        }
+        Update: {
+          address?: string
+          confidence?: number | null
+          county?: string | null
+          created_at?: string | null
+          id?: string
+          image_region?: Json | null
+          name?: string
+          page_number?: number
+          petition_id?: string | null
+          reason?: string | null
+          state_voter_id?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "petition_signatures_petition_id_fkey"
+            columns: ["petition_id"]
+            isOneToOne: false
+            referencedRelation: "petitions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      petitions: {
+        Row: {
+          completed_pages: number | null
+          created_at: string | null
+          district: string
+          id: string
+          invalid_signatures: number | null
+          name: string
+          party: string | null
+          required_signatures: number | null
+          total_pages: number | null
+          total_signatures: number | null
+          uncertain_signatures: number | null
+          updated_at: string | null
+          user_id: string | null
+          valid_signatures: number | null
+        }
+        Insert: {
+          completed_pages?: number | null
+          created_at?: string | null
+          district: string
+          id?: string
+          invalid_signatures?: number | null
+          name: string
+          party?: string | null
+          required_signatures?: number | null
+          total_pages?: number | null
+          total_signatures?: number | null
+          uncertain_signatures?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+          valid_signatures?: number | null
+        }
+        Update: {
+          completed_pages?: number | null
+          created_at?: string | null
+          district?: string
+          id?: string
+          invalid_signatures?: number | null
+          name?: string
+          party?: string | null
+          required_signatures?: number | null
+          total_pages?: number | null
+          total_signatures?: number | null
+          uncertain_signatures?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+          valid_signatures?: number | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           approved: boolean | null

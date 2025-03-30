@@ -1,3 +1,4 @@
+
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { Suspense } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -48,7 +49,15 @@ function App() {
               }
             />
             <Route
-              path="/lists"
+              path="/search"
+              element={
+                <AuthContainer>
+                  <Search />
+                </AuthContainer>
+              }
+            />
+            <Route
+              path="/voter-lists"
               element={
                 <AuthContainer>
                   <Lists />

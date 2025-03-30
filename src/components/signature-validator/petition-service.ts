@@ -15,9 +15,9 @@ export async function savePetitionPage(request: SavePetitionRequest): Promise<st
       .from('petitions')
       .select('id, total_pages, valid_signatures, invalid_signatures, uncertain_signatures, total_signatures')
       .eq('name', petitionName)
-      .single();
+      .maybeSingle();
     
-    if (findError && findError.code !== 'PGRST116') {
+    if (findError) {
       console.error('Error checking existing petition:', findError);
       toast.error("Error saving petition", {
         description: "Could not check if petition already exists"
@@ -202,7 +202,7 @@ export async function getPetitions(): Promise<PetitionProgress[]> {
       throw error;
     }
     
-    return data || [];
+    return data as PetitionProgress[];
   } catch (error) {
     console.error("Error in getPetitions:", error);
     return [];
@@ -222,7 +222,7 @@ export async function getPetitionById(id: string): Promise<PetitionProgress | nu
       return null;
     }
     
-    return data || null;
+    return data as PetitionProgress;
   } catch (error) {
     console.error("Error in getPetitionById:", error);
     return null;
@@ -255,7 +255,7 @@ export async function getPetitionSignatures(petitionId: string, page?: number): 
       id: record.id,
       name: record.name,
       address: record.address,
-      status: record.status,
+      status: record.status as "valid" | "invalid" | "uncertain",
       reason: record.reason || undefined,
       confidence: record.confidence || undefined,
       matched_voter: record.state_voter_id ? {
