@@ -28,7 +28,7 @@ const queryClient = new QueryClient();
 const AppLayout = ({ children }: { children: React.ReactNode }) => (
   <div className="flex h-screen w-full overflow-hidden bg-background">
     <AppSidebar />
-    <main className="flex-1 overflow-y-auto transition-all duration-300">
+    <main className="flex-1 overflow-y-auto">
       <div className="container mx-auto px-4 py-4 md:px-6 md:py-6 lg:px-8">
         {children}
       </div>

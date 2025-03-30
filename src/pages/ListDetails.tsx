@@ -1,7 +1,7 @@
+
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Header } from "@/components/Header";
 import { VoterCard } from "@/components/search/voter-card/VoterCard";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
@@ -55,42 +55,39 @@ const ListDetails = () => {
   });
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <main className="max-w-7xl mx-auto p-4">
-        <div className="mb-6">
-          <Link to="/lists">
-            <Button 
-              variant="outline" 
-              className="mb-4 dark:border-white/20 dark:hover:bg-white/10 dark:text-white"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Lists
-            </Button>
-          </Link>
-          <h2 className="text-2xl font-semibold text-foreground">{listDetails?.name}</h2>
-          {listDetails?.description && (
-            <p className="text-muted-foreground mt-2">{listDetails.description}</p>
-          )}
-        </div>
+    <div>
+      <div className="mb-6">
+        <Link to="/voter-lists">
+          <Button 
+            variant="outline" 
+            className="mb-4 dark:border-white/20 dark:hover:bg-white/10 dark:text-white"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Lists
+          </Button>
+        </Link>
+        <h2 className="text-2xl font-semibold text-foreground">{listDetails?.name}</h2>
+        {listDetails?.description && (
+          <p className="text-muted-foreground mt-2">{listDetails.description}</p>
+        )}
+      </div>
 
-        <div className="space-y-4">
-          {voterItems?.map((voter: VoterRecord & { county: County }) => (
-            <VoterCard
-              key={voter.state_voter_id}
-              voter={voter}
-              county={voter.county}
-              onPrint={() => {}}
-            />
-          ))}
+      <div className="space-y-4">
+        {voterItems?.map((voter: VoterRecord & { county: County }) => (
+          <VoterCard
+            key={voter.state_voter_id}
+            voter={voter}
+            county={voter.county}
+            onPrint={() => {}}
+          />
+        ))}
 
-          {!voterItems?.length && (
-            <div className="text-center py-8 text-muted-foreground">
-              No voters in this list yet.
-            </div>
-          )}
-        </div>
-      </main>
+        {!voterItems?.length && (
+          <div className="text-center py-8 text-muted-foreground">
+            No voters in this list yet.
+          </div>
+        )}
+      </div>
     </div>
   );
 };

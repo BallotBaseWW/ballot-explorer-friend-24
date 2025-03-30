@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import LoginHeader from "@/components/auth/LoginHeader";
-import { Header } from "@/components/Header";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -80,11 +80,15 @@ const Login = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <Header />
+      <div className="absolute top-4 right-4">
+        <ThemeToggle />
+      </div>
+      
       <LoginHeader 
         heading="Welcome Back"
         text="Enter your email to sign in to your account"
       />
+      
       <main className="flex-1 flex items-start justify-center px-4">
         <div className="w-full max-w-md">
           <div className="bg-card rounded-lg shadow-md p-8">

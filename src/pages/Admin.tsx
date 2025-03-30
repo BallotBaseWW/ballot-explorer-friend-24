@@ -1,4 +1,4 @@
-import { Header } from "@/components/Header";
+
 import { UsersTable } from "@/components/admin/UsersTable";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,8 +9,6 @@ import { Profile } from "@/types/profile";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "lucide-react";
 import { format } from "date-fns";
-import { AppSidebar } from "@/components/AppSidebar";
-import { SidebarProvider } from "@/components/ui/sidebar";
 import {
   Dialog,
   DialogContent,
@@ -134,64 +132,56 @@ const Admin = () => {
 
   if (isCheckingAdmin) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="flex items-center justify-center h-full">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-foreground"></div>
       </div>
     );
   }
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen bg-background flex w-full">
-        <AppSidebar />
-        <div className="flex-1">
-          <Header />
-          <main className="max-w-7xl mx-auto px-4 py-8">
-            <div className="mb-8">
-              <div className="flex justify-between items-center">
-                <div>
-                  <h1 className="text-3xl font-bold text-foreground">Admin Panel</h1>
-                  <p className="text-muted-foreground">Manage users and their permissions</p>
-                </div>
-                <Dialog open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
-                  <DialogTrigger asChild>
-                    <Button>
-                      <Calendar className="h-4 w-4 mr-2" />
-                      Update Data Currency
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Set Data Currency Date</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      <CalendarComponent
-                        mode="single"
-                        selected={selectedDate}
-                        onSelect={setSelectedDate}
-                      />
-                      <Button onClick={handleUpdateDataCurrency}>
-                        Update
-                      </Button>
-                    </div>
-                  </DialogContent>
-                </Dialog>
+    <div>
+      <div className="mb-8">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Admin Panel</h1>
+            <p className="text-muted-foreground">Manage users and their permissions</p>
+          </div>
+          <Dialog open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Calendar className="h-4 w-4 mr-2" />
+                Update Data Currency
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Set Data Currency Date</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <CalendarComponent
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={setSelectedDate}
+                />
+                <Button onClick={handleUpdateDataCurrency}>
+                  Update
+                </Button>
               </div>
-              {dataCurrency && (
-                <p className="text-sm text-muted-foreground mt-2">
-                  Data current as of: {format(new Date(dataCurrency.as_of_date), "PPP")}
-                </p>
-              )}
-            </div>
-            <UsersTable 
-              users={users} 
-              isLoading={isLoadingUsers}
-              refetch={refetch}
-            />
-          </main>
+            </DialogContent>
+          </Dialog>
         </div>
+        {dataCurrency && (
+          <p className="text-sm text-muted-foreground mt-2">
+            Data current as of: {format(new Date(dataCurrency.as_of_date), "PPP")}
+          </p>
+        )}
       </div>
-    </SidebarProvider>
+      <UsersTable 
+        users={users} 
+        isLoading={isLoadingUsers}
+        refetch={refetch}
+      />
+    </div>
   );
 };
 

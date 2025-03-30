@@ -13,7 +13,9 @@ import {
   FileText,
   Shield,
   Menu,
-  X
+  X,
+  LogOut,
+  User
 } from "lucide-react";
 import { NavItem } from "@/components/ui/nav-item";
 import { Button } from "@/components/ui/button";
@@ -30,6 +32,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useUser } from "@/hooks/use-user";
 import { cn } from "@/lib/utils";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 export function AppSidebar() {
   const [collapsed, setCollapsed] = useState(false);
@@ -163,39 +166,38 @@ export function AppSidebar() {
         </nav>
       </div>
 
-      <div className="p-3 border-t">
+      <div className="flex items-center justify-between p-3 border-t">
+        <ThemeToggle />
+        
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
-              className={cn(
-                "h-10 w-full rounded-md flex items-center",
-                collapsed ? "justify-center" : "justify-between"
-              )}
+              className="h-8 w-8 rounded-full"
             >
-              <div className={cn("flex items-center", collapsed ? "gap-0" : "gap-2")}>
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={user?.user_metadata?.avatar_url} alt="User avatar" />
-                  <AvatarFallback>
-                    {(user?.user_metadata?.name?.slice(0, 1) || "U").toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                {!collapsed && (
-                  <span className="ml-2 text-sm font-medium truncate">
-                    {user?.user_metadata?.name || "User"}
-                  </span>
-                )}
-              </div>
+              <Avatar className="h-8 w-8">
+                <AvatarImage src={user?.user_metadata?.avatar_url} alt="User avatar" />
+                <AvatarFallback>
+                  {(user?.user_metadata?.name?.slice(0, 1) || "U").toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
+            {!collapsed && (
+              <div className="px-2 py-1.5 text-sm font-medium text-muted-foreground">
+                {user?.user_metadata?.name || "User"}
+              </div>
+            )}
             <DropdownMenuItem>
-              <Link to="/account" className="w-full">
+              <Link to="/account" className="w-full flex items-center">
+                <User className="h-4 w-4 mr-2" />
                 My Account
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout} disabled={isLoggingOut}>
+            <DropdownMenuItem onClick={handleLogout} disabled={isLoggingOut} className="text-destructive focus:text-destructive">
+              <LogOut className="h-4 w-4 mr-2" />
               {isLoggingOut ? "Logging Out..." : "Log Out"}
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -216,68 +218,76 @@ export function AppSidebar() {
           </h1>
         </Link>
         
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button variant="ghost" size="icon">
-              <Menu className="h-5 w-5" />
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="p-0 max-w-[250px]">
-            <div className="flex flex-col h-full">
-              <div className="flex items-center justify-between p-4 border-b">
-                <Link to="/" className="flex items-center">
-                  <h1 className="font-bold text-xl">
-                    <span className="bg-gradient-to-r from-[#33C3F0] via-[#8E77B5] to-[#ea384c] bg-clip-text text-transparent">
-                      BallotBase
-                    </span>
-                  </h1>
-                </Link>
-              </div>
-              
-              <div className="flex-1 overflow-y-auto py-4 px-2">
-                <nav className="space-y-1">
-                  {navigationItems.map((item) => (
-                    <NavItem
-                      key={item.to}
-                      to={item.to}
-                      active={isActive(item.to)}
-                      icon={item.icon}
-                    >
-                      {item.label}
-                    </NavItem>
-                  ))}
-                </nav>
-              </div>
-              
-              <div className="p-3 border-t">
-                <div className="flex items-center gap-2 mb-3">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={user?.user_metadata?.avatar_url} alt="User avatar" />
-                    <AvatarFallback>
-                      {(user?.user_metadata?.name?.slice(0, 1) || "U").toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span className="text-sm font-medium">
-                    {user?.user_metadata?.name || "User"}
-                  </span>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <Menu className="h-5 w-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="p-0 max-w-[250px]">
+              <div className="flex flex-col h-full">
+                <div className="flex items-center justify-between p-4 border-b">
+                  <Link to="/" className="flex items-center">
+                    <h1 className="font-bold text-xl">
+                      <span className="bg-gradient-to-r from-[#33C3F0] via-[#8E77B5] to-[#ea384c] bg-clip-text text-transparent">
+                        BallotBase
+                      </span>
+                    </h1>
+                  </Link>
                 </div>
                 
-                <Button variant="outline" className="w-full justify-start" asChild>
-                  <Link to="/account">My Account</Link>
-                </Button>
+                <div className="flex-1 overflow-y-auto py-4 px-2">
+                  <nav className="space-y-1">
+                    {navigationItems.map((item) => (
+                      <NavItem
+                        key={item.to}
+                        to={item.to}
+                        active={isActive(item.to)}
+                        icon={item.icon}
+                      >
+                        {item.label}
+                      </NavItem>
+                    ))}
+                  </nav>
+                </div>
                 
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start mt-2" 
-                  onClick={handleLogout}
-                  disabled={isLoggingOut}
-                >
-                  {isLoggingOut ? "Logging Out..." : "Log Out"}
-                </Button>
+                <div className="p-3 border-t">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={user?.user_metadata?.avatar_url} alt="User avatar" />
+                      <AvatarFallback>
+                        {(user?.user_metadata?.name?.slice(0, 1) || "U").toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="text-sm font-medium">
+                      {user?.user_metadata?.name || "User"}
+                    </span>
+                  </div>
+                  
+                  <Button variant="outline" className="w-full justify-start" asChild>
+                    <Link to="/account">
+                      <User className="h-4 w-4 mr-2" />
+                      My Account
+                    </Link>
+                  </Button>
+                  
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start mt-2 text-destructive border-destructive/30 hover:bg-destructive/10" 
+                    onClick={handleLogout}
+                    disabled={isLoggingOut}
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    {isLoggingOut ? "Logging Out..." : "Log Out"}
+                  </Button>
+                </div>
               </div>
-            </div>
-          </SheetContent>
-        </Sheet>
+            </SheetContent>
+          </Sheet>
+        </div>
       </div>
     </>
   );
