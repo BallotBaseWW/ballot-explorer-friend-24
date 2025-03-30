@@ -76,7 +76,16 @@ export function ValidationResults({
                   {sig.confidence !== undefined && (
                     <div className="flex flex-col gap-1">
                       <div className="text-xs text-muted-foreground">{Math.round(sig.confidence * 100)}%</div>
-                      <Progress value={sig.confidence * 100} className="h-2" />
+                      <Progress 
+                        value={sig.confidence * 100} 
+                        className={`h-2 ${
+                          sig.confidence > 0.8 
+                            ? 'bg-gray-100' 
+                            : sig.confidence > 0.6 
+                              ? 'bg-yellow-100' 
+                              : 'bg-red-100'
+                        }`}
+                      />
                     </div>
                   )}
                 </TableCell>
