@@ -6,38 +6,67 @@ import { Database } from "@/integrations/supabase/types";
 
 type VoterRecord = Database["public"]["Tables"]["bronx"]["Row"];
 
-// This is a placeholder function that will eventually call our AI service
+// This function will eventually use AI to extract signatures
 export async function extractSignaturesFromFiles(files: File[]): Promise<ExtractedSignature[]> {
+  // Mock data for now, will be replaced with AI
+  let mockSignatures: ExtractedSignature[] = [];
+  
+  // Create different mock signatures for each page
+  files.forEach((file, fileIndex) => {
+    const pageNumber = fileIndex + 1;
+    
+    // Add 3-5 signatures per page with varying positions
+    const signaturesPerPage = Math.floor(Math.random() * 3) + 3;
+    
+    for (let i = 0; i < signaturesPerPage; i++) {
+      const yPosition = 150 + (i * 100);
+      
+      mockSignatures.push({
+        name: getRandomName(),
+        address: getRandomAddress(),
+        image_region: { 
+          x: 100, 
+          y: yPosition, 
+          width: 300, 
+          height: 70 
+        },
+        page_number: pageNumber,
+        confidence: Math.random() * 0.4 + 0.6 // Random confidence between 0.6 and 1.0
+      });
+    }
+  });
+  
   // Simulate processing time
   await new Promise(resolve => setTimeout(resolve, 2000));
   
-  // Return mock data for now
-  return [
-    {
-      name: "John Smith",
-      address: "123 Main St, New York, NY 10001",
-      image_region: { x: 100, y: 200, width: 300, height: 100 },
-      page_number: 1,
-      confidence: 0.85
-    },
-    {
-      name: "Jane Doe",
-      address: "456 Oak Ave, Brooklyn, NY 11201",
-      image_region: { x: 100, y: 400, width: 300, height: 100 },
-      page_number: 1,
-      confidence: 0.92
-    },
-    {
-      name: "Bob Johnson",
-      address: "789 Pine Rd, New York, NY 10002",
-      image_region: { x: 100, y: 600, width: 300, height: 100 },
-      page_number: 1,
-      confidence: 0.78
-    }
-  ];
+  return mockSignatures;
 }
 
-// Mock function to find matching voters in our database
+// Helper functions to generate random mock data
+function getRandomName(): string {
+  const firstNames = ["John", "Jane", "Robert", "Emily", "Michael", "Sarah", "David", "Jennifer", "Richard", "Maria"];
+  const lastNames = ["Smith", "Johnson", "Williams", "Jones", "Brown", "Davis", "Miller", "Wilson", "Moore", "Taylor"];
+  
+  const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+  const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+  
+  return `${firstName} ${lastName}`;
+}
+
+function getRandomAddress(): string {
+  const streets = ["Main St", "Oak Ave", "Maple Rd", "Pine Ln", "Cedar Blvd", "Elm St", "Park Ave", "River Rd"];
+  const cities = ["New York", "Brooklyn", "Bronx", "Queens", "Staten Island"];
+  const zipCodes = ["10001", "10002", "10003", "10004", "10005", "10006", "10007"];
+  
+  const number = Math.floor(Math.random() * 1000) + 1;
+  const street = streets[Math.floor(Math.random() * streets.length)];
+  const city = cities[Math.floor(Math.random() * cities.length)];
+  const zipCode = zipCodes[Math.floor(Math.random() * zipCodes.length)];
+  
+  return `${number} ${street}, ${city}, NY ${zipCode}`;
+}
+
+// Function to find matching voters in our database
 async function findMatchingVoter(name: string, address: string): Promise<VoterRecord | null> {
   try {
     // Split name into parts
@@ -46,12 +75,10 @@ async function findMatchingVoter(name: string, address: string): Promise<VoterRe
     let lastName = nameParts[nameParts.length - 1];
     
     // Extract address components (simplified approach)
-    // In a real implementation, we'd use proper address parsing
     const addressParts = address.split(',');
     const streetAddress = addressParts[0]?.trim() || '';
     
     // Perform Supabase query
-    // Start with Bronx county as an example
     const { data, error } = await supabase
       .from('bronx')
       .select()
@@ -74,8 +101,6 @@ async function findMatchingVoter(name: string, address: string): Promise<VoterRe
 
 // Function to check if a voter's district matches the petition district
 function isVoterInDistrict(voter: VoterRecord, district: string): boolean {
-  // This is simplified logic - would need to be expanded based on actual district requirements
-  // Example: checking if the voter's assembly district matches the petition's required district
   const districtType = district.split('-')[0]?.toLowerCase();
   const districtNumber = district.split('-')[1];
   
@@ -95,7 +120,7 @@ function isVoterInDistrict(voter: VoterRecord, district: string): boolean {
 // Function to validate signatures against voter records
 export async function validateSignatures(
   extractedSignatures: ExtractedSignature[],
-  petitionDistrict: string = "AD-73" // Default test district
+  petitionDistrict: string = "AD-73"
 ): Promise<ValidationResult> {
   const validations = await Promise.all(
     extractedSignatures.map(async (sig) => {
@@ -235,7 +260,7 @@ export async function validateSignatures(
 // Main function to process uploaded files
 export async function processUploadedFiles(
   files: File[],
-  district: string = "AD-73" // Default test district
+  district: string = "AD-73"
 ): Promise<ValidationResult> {
   try {
     toast.info("Processing petition files...", {

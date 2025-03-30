@@ -13,6 +13,7 @@ import { processUploadedFiles } from "@/components/signature-validator/validatio
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SignatureImageViewer } from "@/components/signature-validator/SignatureImageViewer";
 
 export default function SignatureValidator() {
   const [activeTab, setActiveTab] = useState("upload");
@@ -22,9 +23,15 @@ export default function SignatureValidator() {
   const [district, setDistrict] = useState("AD-73");
   const [districtType, setDistrictType] = useState("AD");
   const [districtNumber, setDistrictNumber] = useState("73");
+  const [selectedSignatureId, setSelectedSignatureId] = useState<string | number | null>(null);
+  const [filePreviewUrls, setFilePreviewUrls] = useState<string[]>([]);
 
   const handleFileSelection = (files: File[]) => {
     setUploadedFiles(files);
+    
+    // Create preview URLs for the files
+    const urls = files.map(file => URL.createObjectURL(file));
+    setFilePreviewUrls(urls);
   };
 
   const handleDistrictTypeChange = (value: string) => {
@@ -52,6 +59,10 @@ export default function SignatureValidator() {
     } finally {
       setIsProcessing(false);
     }
+  };
+
+  const handleSignatureClick = (signature: any) => {
+    setSelectedSignatureId(signature.id);
   };
 
   return (
@@ -144,10 +155,33 @@ export default function SignatureValidator() {
                 <TabsContent value="results" className="mt-4">
                   <Card className="p-6">
                     {validationResults && (
-                      <ValidationResults 
-                        signatures={validationResults.signatures} 
-                        stats={validationResults.stats} 
-                      />
+                      <div className="space-y-8">
+                        <ValidationResults 
+                          signatures={validationResults.signatures} 
+                          stats={validationResults.stats}
+                          selectedSignatureId={selectedSignatureId}
+                          onSignatureSelect={handleSignatureClick}
+                        />
+                        
+                        {filePreviewUrls.length > 0 && validationResults.signatures.length > 0 && (
+                          <div className="mt-8">
+                            <h3 className="text-lg font-medium mb-4">Petition Pages</h3>
+                            <div className="space-y-4">
+                              {filePreviewUrls.map((url, index) => (
+                                <div key={index} className="border rounded-md p-4">
+                                  <h4 className="text-md font-medium mb-3">Page {index + 1}</h4>
+                                  <SignatureImageViewer 
+                                    imageUrl={url}
+                                    signatures={validationResults.signatures.filter(sig => sig.page_number === index + 1)}
+                                    selectedSignatureId={selectedSignatureId}
+                                    onSignatureClick={handleSignatureClick}
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     )}
                   </Card>
                 </TabsContent>

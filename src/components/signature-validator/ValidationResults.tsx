@@ -8,38 +8,22 @@ import {
   TableHeader,
   TableRow 
 } from "@/components/ui/table";
-
-export interface ValidationResultStats {
-  total: number;
-  valid: number;
-  invalid: number;
-  uncertain: number;
-}
-
-export interface MatchedVoter {
-  state_voter_id: string;
-  first_name: string;
-  last_name: string;
-  address?: string;
-  district?: string;
-}
-
-export interface SignatureValidation {
-  id: number | string;
-  name: string;
-  address: string;
-  status: "valid" | "invalid" | "uncertain";
-  matched_voter?: MatchedVoter;
-  reason?: string;
-  confidence?: number;
-}
+import { SignatureValidation, ValidationResultStats } from "./types";
+import { Badge } from "@/components/ui/badge";
 
 interface ValidationResultsProps {
   signatures: SignatureValidation[];
   stats: ValidationResultStats;
+  selectedSignatureId?: string | number | null;
+  onSignatureSelect?: (signature: SignatureValidation) => void;
 }
 
-export function ValidationResults({ signatures, stats }: ValidationResultsProps) {
+export function ValidationResults({ 
+  signatures, 
+  stats, 
+  selectedSignatureId = null,
+  onSignatureSelect 
+}: ValidationResultsProps) {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -74,8 +58,17 @@ export function ValidationResults({ signatures, stats }: ValidationResultsProps)
           </TableHeader>
           <TableBody>
             {signatures.map((sig) => (
-              <TableRow key={sig.id}>
-                <TableCell className="font-medium">{sig.name}</TableCell>
+              <TableRow 
+                key={sig.id} 
+                className={`cursor-pointer ${selectedSignatureId === sig.id ? 'bg-blue-50' : ''}`}
+                onClick={() => onSignatureSelect && onSignatureSelect(sig)}
+              >
+                <TableCell className="font-medium">
+                  {sig.name}
+                  {sig.page_number && (
+                    <Badge variant="outline" className="ml-2">Page {sig.page_number}</Badge>
+                  )}
+                </TableCell>
                 <TableCell>{sig.address}</TableCell>
                 <TableCell>
                   {sig.status === "valid" && <span className="text-green-600 font-medium">Valid</span>}
@@ -85,7 +78,8 @@ export function ValidationResults({ signatures, stats }: ValidationResultsProps)
                 <TableCell>
                   {sig.status === "valid" && sig.matched_voter && (
                     <div className="text-sm">
-                      Matched to voter ID: {sig.matched_voter.state_voter_id}
+                      <div>Matched to: {sig.matched_voter.first_name} {sig.matched_voter.last_name}</div>
+                      <div className="text-xs text-muted-foreground">ID: {sig.matched_voter.state_voter_id}</div>
                     </div>
                   )}
                   {sig.status !== "valid" && sig.reason && (
