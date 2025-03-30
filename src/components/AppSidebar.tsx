@@ -28,6 +28,7 @@ import { useUser } from "@/hooks/use-user";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
+import { useQuery } from "@tanstack/react-query";
 
 export function AppSidebar() {
   const [collapsed, setCollapsed] = useState(false);
