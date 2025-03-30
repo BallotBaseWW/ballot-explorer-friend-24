@@ -28,7 +28,7 @@ const ListDetails = () => {
     },
   });
 
-  const { data: voterItems } = useQuery({
+  const { data: voterItems, isLoading } = useQuery({
     queryKey: ['voter-list-items', id],
     queryFn: async () => {
       const { data: items, error: itemsError } = await supabase
@@ -60,7 +60,7 @@ const ListDetails = () => {
         <Link to="/voter-lists">
           <Button 
             variant="outline" 
-            className="mb-4 dark:border-white/20 dark:hover:bg-white/10 dark:text-white"
+            className="mb-4"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Lists
@@ -72,6 +72,12 @@ const ListDetails = () => {
         )}
       </div>
 
+      {isLoading && (
+        <div className="flex justify-center py-12">
+          <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      )}
+
       <div className="space-y-4">
         {voterItems?.map((voter: VoterRecord & { county: County }) => (
           <VoterCard
@@ -82,7 +88,7 @@ const ListDetails = () => {
           />
         ))}
 
-        {!voterItems?.length && (
+        {!isLoading && voterItems?.length === 0 && (
           <div className="text-center py-8 text-muted-foreground">
             No voters in this list yet.
           </div>

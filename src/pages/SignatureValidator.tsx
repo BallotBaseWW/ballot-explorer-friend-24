@@ -5,9 +5,6 @@ import { Button } from "@/components/ui/button";
 import { FileUploader } from "@/components/signature-validator/FileUploader";
 import { ValidationResults } from "@/components/signature-validator/ValidationResults";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AppSidebar } from "@/components/AppSidebar";
-import { SidebarProvider } from "@/components/ui/sidebar";
-import { Header } from "@/components/Header";
 import { ValidationResult } from "@/components/signature-validator/types";
 import { processUploadedFiles } from "@/components/signature-validator/validation-service";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -76,172 +73,159 @@ export default function SignatureValidator() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <SidebarProvider>
-        <div className="flex w-full">
-          <AppSidebar />
-          <div className="flex-1 overflow-hidden">
-            <Header />
-            <main className="p-4 md:p-6 overflow-auto" style={{ height: 'calc(100vh - 64px)' }}>
-              <div className="max-w-7xl mx-auto">
-                <div className="mb-6">
-                  <h1 className="text-3xl font-bold">Signature Validator</h1>
-                  <p className="text-muted-foreground">
-                    Upload petition pages to validate signatures using AI
-                  </p>
-                </div>
+    <div>
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold">Signature Validator</h1>
+        <p className="text-muted-foreground">
+          Upload petition pages to validate signatures using AI
+        </p>
+      </div>
 
-                <Alert variant="default" className="mb-6 bg-blue-50 border-blue-200">
-                  <InfoIcon className="h-4 w-4" />
-                  <AlertTitle>AI-Powered Signature Detection</AlertTitle>
-                  <AlertDescription>
-                    This tool uses AI to extract signatures from petition pages, then matches them against voter records.
-                    The AI analyzes each page to find signatures, extracts names and addresses, and validates them against your voter database.
-                  </AlertDescription>
-                </Alert>
+      <Alert variant="default" className="mb-6 bg-blue-50 border-blue-200 dark:bg-blue-950/30 dark:border-blue-900">
+        <InfoIcon className="h-4 w-4" />
+        <AlertTitle>AI-Powered Signature Detection</AlertTitle>
+        <AlertDescription>
+          This tool uses AI to extract signatures from petition pages, then matches them against voter records.
+          The AI analyzes each page to find signatures, extracts names and addresses, and validates them against your voter database.
+        </AlertDescription>
+      </Alert>
 
-                <Tabs 
-                  value={activeTab} 
-                  onValueChange={setActiveTab} 
-                  className="w-full"
-                >
-                  <TabsList className="grid w-full md:w-[400px] grid-cols-2">
-                    <TabsTrigger value="upload" className="flex items-center gap-2">
-                      <UploadIcon className="h-4 w-4" /> Upload
-                    </TabsTrigger>
-                    <TabsTrigger value="results" disabled={!validationResults} className="flex items-center gap-2">
-                      <CheckSquare className="h-4 w-4" /> Results
-                    </TabsTrigger>
-                  </TabsList>
-                  
-                  <TabsContent value="upload" className="mt-4">
-                    <Card className="p-6">
-                      <div className="space-y-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <div>
-                            <h3 className="text-lg font-medium mb-4">Petition District</h3>
-                            <div className="space-y-4">
-                              <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                  <Label htmlFor="district-type">District Type</Label>
-                                  <Select 
-                                    value={districtType} 
-                                    onValueChange={handleDistrictTypeChange}
-                                  >
-                                    <SelectTrigger id="district-type">
-                                      <SelectValue placeholder="Select district type" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="AD">Assembly District (AD)</SelectItem>
-                                      <SelectItem value="SD">Senate District (SD)</SelectItem>
-                                      <SelectItem value="CD">Congressional District (CD)</SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                                <div className="space-y-2">
-                                  <Label htmlFor="district-number">District Number</Label>
-                                  <Input 
-                                    id="district-number" 
-                                    type="text" 
-                                    value={districtNumber} 
-                                    onChange={handleDistrictNumberChange} 
-                                  />
-                                </div>
-                              </div>
-                              <div className="space-y-2">
-                                <Label>Current District</Label>
-                                <div className="text-lg font-semibold">{district}</div>
-                              </div>
-                            </div>
-                          </div>
-                          
-                          <div className="border-l pl-6 md:block hidden">
-                            <h3 className="text-lg font-medium mb-4">How It Works</h3>
-                            <ol className="list-decimal list-inside space-y-2 text-sm">
-                              <li>Upload petition pages (PDF or images)</li>
-                              <li>AI extracts signatures, names, and addresses</li>
-                              <li>Extracted data is matched against voter database</li>
-                              <li>Results show valid, invalid, and uncertain signatures</li>
-                            </ol>
-                          </div>
-                        </div>
-                        
-                        <div className="pt-6">
-                          <FileUploader onFilesSelected={handleFileSelection} />
-                        </div>
-
-                        {uploadedFiles.length > 0 && (
-                          <div className="mt-4 flex justify-end">
-                            <Button 
-                              onClick={validateSignatures} 
-                              disabled={isProcessing}
-                              className="gap-2"
-                            >
-                              {isProcessing ? (
-                                <>
-                                  <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                  Processing...
-                                </>
-                              ) : (
-                                <>
-                                  <CheckSquare className="h-4 w-4" />
-                                  Validate Signatures
-                                </>
-                              )}
-                            </Button>
-                          </div>
-                        )}
+      <Tabs 
+        value={activeTab} 
+        onValueChange={setActiveTab} 
+        className="w-full"
+      >
+        <TabsList className="grid w-full md:w-[400px] grid-cols-2">
+          <TabsTrigger value="upload" className="flex items-center gap-2">
+            <UploadIcon className="h-4 w-4" /> Upload
+          </TabsTrigger>
+          <TabsTrigger value="results" disabled={!validationResults} className="flex items-center gap-2">
+            <CheckSquare className="h-4 w-4" /> Results
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="upload" className="mt-4">
+          <Card className="p-6">
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <h3 className="text-lg font-medium mb-4">Petition District</h3>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="district-type">District Type</Label>
+                        <Select 
+                          value={districtType} 
+                          onValueChange={handleDistrictTypeChange}
+                        >
+                          <SelectTrigger id="district-type">
+                            <SelectValue placeholder="Select district type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="AD">Assembly District (AD)</SelectItem>
+                            <SelectItem value="SD">Senate District (SD)</SelectItem>
+                            <SelectItem value="CD">Congressional District (CD)</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
-                    </Card>
-                  </TabsContent>
-                  
-                  <TabsContent value="results" className="mt-4">
-                    <Card className="p-6">
-                      {validationResults && (
-                        <div className="space-y-8">
-                          {/* Add PetitionActions component above ValidationResults */}
-                          <PetitionActions 
-                            validationResults={validationResults}
-                            district={district}
-                            currentPage={1}
-                            onSaveSuccess={handlePetitionSaved}
-                          />
-                          
-                          <ValidationResults 
-                            signatures={validationResults.signatures} 
-                            stats={validationResults.stats}
-                            selectedSignatureId={selectedSignatureId}
-                            onSignatureSelect={handleSignatureClick}
-                          />
-                          
-                          {filePreviewUrls.length > 0 && validationResults.signatures.length > 0 && (
-                            <div className="mt-8">
-                              <h3 className="text-lg font-medium mb-4">Petition Pages</h3>
-                              <div className="space-y-8">
-                                {filePreviewUrls.map((url, index) => (
-                                  <div key={index} className="border rounded-md p-4">
-                                    <h4 className="text-md font-medium mb-3">Page {index + 1}</h4>
-                                    <SignatureImageViewer 
-                                      imageUrl={url}
-                                      signatures={validationResults.signatures.filter(sig => sig.page_number === index + 1)}
-                                      selectedSignatureId={selectedSignatureId}
-                                      onSignatureClick={handleSignatureClick}
-                                    />
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </Card>
-                  </TabsContent>
-                </Tabs>
+                      <div className="space-y-2">
+                        <Label htmlFor="district-number">District Number</Label>
+                        <Input 
+                          id="district-number" 
+                          type="text" 
+                          value={districtNumber} 
+                          onChange={handleDistrictNumberChange} 
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Current District</Label>
+                      <div className="text-lg font-semibold">{district}</div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="border-l pl-6 md:block hidden">
+                  <h3 className="text-lg font-medium mb-4">How It Works</h3>
+                  <ol className="list-decimal list-inside space-y-2 text-sm">
+                    <li>Upload petition pages (PDF or images)</li>
+                    <li>AI extracts signatures, names, and addresses</li>
+                    <li>Extracted data is matched against voter database</li>
+                    <li>Results show valid, invalid, and uncertain signatures</li>
+                  </ol>
+                </div>
               </div>
-            </main>
-          </div>
-        </div>
-      </SidebarProvider>
+              
+              <div className="pt-6">
+                <FileUploader onFilesSelected={handleFileSelection} />
+              </div>
+
+              {uploadedFiles.length > 0 && (
+                <div className="mt-4 flex justify-end">
+                  <Button 
+                    onClick={validateSignatures} 
+                    disabled={isProcessing}
+                    className="gap-2"
+                  >
+                    {isProcessing ? (
+                      <>
+                        <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        <CheckSquare className="h-4 w-4" />
+                        Validate Signatures
+                      </>
+                    )}
+                  </Button>
+                </div>
+              )}
+            </div>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="results" className="mt-4">
+          <Card className="p-6">
+            {validationResults && (
+              <div className="space-y-8">
+                <PetitionActions 
+                  validationResults={validationResults}
+                  district={district}
+                  currentPage={1}
+                  onSaveSuccess={handlePetitionSaved}
+                />
+                
+                <ValidationResults 
+                  signatures={validationResults.signatures} 
+                  stats={validationResults.stats}
+                  selectedSignatureId={selectedSignatureId}
+                  onSignatureSelect={handleSignatureClick}
+                />
+                
+                {filePreviewUrls.length > 0 && validationResults.signatures.length > 0 && (
+                  <div className="mt-8">
+                    <h3 className="text-lg font-medium mb-4">Petition Pages</h3>
+                    <div className="space-y-8">
+                      {filePreviewUrls.map((url, index) => (
+                        <div key={index} className="border rounded-md p-4">
+                          <h4 className="text-md font-medium mb-3">Page {index + 1}</h4>
+                          <SignatureImageViewer 
+                            imageUrl={url}
+                            signatures={validationResults.signatures.filter(sig => sig.page_number === index + 1)}
+                            selectedSignatureId={selectedSignatureId}
+                            onSignatureClick={handleSignatureClick}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

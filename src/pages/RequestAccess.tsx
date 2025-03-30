@@ -1,20 +1,19 @@
 
 import { RequestAccessForm } from "@/components/access/RequestAccessForm";
 import LoginHeader from "@/components/auth/LoginHeader";
+import { Card } from "@/components/ui/card";
 
 export default function RequestAccess() {
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container relative min-h-[calc(100vh-73px)] flex-col items-center justify-center grid lg:max-w-none lg:grid-cols-1 lg:px-0">
-        <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[550px]">
-          <LoginHeader 
-            heading="Request Access" 
-            text="Fill out the form below to request access to BallotBase."
-          />
-          <div className="bg-card/50 backdrop-blur-sm p-8 rounded-lg border border-border/50 shadow-sm">
-            <RequestAccessForm />
-          </div>
-        </div>
+    <div className="min-h-screen bg-background flex items-center justify-center px-4">
+      <div className="max-w-md w-full space-y-8">
+        <LoginHeader 
+          heading="Request Access" 
+          text="Fill out the form below to request access to BallotBase."
+        />
+        <Card className="p-6">
+          <RequestAccessForm />
+        </Card>
       </div>
     </div>
   );

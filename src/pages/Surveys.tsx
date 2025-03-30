@@ -28,7 +28,12 @@ const Surveys = () => {
   return (
     <div>
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-4xl font-bold">Surveys</h1>
+        <div>
+          <h1 className="text-3xl font-bold">Surveys</h1>
+          <p className="text-muted-foreground">
+            Create and manage voter surveys
+          </p>
+        </div>
         <Button onClick={() => setShowCreateDialog(true)}>
           <PlusIcon className="h-4 w-4 mr-2" />
           Create Survey
@@ -36,7 +41,9 @@ const Surveys = () => {
       </div>
 
       {isLoading ? (
-        <div>Loading...</div>
+        <div className="flex justify-center py-12">
+          <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+        </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {surveys?.map((survey) => (
@@ -59,8 +66,8 @@ const Surveys = () => {
                 <span
                   className={`px-2 py-1 rounded-full text-xs ${
                     survey.is_active
-                      ? "bg-green-100 text-green-800"
-                      : "bg-gray-100 text-gray-800"
+                      ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
+                      : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300"
                   }`}
                 >
                   {survey.is_active ? "Active" : "Inactive"}
@@ -68,6 +75,12 @@ const Surveys = () => {
               </div>
             </Card>
           ))}
+          
+          {surveys?.length === 0 && (
+            <div className="col-span-full text-center py-12 text-muted-foreground">
+              No surveys created yet. Click "Create Survey" to get started.
+            </div>
+          )}
         </div>
       )}
 

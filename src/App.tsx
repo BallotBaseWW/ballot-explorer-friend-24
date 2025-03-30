@@ -21,19 +21,22 @@ import PetitionDetail from "@/pages/PetitionDetail";
 import { AuthContainer } from "@/components/auth/AuthContainer";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { AppSidebar } from "@/components/AppSidebar";
+import { SidebarProvider } from "@/components/ui/sidebar";
 
 const queryClient = new QueryClient();
 
 // Layout component to wrap authenticated routes
 const AppLayout = ({ children }: { children: React.ReactNode }) => (
-  <div className="flex h-screen w-full overflow-hidden bg-background">
-    <AppSidebar />
-    <main className="flex-1 overflow-y-auto">
-      <div className="container mx-auto px-4 py-4 md:px-6 md:py-6 lg:px-8">
-        {children}
+  <SidebarProvider>
+    <div className="flex min-h-screen w-full bg-background">
+      <AppSidebar />
+      <div className="flex-1 ml-16 md:ml-64">
+        <main className="p-4 md:p-6 max-w-7xl mx-auto">
+          {children}
+        </main>
       </div>
-    </main>
-  </div>
+    </div>
+  </SidebarProvider>
 );
 
 function App() {

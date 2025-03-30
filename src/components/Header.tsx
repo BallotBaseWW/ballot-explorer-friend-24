@@ -1,4 +1,5 @@
-
+// This file is now obsolete as we're using the AppSidebar for navigation
+// We're keeping the file for now but it's no longer being used in the application
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
