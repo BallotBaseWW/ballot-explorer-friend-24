@@ -16,6 +16,8 @@ import { Label } from "@/components/ui/label";
 import { SignatureImageViewer } from "@/components/signature-validator/SignatureImageViewer";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { InfoIcon, UploadIcon, CheckSquare } from "lucide-react";
+import { PetitionActions } from "@/components/signature-validator/PetitionActions";
+import { useNavigate } from "react-router-dom";
 
 export default function SignatureValidator() {
   const [activeTab, setActiveTab] = useState("upload");
@@ -27,6 +29,7 @@ export default function SignatureValidator() {
   const [districtNumber, setDistrictNumber] = useState("73");
   const [selectedSignatureId, setSelectedSignatureId] = useState<string | number | null>(null);
   const [filePreviewUrls, setFilePreviewUrls] = useState<string[]>([]);
+  const navigate = useNavigate();
 
   const handleFileSelection = (files: File[]) => {
     setUploadedFiles(files);
@@ -65,6 +68,11 @@ export default function SignatureValidator() {
 
   const handleSignatureClick = (signature: any) => {
     setSelectedSignatureId(signature.id);
+  };
+  
+  const handlePetitionSaved = (petitionId: string) => {
+    // Redirect to the petition details page after saving
+    navigate(`/petitions/${petitionId}`);
   };
 
   return (
@@ -191,6 +199,14 @@ export default function SignatureValidator() {
                     <Card className="p-6">
                       {validationResults && (
                         <div className="space-y-8">
+                          {/* Add PetitionActions component above ValidationResults */}
+                          <PetitionActions 
+                            validationResults={validationResults}
+                            district={district}
+                            currentPage={1}
+                            onSaveSuccess={handlePetitionSaved}
+                          />
+                          
                           <ValidationResults 
                             signatures={validationResults.signatures} 
                             stats={validationResults.stats}

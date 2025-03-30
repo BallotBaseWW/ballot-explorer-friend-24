@@ -1,4 +1,3 @@
-
 export interface MatchedVoter {
   state_voter_id: string;
   first_name: string;
@@ -60,4 +59,34 @@ export interface ExtractedSignature {
   };
   page_number: number;
   confidence: number;
+}
+
+export interface PetitionProgress {
+  id: string;
+  name: string;
+  district: string;
+  party: string;
+  created_at: string;
+  updated_at: string;
+  total_pages: number;
+  completed_pages: number;
+  valid_signatures: number;
+  invalid_signatures: number;
+  uncertain_signatures: number;
+  total_signatures: number;
+  required_signatures: number;
+}
+
+export interface SavePetitionRequest {
+  petitionName: string;
+  district: string;
+  party: string;
+  validationResults: ValidationResult;
+  page: number;
+}
+
+export interface PetitionSignatureData {
+  petitionId: string;
+  signatures: SignatureValidation[];
+  page_number: number;
 }

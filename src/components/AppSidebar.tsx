@@ -1,117 +1,99 @@
-
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from "@/components/ui/sidebar";
-import { Home, Search, ListTodo, Shield, MapPin, Calculator, FileText, ScanText, ClipboardList } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+  FileSignature,
+  LayoutDashboard,
+  ListChecks,
+  ListPlus,
+  Search,
+  ClipboardList,
+} from "lucide-react";
+import { NavItem } from "@/components/ui/nav-item";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useSidebar } from "@/components/ui/sidebar";
+import { useUser } from "@/hooks/use-user";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
 export function AppSidebar() {
-  const navigate = useNavigate();
-  
-  const { data: isAdmin } = useQuery({
-    queryKey: ["isAdmin"],
-    queryFn: async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user) return false;
-      
-      const { data: roleData, error } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", session.user.id)
-        .single();
-      
-      if (error) {
-        console.error("Error fetching user role:", error);
-        return false;
-      }
-      
-      return roleData?.role === "admin";
-    },
-  });
+  const { collapsed, setCollapsed } = useSidebar();
+  const { user, session, isLoading } = useUser();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-  const items = [
-    {
-      title: "Home",
-      url: "/",
-      icon: Home,
-    },
-    {
-      title: "Search",
-      url: "/search",
-      icon: Search,
-      disabled: true,
-    },
-    {
-      title: "Lists",
-      url: "/lists",
-      icon: ListTodo,
-    },
-    {
-      title: "Districts",
-      url: "/districts",
-      icon: MapPin,
-    },
-    {
-      title: "Matching Funds",
-      url: "/matching-funds",
-      icon: Calculator,
-    },
-    {
-      title: "Surveys",
-      url: "/surveys",
-      icon: ClipboardList,
-    },
-    {
-      title: "Signature Validator",
-      url: "/signature-validator",
-      icon: ScanText,
-    },
-    {
-      title: "Designating Petition",
-      url: "/designating-petition",
-      icon: FileText,
-    },
-  ];
-
-  if (isAdmin) {
-    items.push({
-      title: "Admin",
-      url: "/admin",
-      icon: Shield,
-    });
-  }
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await supabase.auth.signOut();
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
 
   return (
-    <Sidebar>
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {items.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    disabled={item.disabled}
-                    onClick={() => navigate(item.url)}
-                  >
-                    <item.icon className="h-4 w-4 mr-2" />
-                    <span>{item.title}</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
-    </Sidebar>
+    <div
+      className={`flex flex-col h-full bg-gray-50 border-r shadow-sm`}
+    >
+      <div className="flex-1 flex flex-col space-y-1">
+        <Link to="/" className="flex-1">
+          <div className="px-3 py-2 flex items-center justify-center">
+            <h1 className="font-bold text-xl">NYVotes</h1>
+          </div>
+        </Link>
+        <nav className="flex flex-col space-y-1">
+          <NavItem icon={<LayoutDashboard />} to="/">
+            Dashboard
+          </NavItem>
+          <NavItem icon={<Search />} to="/search">
+            Voter Search
+          </NavItem>
+          <NavItem icon={<ListPlus />} to="/voter-lists">
+            Voter Lists
+          </NavItem>
+          <NavItem icon={<FileSignature />} to="/signature-validator">Signature Validator</NavItem>
+          <NavItem icon={<ClipboardList />} to="/petitions">My Petitions</NavItem>
+          <NavItem icon={<ListChecks />} to="/surveys">
+            Surveys
+          </NavItem>
+        </nav>
+      </div>
+      <div className="p-3 border-t">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              className="flex h-8 w-full items-center justify-between rounded-md"
+            >
+              <div className="flex items-center gap-2">
+                <Avatar className="h-6 w-6">
+                  <AvatarImage src={user?.user_metadata?.avatar_url} />
+                  <AvatarFallback>
+                    {user?.user_metadata?.name?.slice(0, 1)}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="text-sm">{user?.user_metadata?.name}</span>
+              </div>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" forceMount>
+            <DropdownMenuItem>
+              <Link to="/account" className="w-full">
+                My Account
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleLogout} disabled={isLoggingOut}>
+              {isLoggingOut ? "Logging Out..." : "Log Out"}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </div>
   );
 }

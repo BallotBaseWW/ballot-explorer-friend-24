@@ -1,4 +1,3 @@
-
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { Suspense } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -17,6 +16,8 @@ import SurveyDetails from "@/pages/SurveyDetails";
 import SurveyResponse from "@/pages/SurveyResponse";
 import DesignatingPetition from "@/pages/DesignatingPetition";
 import SignatureValidator from "@/pages/SignatureValidator";
+import Petitions from "@/pages/Petitions";
+import PetitionDetail from "@/pages/PetitionDetail";
 import { AuthContainer } from "@/components/auth/AuthContainer";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 
@@ -119,6 +120,8 @@ function App() {
               }
             />
             <Route path="/signature-validator" element={<SignatureValidator />} />
+            <Route path="/petitions" element={<Petitions />} />
+            <Route path="/petitions/:id" element={<PetitionDetail />} />
             <Route path="*" element={<Navigate to="/login" replace />} />
           </Routes>
           <Toaster />
