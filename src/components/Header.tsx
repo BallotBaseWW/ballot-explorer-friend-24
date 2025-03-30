@@ -7,7 +7,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { User, LogOut, UserPlus, Home, Search, ListTodo, FileText, Shield, ClipboardList } from "lucide-react";
+import { User, LogOut, UserPlus, Home, Search, ListTodo, FileText, Shield, ClipboardList, ScanText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { useCallback, useEffect, useState } from "react";
@@ -82,6 +82,7 @@ export const Header = () => {
     { icon: Search, label: "Search", path: "/search", disabled: true },
     { icon: ListTodo, label: "Lists", path: "/lists" },
     { icon: ClipboardList, label: "Surveys", path: "/surveys" },
+    { icon: ScanText, label: "Signature Validator", path: "/signature-validator" },
     { icon: FileText, label: "Resources", path: "/resources" },
   ];
 

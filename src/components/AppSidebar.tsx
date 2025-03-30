@@ -10,7 +10,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { Home, Search, ListTodo, Shield, MapPin, Calculator, FileText } from "lucide-react";
+import { Home, Search, ListTodo, Shield, MapPin, Calculator, FileText, ScanText, ClipboardList } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -64,6 +64,16 @@ export function AppSidebar() {
       title: "Matching Funds",
       url: "/matching-funds",
       icon: Calculator,
+    },
+    {
+      title: "Surveys",
+      url: "/surveys",
+      icon: ClipboardList,
+    },
+    {
+      title: "Signature Validator",
+      url: "/signature-validator",
+      icon: ScanText,
     },
     {
       title: "Designating Petition",
