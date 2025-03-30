@@ -30,7 +30,8 @@ serve(async (req) => {
 
     // Convert the file to base64
     const arrayBuffer = await file.arrayBuffer();
-    const base64Image = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+    const bytes = new Uint8Array(arrayBuffer);
+    const base64Image = btoa(String.fromCharCode.apply(null, bytes.slice(0, 8000))); // Limit size to avoid stack issues
     
     // Prepare the prompt for OpenAI
     const prompt = `This is a petition page with signatures. Please extract all signatures visible in this image.
@@ -52,13 +53,20 @@ Return the data in a structured JSON format like this:
         "width": 200,
         "height": 50
       }
-    },
-    ...
+    }
   ]
 }`;
 
-    // Call OpenAI API with a smaller payload and timeout
     console.log('Calling OpenAI API...');
+    
+    // Safe conversion of Uint8Array to base64 to avoid stack issues
+    let base64String = '';
+    for (let i = 0; i < bytes.length; i++) {
+      base64String += String.fromCharCode(bytes[i]);
+    }
+    const safeBase64 = btoa(base64String);
+    
+    // Call OpenAI API
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -75,7 +83,7 @@ Return the data in a structured JSON format like this:
               {
                 type: "image_url",
                 image_url: {
-                  url: `data:image/jpeg;base64,${base64Image}`,
+                  url: `data:image/jpeg;base64,${safeBase64}`,
                   detail: "high"
                 }
               }
