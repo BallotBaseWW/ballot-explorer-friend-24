@@ -1,3 +1,4 @@
+
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { Suspense } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -21,6 +22,8 @@ import PetitionDetail from "@/pages/PetitionDetail";
 import { AuthContainer } from "@/components/auth/AuthContainer";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { AppSidebar } from "@/components/AppSidebar";
+import { CountySelector } from "@/components/CountySelector";
+import { SiteUpdates } from "@/components/SiteUpdates";
 
 const queryClient = new QueryClient();
 
