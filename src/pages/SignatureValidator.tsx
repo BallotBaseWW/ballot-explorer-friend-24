@@ -14,6 +14,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SignatureImageViewer } from "@/components/signature-validator/SignatureImageViewer";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { InfoIcon, UploadIcon, CheckSquare } from "lucide-react";
 
 export default function SignatureValidator() {
   const [activeTab, setActiveTab] = useState("upload");
@@ -80,14 +82,27 @@ export default function SignatureValidator() {
                 </p>
               </div>
 
+              <Alert variant="default" className="mb-6 bg-blue-50 border-blue-200">
+                <InfoIcon className="h-4 w-4" />
+                <AlertTitle>This tool is in beta</AlertTitle>
+                <AlertDescription>
+                  The signature validator uses AI to extract and validate petition signatures.
+                  Results should be manually verified for official purposes.
+                </AlertDescription>
+              </Alert>
+
               <Tabs 
                 value={activeTab} 
                 onValueChange={setActiveTab} 
                 className="w-full"
               >
                 <TabsList className="grid w-full md:w-[400px] grid-cols-2">
-                  <TabsTrigger value="upload">Upload</TabsTrigger>
-                  <TabsTrigger value="results" disabled={!validationResults}>Results</TabsTrigger>
+                  <TabsTrigger value="upload" className="flex items-center gap-2">
+                    <UploadIcon className="h-4 w-4" /> Upload
+                  </TabsTrigger>
+                  <TabsTrigger value="results" disabled={!validationResults} className="flex items-center gap-2">
+                    <CheckSquare className="h-4 w-4" /> Results
+                  </TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="upload" className="mt-4">
@@ -131,7 +146,15 @@ export default function SignatureValidator() {
                           </div>
                         </div>
                         
-                        <div className="border-l pl-6 md:block hidden"></div>
+                        <div className="border-l pl-6 md:block hidden">
+                          <h3 className="text-lg font-medium mb-4">How It Works</h3>
+                          <ol className="list-decimal list-inside space-y-2 text-sm">
+                            <li>Upload petition pages (PDF or images)</li>
+                            <li>AI extracts signatures from the documents</li>
+                            <li>Signatures are matched against voter database</li>
+                            <li>Results show valid, invalid, and uncertain signatures</li>
+                          </ol>
+                        </div>
                       </div>
                       
                       <div className="pt-6">
@@ -143,8 +166,19 @@ export default function SignatureValidator() {
                           <Button 
                             onClick={validateSignatures} 
                             disabled={isProcessing}
+                            className="gap-2"
                           >
-                            {isProcessing ? "Processing..." : "Validate Signatures"}
+                            {isProcessing ? (
+                              <>
+                                <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                Processing...
+                              </>
+                            ) : (
+                              <>
+                                <CheckSquare className="h-4 w-4" />
+                                Validate Signatures
+                              </>
+                            )}
                           </Button>
                         </div>
                       )}

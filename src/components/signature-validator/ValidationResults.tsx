@@ -1,5 +1,5 @@
 
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, CheckCircle, HelpCircle } from "lucide-react";
 import { 
   Table,
   TableBody,
@@ -71,9 +71,21 @@ export function ValidationResults({
                 </TableCell>
                 <TableCell>{sig.address}</TableCell>
                 <TableCell>
-                  {sig.status === "valid" && <span className="text-green-600 font-medium">Valid</span>}
-                  {sig.status === "invalid" && <span className="text-red-600 font-medium">Invalid</span>}
-                  {sig.status === "uncertain" && <span className="text-yellow-600 font-medium">Uncertain</span>}
+                  {sig.status === "valid" && (
+                    <Badge variant="success" className="flex items-center gap-1">
+                      <CheckCircle className="h-3 w-3" /> Valid
+                    </Badge>
+                  )}
+                  {sig.status === "invalid" && (
+                    <Badge variant="destructive" className="flex items-center gap-1">
+                      <AlertCircle className="h-3 w-3" /> Invalid
+                    </Badge>
+                  )}
+                  {sig.status === "uncertain" && (
+                    <Badge variant="warning" className="flex items-center gap-1">
+                      <HelpCircle className="h-3 w-3" /> Uncertain
+                    </Badge>
+                  )}
                 </TableCell>
                 <TableCell>
                   {sig.status === "valid" && sig.matched_voter && (
