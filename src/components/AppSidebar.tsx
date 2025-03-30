@@ -33,6 +33,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useUser } from "@/hooks/use-user";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export function AppSidebar() {
   const [collapsed, setCollapsed] = useState(false);
@@ -40,13 +41,10 @@ export function AppSidebar() {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  
-  // Check if we're on mobile by window width
-  const [isMobile, setIsMobile] = useState(false);
+  const isMobile = useIsMobile();
   
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
       if (window.innerWidth < 768) {
         setCollapsed(true);
       }

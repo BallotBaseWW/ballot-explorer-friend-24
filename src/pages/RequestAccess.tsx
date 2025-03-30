@@ -5,13 +5,13 @@ import { Card } from "@/components/ui/card";
 
 export default function RequestAccess() {
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-4">
-      <div className="max-w-md w-full space-y-8">
+    <div className="min-h-[calc(100vh-3.5rem)] bg-background flex items-center justify-center px-4 py-6">
+      <div className="w-full max-w-md space-y-6">
         <LoginHeader 
           heading="Request Access" 
           text="Fill out the form below to request access to BallotBase."
         />
-        <Card className="p-6">
+        <Card className="p-4 md:p-6 shadow-lg">
           <RequestAccessForm />
         </Card>
       </div>

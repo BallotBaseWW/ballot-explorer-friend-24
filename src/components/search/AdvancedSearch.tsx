@@ -1,3 +1,4 @@
+
 import { FormField, FormItem, FormControl, FormLabel } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { UseFormReturn } from "react-hook-form";
@@ -7,12 +8,15 @@ import { PartyFilter } from "./filters/PartyFilter";
 import { DistrictFilter } from "./filters/DistrictFilter";
 import { VoterStatusFilter } from "./filters/VoterStatusFilter";
 import { Separator } from "@/components/ui/separator";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface AdvancedSearchProps {
   form: UseFormReturn<SearchFormValues>;
 }
 
 export const AdvancedSearch = ({ form }: AdvancedSearchProps) => {
+  const isMobile = useIsMobile();
+  
   return (
     <div className="space-y-6">
       <div className="space-y-4">
@@ -33,7 +37,7 @@ export const AdvancedSearch = ({ form }: AdvancedSearchProps) => {
 
       <div className="space-y-4">
         <h3 className="text-lg font-medium">Personal Information</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className={`grid grid-cols-1 ${isMobile ? '' : 'md:grid-cols-2 lg:grid-cols-3'} gap-4`}>
           <FormField
             control={form.control}
             name="last_name"
@@ -77,7 +81,7 @@ export const AdvancedSearch = ({ form }: AdvancedSearchProps) => {
 
       <div className="space-y-4">
         <h3 className="text-lg font-medium">Address</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className={`grid grid-cols-1 ${isMobile ? '' : 'md:grid-cols-2 lg:grid-cols-3'} gap-4`}>
           <FormField
             control={form.control}
             name="house"

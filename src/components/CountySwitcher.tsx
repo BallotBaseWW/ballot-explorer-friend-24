@@ -8,6 +8,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { County } from "./search/types";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const counties = [
   { id: "brooklyn", name: "Brooklyn" },
@@ -25,6 +26,7 @@ interface CountySwitcherProps {
 
 export const CountySwitcher = ({ currentCounty, county, setCounty }: CountySwitcherProps) => {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   
   const activeCounty = county || currentCounty;
 
@@ -46,7 +48,7 @@ export const CountySwitcher = ({ currentCounty, county, setCounty }: CountySwitc
 
   return (
     <Select defaultValue={activeCounty} onValueChange={handleCountyChange}>
-      <SelectTrigger className="w-[180px]">
+      <SelectTrigger className={isMobile ? "w-full" : "w-[180px]"}>
         <SelectValue placeholder={getCurrentCountyName()} />
       </SelectTrigger>
       <SelectContent>

@@ -1,3 +1,4 @@
+
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,12 +14,14 @@ import { SearchFormValues, County } from "./search/types";
 import { SearchResults } from "./search/SearchResults";
 import { useState } from "react";
 import { useSearch } from "./search/useSearch";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export const SearchInterface = ({ county }: { county: County }) => {
   const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
   const { searchResults, isLoading, performSearch } = useSearch(county);
   const [currentSearchQuery, setCurrentSearchQuery] = useState<any>(null);
   const [hasSearched, setHasSearched] = useState(false);
+  const isMobile = useIsMobile();
 
   console.log('SearchInterface - Current results:', searchResults?.length);
 
@@ -109,10 +112,16 @@ export const SearchInterface = ({ county }: { county: County }) => {
   return (
     <div className="w-full max-w-4xl mx-auto">
       <Form {...form}>
-        <div className="space-y-6">
-          <form onSubmit={handleBasicSearch} className="flex gap-4">
-            <BasicSearch form={form} />
-            <Button type="submit" className="h-12 px-6" disabled={isLoading}>
+        <div className="space-y-4">
+          <form onSubmit={handleBasicSearch} className={`flex ${isMobile ? 'flex-col' : 'flex-row'} gap-2`}>
+            <div className="flex-1">
+              <BasicSearch form={form} />
+            </div>
+            <Button 
+              type="submit" 
+              className={`${isMobile ? 'w-full mt-2' : 'h-12 px-6'}`} 
+              disabled={isLoading}
+            >
               <SearchIcon className="mr-2 h-4 w-4" />
               {isLoading ? "Searching..." : "Quick Search"}
             </Button>
@@ -140,7 +149,11 @@ export const SearchInterface = ({ county }: { county: County }) => {
               <form onSubmit={handleAdvancedSearch}>
                 <AdvancedSearch form={form} />
                 <div className="mt-6 flex justify-end">
-                  <Button type="submit" className="px-6" disabled={isLoading}>
+                  <Button 
+                    type="submit" 
+                    className={`${isMobile ? 'w-full' : 'px-6'}`} 
+                    disabled={isLoading}
+                  >
                     <SearchIcon className="mr-2 h-4 w-4" />
                     {isLoading ? "Searching..." : "Advanced Search"}
                   </Button>

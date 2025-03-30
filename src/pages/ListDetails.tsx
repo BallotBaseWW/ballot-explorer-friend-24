@@ -55,20 +55,21 @@ const ListDetails = () => {
   });
 
   return (
-    <div>
+    <div className="w-full p-4">
       <div className="mb-6">
         <Link to="/voter-lists">
           <Button 
             variant="outline" 
             className="mb-4"
+            size="sm"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Lists
           </Button>
         </Link>
-        <h2 className="text-2xl font-semibold text-foreground">{listDetails?.name}</h2>
+        <h2 className="text-xl md:text-2xl font-semibold text-foreground">{listDetails?.name}</h2>
         {listDetails?.description && (
-          <p className="text-muted-foreground mt-2">{listDetails.description}</p>
+          <p className="text-muted-foreground mt-2 text-sm md:text-base">{listDetails.description}</p>
         )}
       </div>
 

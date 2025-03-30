@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -73,5 +74,44 @@
 
   body {
     @apply bg-background text-foreground min-h-screen;
+  }
+  
+  /* Make sure content doesn't overflow on mobile */
+  .mobile-container {
+    @apply max-w-full overflow-x-hidden px-2;
+  }
+  
+  /* Adjust font sizes for mobile */
+  @media (max-width: 640px) {
+    h1 {
+      @apply text-2xl;
+    }
+    h2 {
+      @apply text-xl;
+    }
+    h3 {
+      @apply text-lg;
+    }
+    p, input, button {
+      @apply text-sm;
+    }
+  }
+  
+  /* Fix sidebar layout for mobile */
+  @media (max-width: 767px) {
+    .main-content {
+      @apply pt-14 px-2;
+    }
+  }
+}
+
+/* Better scrolling experience on mobile */
+@media (max-width: 640px) {
+  input, select, textarea {
+    @apply text-base;
+  }
+  
+  button {
+    @apply py-2;
   }
 }

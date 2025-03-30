@@ -7,10 +7,12 @@ import { PlusIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { CreateSurveyDialog } from "@/components/surveys/CreateSurveyDialog";
 import { useState } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Surveys = () => {
   const navigate = useNavigate();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const isMobile = useIsMobile();
 
   const { data: surveys, isLoading } = useQuery({
     queryKey: ["surveys"],
@@ -26,15 +28,18 @@ const Surveys = () => {
   });
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-8">
+    <div className="w-full p-4">
+      <div className={`flex ${isMobile ? 'flex-col' : 'flex-row'} justify-between items-start md:items-center gap-4 mb-6`}>
         <div>
-          <h1 className="text-3xl font-bold">Surveys</h1>
+          <h1 className="text-2xl md:text-3xl font-bold">Surveys</h1>
           <p className="text-muted-foreground">
             Create and manage voter surveys
           </p>
         </div>
-        <Button onClick={() => setShowCreateDialog(true)}>
+        <Button 
+          onClick={() => setShowCreateDialog(true)}
+          className="w-full md:w-auto mt-2 md:mt-0"
+        >
           <PlusIcon className="h-4 w-4 mr-2" />
           Create Survey
         </Button>
@@ -45,20 +50,20 @@ const Surveys = () => {
           <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
         </div>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
           {surveys?.map((survey) => (
             <Card
               key={survey.id}
-              className="p-6 cursor-pointer hover:shadow-lg transition-shadow"
+              className="p-4 md:p-6 cursor-pointer hover:shadow-lg transition-shadow"
               onClick={() => navigate(`/surveys/${survey.id}`)}
             >
-              <h3 className="text-xl font-semibold mb-2">{survey.title}</h3>
+              <h3 className="text-lg md:text-xl font-semibold mb-2">{survey.title}</h3>
               {survey.description && (
-                <p className="text-muted-foreground mb-4 line-clamp-2">
+                <p className="text-muted-foreground mb-4 line-clamp-2 text-sm">
                   {survey.description}
                 </p>
               )}
-              <div className="flex justify-between items-center text-sm text-muted-foreground">
+              <div className="flex justify-between items-center text-xs md:text-sm text-muted-foreground">
                 <span>
                   Created{" "}
                   {new Date(survey.created_at).toLocaleDateString()}
