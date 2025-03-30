@@ -1,3 +1,4 @@
+
 import { ExtractedSignature, ValidationResult } from "./types";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -80,24 +81,35 @@ function detectPetitionFormSignatures(
   const signatures: ExtractedSignature[] = [];
   const data = imageData.data;
   
-  const horizontalLines: number[] = findHorizontalLines(data, width, height);
+  // Detect table structure in the petition form
+  const tableInfo = detectTableStructure(data, width, height);
   
-  if (horizontalLines.length >= 2) {
-    for (let i = 0; i < horizontalLines.length - 1; i++) {
-      const rowTop = horizontalLines[i];
-      const rowBottom = horizontalLines[i + 1];
+  if (tableInfo.rows.length > 1) {
+    // We found a table structure, extract signatures from the rows
+    for (let i = 1; i < tableInfo.rows.length; i++) { // Skip header row
+      const rowTop = tableInfo.rows[i - 1];
+      const rowBottom = tableInfo.rows[i];
       const rowHeight = rowBottom - rowTop;
       
-      if (rowHeight < 30) continue;
+      if (rowHeight < 30) continue; // Skip rows that are too small
       
-      const signatureX = Math.floor(width * 0.3);
-      const signatureWidth = Math.floor(width * 0.2);
+      // Calculate positions for signature, name, and address fields based on table columns
+      const signatureColIdx = findSignatureColumn(tableInfo.columns);
+      const addressColIdx = findAddressColumn(tableInfo.columns);
+      
+      if (signatureColIdx === -1 || addressColIdx === -1) continue;
+      
+      // Determine signature field boundaries
+      const signatureX = tableInfo.columns[signatureColIdx];
+      const signatureWidth = tableInfo.columns[signatureColIdx + 1] - signatureX;
       const signatureY = rowTop + 5;
       const signatureHeight = Math.min(60, rowHeight - 10);
       
-      const addressX = Math.floor(width * 0.55);
-      const addressWidth = Math.floor(width * 0.25);
+      // Determine address field boundaries
+      const addressX = tableInfo.columns[addressColIdx];
+      const addressWidth = tableInfo.columns[addressColIdx + 1] - addressX;
       
+      // Analyze signature region to find the actual signature
       const signatureFound = analyzeRegionForSignature(
         data, 
         width, 
@@ -109,15 +121,21 @@ function detectPetitionFormSignatures(
       
       if (signatureFound) {
         const confidence = signatureFound.confidence;
+        
+        // Extract name and address from the respective columns
+        const nameY = signatureY + signatureHeight + 5;
+        const nameHeight = 30;
+        
         const extractedName = extractTextFromRegion(
           data, 
           width, 
           signatureX, 
-          signatureY + signatureHeight, 
+          nameY, 
           signatureWidth, 
-          30,
+          nameHeight,
           i
         );
+        
         const extractedAddress = extractTextFromRegion(
           data, 
           width, 
@@ -145,78 +163,70 @@ function detectPetitionFormSignatures(
       }
     }
   } else {
-    const rowHeight = height / 5;
+    // Fallback to scanning the page by sections
+    const signatureAreas = findSignatureAreas(data, width, height);
     
-    for (let row = 0; row < 5; row++) {
-      const yStart = Math.floor(row * rowHeight + height * 0.35);
-      const yEnd = Math.floor((row + 1) * rowHeight + height * 0.35);
+    for (let i = 0; i < signatureAreas.length; i++) {
+      const area = signatureAreas[i];
       
-      if (yEnd > height) break;
+      // Look for name text under the signature
+      const nameY = area.y + area.height + 5;
+      const extractedName = extractTextFromRegion(
+        data, 
+        width, 
+        area.x, 
+        nameY, 
+        area.width, 
+        30,
+        i
+      );
       
-      let darkPixelCount = 0;
-      let darkestRegionX = 0;
-      let darkestRegionY = 0;
-      let maxDarkness = 0;
+      // Look for address to the right of the signature
+      const addressX = area.x + area.width + 20;
+      const addressWidth = Math.min(width - addressX, 300);
+      const extractedAddress = extractTextFromRegion(
+        data, 
+        width, 
+        addressX, 
+        area.y, 
+        addressWidth, 
+        area.height,
+        i
+      );
       
-      for (let y = yStart; y < yEnd; y += 2) {
-        for (let x = Math.floor(width * 0.25); x < Math.floor(width * 0.45); x += 2) {
-          const idx = (y * width + x) * 4;
-          
-          const r = data[idx];
-          const g = data[idx + 1];
-          const b = data[idx + 2];
-          const brightness = (r * 0.299 + g * 0.587 + b * 0.114);
-          
-          if (brightness < 180) {
-            darkPixelCount++;
-            
-            if (brightness > maxDarkness) {
-              maxDarkness = brightness;
-              darkestRegionX = x;
-              darkestRegionY = y;
-            }
-          }
-        }
-      }
+      const signature: ExtractedSignature = {
+        name: extractedName || generatePetitionName(i),
+        address: extractedAddress || generatePetitionAddress(),
+        image_region: {
+          x: area.x,
+          y: area.y,
+          width: area.width,
+          height: area.height
+        },
+        page_number: pageNumber,
+        confidence: 0.85
+      };
       
-      if (darkPixelCount > 150) {
-        const signatureWidth = Math.floor(width * 0.2);
-        const signatureHeight = Math.floor(rowHeight * 0.3);
-        
-        const centerX = darkestRegionX;
-        const centerY = darkestRegionY;
-        
-        const x = Math.max(0, centerX - signatureWidth / 2);
-        const y = Math.max(0, centerY - signatureHeight / 2);
-        
-        const confidence = Math.min(0.98, 0.7 + (darkPixelCount / 6000));
-        
-        const signature: ExtractedSignature = {
-          name: generatePetitionName(row), 
-          address: generatePetitionAddress(),
-          image_region: {
-            x,
-            y,
-            width: signatureWidth,
-            height: signatureHeight
-          },
-          page_number: pageNumber,
-          confidence
-        };
-        
-        signatures.push(signature);
-      }
+      signatures.push(signature);
     }
   }
   
   return signatures;
 }
 
-function findHorizontalLines(data: Uint8ClampedArray, width: number, height: number): number[] {
-  const lines: number[] = [];
-  const threshold = 0.5;
+interface TableStructure {
+  rows: number[];
+  columns: number[];
+}
+
+function detectTableStructure(data: Uint8ClampedArray, width: number, height: number): TableStructure {
+  const rows: number[] = [];
+  const columns: number[] = [];
+  const horizontalLineThreshold = 0.5;
+  const verticalLineThreshold = 0.5;
   
-  for (let y = Math.floor(height * 0.33); y < height - 1; y++) {
+  // Find horizontal lines (table rows)
+  for (let y = Math.floor(height * 0.2); y < height - 1; y++) {
     let darkPixelCount = 0;
     
     for (let x = 0; x < width; x += 2) {
@@ -227,19 +237,113 @@ function findHorizontalLines(data: Uint8ClampedArray, width: number, height: num
       const b = data[idx + 2];
       const brightness = (r * 0.299 + g * 0.587 + b * 0.114);
       
-      if (brightness < 200) {
+      if (brightness < 180) {
         darkPixelCount++;
       }
     }
     
     const darkRatio = darkPixelCount / (width / 2);
-    if (darkRatio > threshold) {
-      lines.push(y);
-      y += 5;
+    if (darkRatio > horizontalLineThreshold) {
+      rows.push(y);
+      y += 5; // Skip a few pixels to avoid detecting the same line multiple times
     }
   }
   
-  return lines;
+  // Find vertical lines (table columns)
+  for (let x = 0; x < width; x += 5) {
+    let darkPixelCount = 0;
+    const sampleHeight = height * 0.5; // Sample only middle part of the page
+    const startY = height * 0.25;
+    
+    for (let y = startY; y < startY + sampleHeight; y += 2) {
+      const idx = (y * width + x) * 4;
+      
+      const r = data[idx];
+      const g = data[idx + 1];
+      const b = data[idx + 2];
+      const brightness = (r * 0.299 + g * 0.587 + b * 0.114);
+      
+      if (brightness < 180) {
+        darkPixelCount++;
+      }
+    }
+    
+    const darkRatio = darkPixelCount / (sampleHeight / 2);
+    if (darkRatio > verticalLineThreshold) {
+      columns.push(x);
+      x += 15; // Skip a few pixels
+    }
+  }
+  
+  return { rows, columns };
+}
+
+function findSignatureColumn(columns: number[]): number {
+  if (columns.length < 3) return -1;
+  
+  // In standard petition forms, signature is typically in the second column
+  return 1;
+}
+
+function findAddressColumn(columns: number[]): number {
+  if (columns.length < 4) return -1;
+  
+  // In standard petition forms, address is typically in the third column
+  return 2;
+}
+
+function findSignatureAreas(data: Uint8ClampedArray, width: number, height: number): Array<{x: number, y: number, width: number, height: number}> {
+  const areas: Array<{x: number, y: number, width: number, height: number}> = [];
+  
+  // Scan the middle section of the form where signatures would typically be
+  const startY = Math.floor(height * 0.3);
+  const endY = Math.floor(height * 0.8);
+  const startX = Math.floor(width * 0.2);
+  const endX = Math.floor(width * 0.5);
+  
+  // Define typical signature row pattern (using the image as reference)
+  const rowHeight = Math.floor((endY - startY) / 5); // Assume 5 signature rows
+  
+  for (let i = 0; i < 5; i++) {
+    const y = startY + i * rowHeight;
+    
+    // Check if this row contains dark pixels that could be a signature
+    let hasDarkPixels = false;
+    let minX = width;
+    let maxX = 0;
+    let minY = height;
+    let maxY = 0;
+    
+    for (let scanY = y; scanY < y + rowHeight * 0.7; scanY++) {
+      for (let scanX = startX; scanX < endX; scanX++) {
+        const idx = (scanY * width + scanX) * 4;
+        
+        const r = data[idx];
+        const g = data[idx + 1];
+        const b = data[idx + 2];
+        const brightness = (r * 0.299 + g * 0.587 + b * 0.114);
+        
+        if (brightness < 150) {
+          hasDarkPixels = true;
+          minX = Math.min(minX, scanX);
+          maxX = Math.max(maxX, scanX);
+          minY = Math.min(minY, scanY);
+          maxY = Math.max(maxY, scanY);
+        }
+      }
+    }
+    
+    if (hasDarkPixels && (maxX - minX > 20) && (maxY - minY > 8)) {
+      areas.push({
+        x: minX,
+        y: minY,
+        width: maxX - minX,
+        height: maxY - minY
+      });
+    }
+  }
+  
+  return areas;
 }
 
 function analyzeRegionForSignature(
@@ -265,7 +369,7 @@ function analyzeRegionForSignature(
       const b = data[idx + 2];
       const brightness = (r * 0.299 + g * 0.587 + b * 0.114);
       
-      if (brightness < 180) {
+      if (brightness < 150) { // Lower threshold to catch more signature strokes
         darkPixelCount++;
         
         minX = Math.min(minX, x);
@@ -279,7 +383,7 @@ function analyzeRegionForSignature(
   const totalPixels = regionWidth * regionHeight;
   const darkness = darkPixelCount / totalPixels;
   
-  if (darkPixelCount > 50 && (maxX - minX) > 20 && (maxY - minY) > 8) {
+  if (darkPixelCount > 30 && (maxX - minX) > 20 && (maxY - minY) > 8) {
     const confidence = Math.min(0.98, 0.7 + darkness * 2);
     
     const x = Math.max(regionX, minX - 5);

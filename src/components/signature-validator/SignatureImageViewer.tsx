@@ -1,8 +1,9 @@
 
 import { useState, useRef, useEffect } from "react";
 import { SignatureValidation } from "./types";
-import { CheckCircle, AlertCircle, HelpCircle } from "lucide-react";
+import { CheckCircle, AlertCircle, HelpCircle, ZoomIn, ZoomOut } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 interface SignatureImageViewerProps {
   imageUrl: string;
@@ -22,6 +23,7 @@ export function SignatureImageViewer({
   const [highlightedSignature, setHighlightedSignature] = useState<SignatureValidation | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
+  const [zoomLevel, setZoomLevel] = useState(1);
 
   useEffect(() => {
     if (isLoaded && containerRef.current && imageRef.current) {
@@ -47,7 +49,7 @@ export function SignatureImageViewer({
     }
   };
 
-  const getStatusIcon = (status: string, size = 16) => {
+  const getStatusIcon = (status: string) => {
     switch (status) {
       case "valid":
         return <CheckCircle className="h-4 w-4 text-green-500" />;
@@ -69,53 +71,90 @@ export function SignatureImageViewer({
     }
   };
 
+  const handleZoomIn = () => {
+    if (zoomLevel < 2) {
+      setZoomLevel(prevZoom => prevZoom + 0.25);
+    }
+  };
+
+  const handleZoomOut = () => {
+    if (zoomLevel > 0.5) {
+      setZoomLevel(prevZoom => prevZoom - 0.25);
+    }
+  };
+
   return (
     <div className="space-y-4">
-      <div className="relative border rounded-md overflow-hidden" ref={containerRef}>
-        <img 
-          ref={imageRef}
-          src={imageUrl} 
-          alt="Petition Document" 
-          className="w-full h-auto"
-          onLoad={handleImageLoad}
-        />
-        
-        {isLoaded && signatures.map((sig) => (
-          sig.image_region && (
-            <div
-              key={sig.id}
-              className={`absolute cursor-pointer border-2 transition-all ${
-                selectedSignatureId === sig.id 
-                  ? 'border-blue-500 shadow-lg' 
-                  : `border-${getStatusColor(sig.status)}-500 border-opacity-70`
-              }`}
-              style={{
-                left: `${sig.image_region.x * scale}px`,
-                top: `${sig.image_region.y * scale}px`,
-                width: `${sig.image_region.width * scale}px`,
-                height: `${sig.image_region.height * scale}px`,
-                backgroundColor: `${getStatusColor(sig.status)}`,
-                opacity: highlightedSignature === sig || selectedSignatureId === sig.id ? 0.35 : 0.15,
-              }}
-              onClick={() => onSignatureClick && onSignatureClick(sig)}
-              onMouseEnter={() => setHighlightedSignature(sig)}
-              onMouseLeave={() => setHighlightedSignature(null)}
-            >
-              <div 
-                className="absolute -top-6 left-0 transform -translate-y-2 whitespace-nowrap"
-                style={{ display: highlightedSignature === sig || selectedSignatureId === sig.id ? 'block' : 'none' }}
+      <div className="flex justify-end space-x-2 mb-2">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={handleZoomOut}
+          disabled={zoomLevel <= 0.5}
+        >
+          <ZoomOut className="h-4 w-4" />
+        </Button>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={handleZoomIn}
+          disabled={zoomLevel >= 2}
+        >
+          <ZoomIn className="h-4 w-4" />
+        </Button>
+      </div>
+      
+      <div 
+        className="relative border rounded-md overflow-auto max-h-[500px]" 
+        ref={containerRef}
+        style={{ maxWidth: '100%' }}
+      >
+        <div style={{ transform: `scale(${zoomLevel})`, transformOrigin: 'top left' }}>
+          <img 
+            ref={imageRef}
+            src={imageUrl} 
+            alt="Petition Document" 
+            className="w-full h-auto"
+            onLoad={handleImageLoad}
+          />
+          
+          {isLoaded && signatures.map((sig) => (
+            sig.image_region && (
+              <div
+                key={sig.id}
+                className={`absolute cursor-pointer border-2 transition-all ${
+                  selectedSignatureId === sig.id 
+                    ? 'border-blue-500 shadow-lg' 
+                    : `border-${getStatusColor(sig.status)}-500 border-opacity-70`
+                }`}
+                style={{
+                  left: `${sig.image_region.x * scale}px`,
+                  top: `${sig.image_region.y * scale}px`,
+                  width: `${sig.image_region.width * scale}px`,
+                  height: `${sig.image_region.height * scale}px`,
+                  backgroundColor: `${getStatusColor(sig.status)}`,
+                  opacity: highlightedSignature === sig || selectedSignatureId === sig.id ? 0.35 : 0.15,
+                }}
+                onClick={() => onSignatureClick && onSignatureClick(sig)}
+                onMouseEnter={() => setHighlightedSignature(sig)}
+                onMouseLeave={() => setHighlightedSignature(null)}
               >
-                <Badge 
-                  variant={getStatusBadgeVariant(sig.status)}
-                  className="flex items-center gap-1 text-xs"
+                <div 
+                  className="absolute -top-6 left-0 transform -translate-y-2 whitespace-nowrap z-10"
+                  style={{ display: highlightedSignature === sig || selectedSignatureId === sig.id ? 'block' : 'none' }}
                 >
-                  {getStatusIcon(sig.status)}
-                  {sig.name}
-                </Badge>
+                  <Badge 
+                    variant={getStatusBadgeVariant(sig.status)}
+                    className="flex items-center gap-1 text-xs"
+                  >
+                    {getStatusIcon(sig.status)}
+                    {sig.name}
+                  </Badge>
+                </div>
               </div>
-            </div>
-          )
-        ))}
+            )
+          ))}
+        </div>
       </div>
       
       {highlightedSignature && (
