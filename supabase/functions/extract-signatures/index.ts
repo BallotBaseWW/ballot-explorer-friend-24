@@ -40,25 +40,33 @@ serve(async (req) => {
     const arrayBuffer = await file.arrayBuffer();
     const bytes = new Uint8Array(arrayBuffer);
     
-    // Prepare the prompt for OpenAI
-    const prompt = `This is a petition page with signatures. Please extract all signatures visible in this image.
+    // Prepare the prompt for OpenAI with more detailed instructions
+    const prompt = `This is a petition page with signatures. Please extract all signatures visible in this document with high accuracy.
 
-For each signature:
-1. Extract the full name of the signer
-2. Extract the complete address
-3. Determine the coordinates (approximate x, y, width, height) of the signature box
+For each signature you find:
+1. Extract the FULL NAME of the signer exactly as written
+2. Extract the COMPLETE ADDRESS including apartment numbers, street, city, state, and ZIP
+3. Determine the coordinates (x, y, width, height) of the signature box
 
-Return the data in a structured JSON format like this:
+Important guidelines:
+- If a signature or address is partially illegible, extract as much as you can clearly read
+- Make sure names include first and last names when visible
+- Include apartment/unit numbers in addresses when present
+- If address includes borough information (Staten Island, Brooklyn, etc.), be sure to include it
+- If you see a street address with a number, always include the house/building number
+- For ZIP codes, include all 5 digits when visible
+
+Return the data in the following JSON format:
 {
   "signatures": [
     {
-      "name": "John Smith",
-      "address": "123 Main St, Staten Island, NY 10314",
+      "name": "Full Name",
+      "address": "Complete Address with Street, City, State, ZIP",
       "image_region": {
-        "x": 150,
-        "y": 200,
-        "width": 200,
-        "height": 50
+        "x": [x-coordinate],
+        "y": [y-coordinate],
+        "width": [width],
+        "height": [height]
       }
     }
   ]
@@ -78,7 +86,7 @@ Return the data in a structured JSON format like this:
     const safeBase64 = btoa(base64String);
     console.log(`Base64 encoding complete. Length: ${safeBase64.length}`);
     
-    // Call OpenAI API
+    // Call OpenAI API with enhanced system prompt
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -90,7 +98,7 @@ Return the data in a structured JSON format like this:
         messages: [
           {
             role: "system",
-            content: "You are an AI assistant specialized in extracting signature information from petition pages. Your task is to identify signatures, extract names and addresses, and provide their coordinates on the image. Always respond with properly formatted JSON."
+            content: "You are an AI assistant specialized in extracting signature information from petition pages with extreme accuracy and thoroughness. Your task is to carefully identify signatures, extract names and addresses completely and accurately, and provide their precise coordinates on the image. Always perform multiple verification passes to ensure accuracy. Always respond with properly formatted JSON matching the requested structure exactly."
           },
           {
             role: "user",
@@ -107,6 +115,7 @@ Return the data in a structured JSON format like this:
           }
         ],
         max_tokens: 2000,
+        temperature: 0.2, // Lower temperature for more consistent, accurate results
         response_format: { type: "json_object" }
       }),
     });
@@ -173,11 +182,15 @@ Return the data in a structured JSON format like this:
       };
     }
     
-    // Add page number to each signature
+    // Add page number and confidence scores to each signature
     const signatures = extractedData.signatures || [];
     signatures.forEach(sig => {
       sig.page_number = parseInt(pageNumber.toString());
-      sig.confidence = 0.95; // High confidence since it's AI-extracted
+      // Default high confidence, but we can adjust this later based on AI uncertainty language
+      sig.confidence = content.toLowerCase().includes(`uncertain`) || 
+                       content.toLowerCase().includes(`unclear`) || 
+                       content.toLowerCase().includes(`difficult to read`) ? 
+                       0.7 : 0.95;
     });
 
     // Final response with proper headers
