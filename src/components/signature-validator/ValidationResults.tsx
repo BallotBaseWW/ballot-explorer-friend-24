@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/table";
 import { SignatureValidation, ValidationResultStats } from "./types";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 
 interface ValidationResultsProps {
   signatures: SignatureValidation[];
@@ -52,6 +53,7 @@ export function ValidationResults({
             <TableRow>
               <TableHead>Name</TableHead>
               <TableHead>Address</TableHead>
+              <TableHead className="w-28">Confidence</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Details</TableHead>
             </TableRow>
@@ -70,6 +72,14 @@ export function ValidationResults({
                   )}
                 </TableCell>
                 <TableCell>{sig.address}</TableCell>
+                <TableCell>
+                  {sig.confidence !== undefined && (
+                    <div className="flex flex-col gap-1">
+                      <div className="text-xs text-muted-foreground">{Math.round(sig.confidence * 100)}%</div>
+                      <Progress value={sig.confidence * 100} className="h-2" />
+                    </div>
+                  )}
+                </TableCell>
                 <TableCell>
                   {sig.status === "valid" && (
                     <Badge variant="success" className="flex items-center gap-1">
