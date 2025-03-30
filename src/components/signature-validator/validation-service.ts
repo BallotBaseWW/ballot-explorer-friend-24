@@ -29,6 +29,8 @@ export async function extractSignaturesFromFiles(files: File[]): Promise<Extract
       });
       
       try {
+        console.log(`Calling edge function for page ${pageNumber}...`);
+        
         // Call the edge function
         const { data, error } = await supabase.functions.invoke('extract-signatures', {
           body: formData,
@@ -45,9 +47,14 @@ export async function extractSignaturesFromFiles(files: File[]): Promise<Extract
         console.log('Edge function response:', data);
         
         if (data && data.signatures && Array.isArray(data.signatures)) {
+          // Add signatures to the collection
           extractedSignatures.push(...data.signatures);
+          console.log(`Added ${data.signatures.length} signatures from page ${pageNumber}`);
         } else {
           console.warn('Unexpected response format from extract-signatures:', data);
+          toast.warning(`No signatures found on page ${pageNumber}`, {
+            description: "The AI couldn't detect any valid signatures on this page"
+          });
         }
       } catch (err) {
         console.error('Exception calling extract-signatures:', err);
@@ -277,11 +284,24 @@ export async function processUploadedFiles(
   district: string = "AD-73"
 ): Promise<ValidationResult> {
   try {
+    if (!files || files.length === 0) {
+      toast.warning("No files selected", {
+        description: "Please upload at least one petition page to validate"
+      });
+      
+      return {
+        signatures: [],
+        stats: { total: 0, valid: 0, invalid: 0, uncertain: 0 }
+      };
+    }
+    
+    console.log(`Processing ${files.length} files for district ${district}`);
     toast.info("Processing petition files...", {
       description: "Extracting signatures from the uploaded documents"
     });
     
     const extractedSignatures = await extractSignaturesFromFiles(files);
+    console.log(`Extracted ${extractedSignatures.length} signatures total`);
     
     if (extractedSignatures.length === 0) {
       toast.warning("No signatures detected", {

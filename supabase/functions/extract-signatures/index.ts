@@ -57,7 +57,8 @@ Return the data in a structured JSON format like this:
   ]
 }`;
 
-    // Call OpenAI API
+    // Call OpenAI API with a smaller payload and timeout
+    console.log('Calling OpenAI API...');
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -86,30 +87,44 @@ Return the data in a structured JSON format like this:
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      console.error('OpenAI API error:', errorData);
-      throw new Error(`OpenAI API error: ${errorData.error?.message || 'Unknown error'}`);
+      const errorText = await response.text();
+      console.error('OpenAI API error:', errorText);
+      let errorMessage = 'Unknown OpenAI API error';
+      
+      try {
+        const errorData = JSON.parse(errorText);
+        errorMessage = errorData.error?.message || errorMessage;
+      } catch (e) {
+        // If parsing fails, use the raw error text
+        errorMessage = errorText;
+      }
+      
+      throw new Error(`OpenAI API error: ${errorMessage}`);
     }
 
     const data = await response.json();
-    console.log('OpenAI response:', data);
+    console.log('OpenAI response received');
     
     // Extract the JSON from the response text
     const content = data.choices[0].message.content;
     
     let extractedData;
     try {
-      // Find JSON in the text (in case the model wraps it in explanation text)
-      const jsonMatch = content.match(/```json\n([\s\S]*)\n```/) || 
-                         content.match(/{[\s\S]*}/);
-                       
-      const jsonString = jsonMatch ? jsonMatch[1] || jsonMatch[0] : content;
-      extractedData = JSON.parse(jsonString);
+      // Try different patterns to find JSON in the text
+      const jsonMatch = content.match(/```json\n([\s\S]*?)\n```/) || 
+                       content.match(/```\n([\s\S]*?)\n```/) ||
+                       content.match(/{[\s\S]*}/);
+                     
+      const jsonString = jsonMatch ? (jsonMatch[1] || jsonMatch[0]) : content;
+      
+      console.log('Trying to parse JSON:', jsonString.substring(0, 100) + '...');
+      extractedData = JSON.parse(jsonString.trim());
+      console.log('JSON parsed successfully');
     } catch (e) {
       console.error('Error parsing JSON from OpenAI response:', e);
-      console.log('Raw content:', content);
+      console.log('Raw content from OpenAI:', content);
       
-      // Fallback: create a basic structure if parsing fails
+      // Fallback: create a basic structure with empty signatures array
       extractedData = { 
         signatures: [] 
       };
@@ -122,6 +137,8 @@ Return the data in a structured JSON format like this:
       sig.confidence = 0.95; // High confidence since it's AI-extracted
     });
 
+    // Final response with proper headers
+    console.log(`Returning ${signatures.length} signatures`);
     return new Response(
       JSON.stringify(extractedData),
       { 
