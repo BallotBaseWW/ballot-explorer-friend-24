@@ -1,16 +1,15 @@
 
 import { CountySelector } from "@/components/CountySelector";
 import { SiteUpdates } from "@/components/SiteUpdates";
-import { AppSidebar } from "@/components/AppSidebar";
 import { AuthContainer } from "@/components/auth/AuthContainer";
-import { useQuery } from "@tanstack/react-query";
+import { AppSidebar } from "@/components/AppSidebar";
 
 const Index = () => {
   return (
     <AuthContainer>
       <div className="flex min-h-screen bg-background">
         <AppSidebar />
-        <main className="flex-1 ml-16 md:ml-64">
+        <main className="flex-1 ml-16 md:ml-16">
           <div className="max-w-7xl mx-auto px-4 py-8">
             <div className="text-center mb-12 pt-12">
               <h1 className="text-4xl md:text-6xl font-bold mb-4">

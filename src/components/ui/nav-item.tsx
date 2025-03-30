@@ -23,6 +23,7 @@ export function NavItem({ to, icon, children, className, active }: NavItemProps)
         isActive ? "bg-accent text-accent-foreground" : "text-muted-foreground",
         className
       )}
+      title={children?.toString()}
     >
       {icon && <div className="w-4 h-4">{icon}</div>}
       {children && <span className="truncate">{children}</span>}

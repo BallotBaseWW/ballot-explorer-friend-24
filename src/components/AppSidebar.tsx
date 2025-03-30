@@ -77,22 +77,31 @@ export function AppSidebar() {
     >
       <div className="flex flex-col h-full">
         <div className="flex items-center justify-between p-4 border-b">
-          {!collapsed && (
-            <Link to="/" className="flex items-center">
-              <h1 className="font-bold text-xl">
-                <span className="bg-gradient-to-r from-[#33C3F0] via-[#8E77B5] to-[#ea384c] bg-clip-text text-transparent">
-                  BallotBase
-                </span>
-              </h1>
-            </Link>
-          )}
+          <Link to="/" className={cn("flex items-center", collapsed ? "justify-center w-full" : "")}>
+            <h1 className={cn("font-bold", collapsed ? "text-lg" : "text-xl")}>
+              <span className="bg-gradient-to-r from-[#33C3F0] via-[#8E77B5] to-[#ea384c] bg-clip-text text-transparent">
+                {collapsed ? "BB" : "BallotBase"}
+              </span>
+            </h1>
+          </Link>
           
           <CollapsibleTrigger asChild>
-            <Button variant="ghost" size="sm" className="ml-auto">
-              {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+            <Button variant="ghost" size="sm" className={cn("", collapsed ? "hidden" : "ml-auto")}>
+              <ChevronLeft className="h-4 w-4" />
             </Button>
           </CollapsibleTrigger>
         </div>
+
+        {collapsed && (
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => setCollapsed(false)}
+            className="mt-2 mx-auto"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        )}
 
         <CollapsibleContent 
           forceMount 
