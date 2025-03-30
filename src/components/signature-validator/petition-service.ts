@@ -13,7 +13,7 @@ export async function savePetitionPage(request: SavePetitionRequest): Promise<st
     // Check if petition already exists
     const { data: existingPetitions, error: findError } = await supabase
       .from('petitions')
-      .select('id, total_pages, valid_signatures, invalid_signatures, uncertain_signatures, total_signatures')
+      .select('id, total_pages, valid_signatures, invalid_signatures, uncertain_signatures, total_signatures, completed_pages')
       .eq('name', petitionName)
       .maybeSingle();
     
@@ -74,7 +74,7 @@ export async function savePetitionPage(request: SavePetitionRequest): Promise<st
             uncertain_signatures: existingPetitions.uncertain_signatures + stats.uncertain,
             total_signatures: existingPetitions.total_signatures + stats.total,
             total_pages: existingPetitions.total_pages + 1,
-            completed_pages: existingPetitions.completed_pages + 1,
+            completed_pages: (existingPetitions.completed_pages || 0) + 1, // Add null check here
             updated_at: new Date().toISOString()
           })
           .eq('id', petitionId);
@@ -264,7 +264,7 @@ export async function getPetitionSignatures(petitionId: string, page?: number): 
         last_name: ''
       } : undefined,
       page_number: record.page_number,
-      image_region: record.image_region ? JSON.parse(record.image_region) : undefined
+      image_region: record.image_region ? JSON.parse(record.image_region as string) : undefined
     }));
   } catch (error) {
     console.error("Error in getPetitionSignatures:", error);
