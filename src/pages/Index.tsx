@@ -1,3 +1,4 @@
+
 import { CountySelector } from "@/components/CountySelector";
 import { Header } from "@/components/Header";
 import { AuthContainer } from "@/components/auth/AuthContainer";
@@ -9,7 +10,7 @@ const Index = () => {
   return (
     <AuthContainer>
       <SidebarProvider>
-        <div className="min-h-screen bg-background flex w-full">
+        <div className="flex min-h-screen bg-background w-full">
           <AppSidebar />
           <div className="flex-1">
             <Header />

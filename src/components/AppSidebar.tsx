@@ -39,15 +39,21 @@ export function AppSidebar() {
 
   return (
     <div
-      className={`flex flex-col h-full bg-gray-50 border-r shadow-sm`}
+      className={`flex flex-col h-screen bg-gray-50 border-r shadow-sm ${
+        collapsed ? "w-16" : "w-64"
+      }`}
     >
       <div className="flex-1 flex flex-col space-y-1">
         <Link to="/" className="flex-1">
           <div className="px-3 py-2 flex items-center justify-center">
-            <h1 className="font-bold text-xl">NYVotes</h1>
+            <h1 className="font-bold text-xl">
+              <span className="bg-gradient-to-r from-[#33C3F0] via-[#8E77B5] to-[#ea384c] bg-clip-text text-transparent">
+                BallotBase
+              </span>
+            </h1>
           </div>
         </Link>
-        <nav className="flex flex-col space-y-1">
+        <nav className="flex flex-col space-y-1 p-2">
           <NavItem icon={<LayoutDashboard />} to="/">
             Dashboard
           </NavItem>
@@ -57,8 +63,12 @@ export function AppSidebar() {
           <NavItem icon={<ListPlus />} to="/voter-lists">
             Voter Lists
           </NavItem>
-          <NavItem icon={<FileSignature />} to="/signature-validator">Signature Validator</NavItem>
-          <NavItem icon={<ClipboardList />} to="/petitions">My Petitions</NavItem>
+          <NavItem icon={<FileSignature />} to="/signature-validator">
+            Signature Validator
+          </NavItem>
+          <NavItem icon={<ClipboardList />} to="/petitions">
+            My Petitions
+          </NavItem>
           <NavItem icon={<ListChecks />} to="/surveys">
             Surveys
           </NavItem>

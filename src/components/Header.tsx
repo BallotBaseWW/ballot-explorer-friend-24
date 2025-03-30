@@ -1,3 +1,4 @@
+
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
@@ -79,8 +80,8 @@ export const Header = () => {
 
   const navigationItems = [
     { icon: Home, label: "Home", path: "/" },
-    { icon: Search, label: "Search", path: "/search", disabled: true },
-    { icon: ListTodo, label: "Lists", path: "/lists" },
+    { icon: Search, label: "Search", path: "/search" },
+    { icon: ListTodo, label: "Lists", path: "/voter-lists" },
     { icon: ClipboardList, label: "Surveys", path: "/surveys" },
     { icon: ScanText, label: "Signature Validator", path: "/signature-validator" },
     { icon: FileText, label: "Resources", path: "/resources" },
@@ -110,7 +111,6 @@ export const Header = () => {
               variant="ghost"
               size="sm"
               onClick={handleNavigate(item.path)}
-              disabled={item.disabled}
               className="flex items-center gap-2"
             >
               <item.icon className="h-4 w-4" />
@@ -154,7 +154,6 @@ export const Header = () => {
                     <DropdownMenuItem
                       key={item.path}
                       onClick={handleNavigate(item.path)}
-                      disabled={item.disabled}
                       className="cursor-pointer"
                     >
                       <item.icon className="mr-2 h-4 w-4" />
