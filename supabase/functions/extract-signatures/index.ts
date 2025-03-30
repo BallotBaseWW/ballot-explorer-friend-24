@@ -28,10 +28,17 @@ serve(async (req) => {
       throw new Error('No file provided or invalid file');
     }
 
+    console.log(`Processing file: ${file.name}, size: ${file.size} bytes, type: ${file.type}`);
+
+    // Check file size
+    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+    if (file.size > MAX_FILE_SIZE) {
+      throw new Error(`File size exceeds maximum allowed (10MB)`);
+    }
+
     // Convert the file to base64
     const arrayBuffer = await file.arrayBuffer();
     const bytes = new Uint8Array(arrayBuffer);
-    const base64Image = btoa(String.fromCharCode.apply(null, bytes.slice(0, 8000))); // Limit size to avoid stack issues
     
     // Prepare the prompt for OpenAI
     const prompt = `This is a petition page with signatures. Please extract all signatures visible in this image.
@@ -61,10 +68,15 @@ Return the data in a structured JSON format like this:
     
     // Safe conversion of Uint8Array to base64 to avoid stack issues
     let base64String = '';
-    for (let i = 0; i < bytes.length; i++) {
-      base64String += String.fromCharCode(bytes[i]);
+    const CHUNK_SIZE = 1024; // Process in smaller chunks to avoid stack overflow
+    
+    for (let i = 0; i < bytes.length; i += CHUNK_SIZE) {
+      const chunk = bytes.slice(i, Math.min(i + CHUNK_SIZE, bytes.length));
+      base64String += String.fromCharCode.apply(null, chunk);
     }
+    
     const safeBase64 = btoa(base64String);
+    console.log(`Base64 encoding complete. Length: ${safeBase64.length}`);
     
     // Call OpenAI API
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -77,13 +89,17 @@ Return the data in a structured JSON format like this:
         model: "gpt-4o",
         messages: [
           {
+            role: "system",
+            content: "You are an AI assistant specialized in extracting signature information from petition pages. Your task is to identify signatures, extract names and addresses, and provide their coordinates on the image. Always respond with properly formatted JSON."
+          },
+          {
             role: "user",
             content: [
               { type: "text", text: prompt },
               {
                 type: "image_url",
                 image_url: {
-                  url: `data:image/jpeg;base64,${safeBase64}`,
+                  url: `data:${file.type};base64,${safeBase64}`,
                   detail: "high"
                 }
               }
@@ -91,6 +107,7 @@ Return the data in a structured JSON format like this:
           }
         ],
         max_tokens: 2000,
+        response_format: { type: "json_object" }
       }),
     });
 
@@ -114,23 +131,41 @@ Return the data in a structured JSON format like this:
     console.log('OpenAI response received');
     
     // Extract the JSON from the response text
-    const content = data.choices[0].message.content;
+    let content = data.choices[0].message.content;
+    console.log('Raw content from OpenAI:', content);
     
     let extractedData;
     try {
-      // Try different patterns to find JSON in the text
-      const jsonMatch = content.match(/```json\n([\s\S]*?)\n```/) || 
-                       content.match(/```\n([\s\S]*?)\n```/) ||
-                       content.match(/{[\s\S]*}/);
-                     
-      const jsonString = jsonMatch ? (jsonMatch[1] || jsonMatch[0]) : content;
-      
-      console.log('Trying to parse JSON:', jsonString.substring(0, 100) + '...');
-      extractedData = JSON.parse(jsonString.trim());
+      // With response_format: { type: "json_object" }, the response should already be JSON
+      if (typeof content === 'string') {
+        extractedData = JSON.parse(content);
+      } else {
+        extractedData = content;
+      }
       console.log('JSON parsed successfully');
     } catch (e) {
       console.error('Error parsing JSON from OpenAI response:', e);
-      console.log('Raw content from OpenAI:', content);
+      
+      // Return a specific error to the client
+      if (content.includes("unable to extract") || 
+          content.includes("I'm unable") || 
+          content.includes("cannot provide")) {
+        // AI refused to process the document
+        return new Response(
+          JSON.stringify({ 
+            error: "AI could not extract signatures from this document", 
+            details: "The image might not contain clear signatures or the AI couldn't recognize them.",
+            signatures: []
+          }),
+          { 
+            status: 422, 
+            headers: { 
+              ...corsHeaders, 
+              'Content-Type': 'application/json' 
+            } 
+          }
+        );
+      }
       
       // Fallback: create a basic structure with empty signatures array
       extractedData = { 
@@ -159,7 +194,10 @@ Return the data in a structured JSON format like this:
   } catch (error) {
     console.error('Error:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message,
+        signatures: [] 
+      }),
       { 
         status: 500, 
         headers: { 

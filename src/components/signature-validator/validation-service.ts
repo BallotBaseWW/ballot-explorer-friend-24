@@ -39,17 +39,38 @@ export async function extractSignaturesFromFiles(files: File[]): Promise<Extract
         if (error) {
           console.error('Error calling extract-signatures:', error);
           toast.error(`Error processing page ${pageNumber}`, {
-            description: error.message
+            description: error.message || "Unknown error occurred"
           });
           continue;
         }
         
         console.log('Edge function response:', data);
         
+        // Check if there's an error message in the data
+        if (data && data.error) {
+          console.warn('Error from extract-signatures:', data.error);
+          toast.error(`Error analyzing page ${pageNumber}`, {
+            description: data.error
+          });
+          
+          if (data.details) {
+            toast.info(`Additional info`, {
+              description: data.details
+            });
+          }
+          continue;
+        }
+        
         if (data && data.signatures && Array.isArray(data.signatures)) {
           // Add signatures to the collection
           extractedSignatures.push(...data.signatures);
           console.log(`Added ${data.signatures.length} signatures from page ${pageNumber}`);
+          
+          if (data.signatures.length === 0) {
+            toast.warning(`No signatures found on page ${pageNumber}`, {
+              description: "The AI couldn't detect any valid signatures on this page"
+            });
+          }
         } else {
           console.warn('Unexpected response format from extract-signatures:', data);
           toast.warning(`No signatures found on page ${pageNumber}`, {
@@ -66,7 +87,7 @@ export async function extractSignaturesFromFiles(files: File[]): Promise<Extract
     
     if (extractedSignatures.length === 0) {
       toast.error("No signatures detected", {
-        description: "The AI couldn't detect any signatures in the uploaded documents"
+        description: "The AI couldn't detect any signatures in the uploaded documents. Try uploading clearer images or documents with visible signatures."
       });
     } else {
       toast.success(`Detected ${extractedSignatures.length} signatures`, {

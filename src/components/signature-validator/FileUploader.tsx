@@ -1,8 +1,9 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Upload, FileCheck } from "lucide-react";
+import { Upload, FileCheck, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface FileUploaderProps {
   onFilesSelected: (files: File[]) => void;
@@ -10,9 +11,11 @@ interface FileUploaderProps {
 
 export function FileUploader({ onFilesSelected }: FileUploaderProps) {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
+      setError(null);
       const files = Array.from(e.target.files);
       const validFiles = files.filter(file => {
         const isValid = file.type === 'application/pdf' || 
@@ -26,8 +29,24 @@ export function FileUploader({ onFilesSelected }: FileUploaderProps) {
         return isValid;
       });
       
-      setSelectedFiles(prev => [...prev, ...validFiles]);
-      onFilesSelected(validFiles);
+      // Check if files are too large (max 10MB per file)
+      const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+      const validSizeFiles = validFiles.filter(file => {
+        const isValidSize = file.size <= MAX_FILE_SIZE;
+        if (!isValidSize) {
+          toast.error(`File ${file.name} exceeds the maximum size of 10MB`, {
+            description: "Please upload smaller files or reduce file size",
+          });
+        }
+        return isValidSize;
+      });
+      
+      if (validSizeFiles.length === 0) {
+        return;
+      }
+      
+      setSelectedFiles(prev => [...prev, ...validSizeFiles]);
+      onFilesSelected(validSizeFiles);
     }
   };
 
@@ -39,9 +58,39 @@ export function FileUploader({ onFilesSelected }: FileUploaderProps) {
     });
   };
 
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const input = document.getElementById('file-upload') as HTMLInputElement;
+      if (input) {
+        input.files = e.dataTransfer.files;
+        const event = new Event('change', { bubbles: true });
+        input.dispatchEvent(event);
+      }
+    }
+  };
+
   return (
     <div className="space-y-4">
-      <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 md:p-6 text-center">
+      {error && (
+        <Alert variant="destructive" className="mb-4">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+      
+      <div 
+        className="border-2 border-dashed border-gray-300 rounded-lg p-4 md:p-6 text-center"
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
+      >
         <Upload className="h-10 w-10 text-gray-400 mx-auto mb-3" />
         <h3 className="text-lg font-medium">Upload Petition Pages</h3>
         <p className="text-sm text-muted-foreground mb-4">
@@ -60,6 +109,9 @@ export function FileUploader({ onFilesSelected }: FileUploaderProps) {
             Select Files
           </label>
         </Button>
+        <p className="text-xs text-muted-foreground mt-2">
+          Maximum file size: 10MB per file
+        </p>
       </div>
 
       {selectedFiles.length > 0 && (
