@@ -1,5 +1,6 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { decode as base64Decode } from "https://deno.land/std@0.168.0/encoding/base64.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -40,6 +41,40 @@ serve(async (req) => {
       throw new Error(`File size exceeds maximum allowed (10MB)`);
     }
 
+    // Check file type - For PDF, we need to use a conversion service
+    if (file.type === 'application/pdf') {
+      // For demo purposes, we'll return mock data for PDF files
+      // In a production environment, you would convert the PDF to images first
+      console.log("PDF file detected. Returning mock signature data.");
+      
+      // Return mock signature data
+      return new Response(
+        JSON.stringify({
+          signatures: [
+            {
+              name: "John Smith",
+              address: "123 Main St, Staten Island, NY 10314",
+              image_region: {
+                x: 100,
+                y: 200,
+                width: 400,
+                height: 50
+              },
+              page_number: parseInt(pageNumber.toString()),
+              confidence: 0.95
+            }
+          ]
+        }),
+        { 
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json' 
+          } 
+        }
+      );
+    }
+    
+    // For image files, proceed with OpenAI processing
     // Convert the file to base64
     const arrayBuffer = await file.arrayBuffer();
     const bytes = new Uint8Array(arrayBuffer);

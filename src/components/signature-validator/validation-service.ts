@@ -1,7 +1,4 @@
 
-// Replace this file with your validation service implementation
-// This is a placeholder for your custom validation logic
-
 import { supabase } from "@/integrations/supabase/client";
 import { ValidationResult, ValidationResultStats, ExtractedSignature, SignatureValidation, MatchedVoter } from "./types";
 
@@ -34,13 +31,31 @@ export const processUploadedFiles = async (files: File[], district: string): Pro
       
       console.log(`Processing file ${pageNumber} of ${files.length}: ${file.name}`);
       
-      const extractedSignatures = await extractSignaturesFromFile(file, pageNumber, district, petitionType, party);
-      console.log(`Extracted ${extractedSignatures.length} signatures from file ${pageNumber}`);
-      
-      // Validate each signature against voter database
-      const validatedSignatures = await validateSignatures(extractedSignatures, district);
-      
-      allSignatures = [...allSignatures, ...validatedSignatures];
+      try {
+        const extractedSignatures = await extractSignaturesFromFile(file, pageNumber, district, petitionType, party);
+        console.log(`Extracted ${extractedSignatures.length} signatures from file ${pageNumber}`);
+        
+        // Validate each signature against voter database
+        const validatedSignatures = await validateSignatures(extractedSignatures, district);
+        
+        allSignatures = [...allSignatures, ...validatedSignatures];
+      } catch (error: any) {
+        console.error(`Error processing file ${file.name}:`, error);
+        // For PDF files, we might get an error about MIME type from OpenAI
+        if (file.type === 'application/pdf' && error.message?.includes("MIME type")) {
+          const mockSignatures: SignatureValidation[] = [{
+            id: `${pageNumber}-1`,
+            name: "Please upload an image file instead",
+            address: "PDF files are not supported yet. Please convert to JPG or PNG.",
+            status: "uncertain",
+            confidence: 0,
+            page_number: pageNumber
+          }];
+          allSignatures = [...allSignatures, ...mockSignatures];
+        } else {
+          throw error; // Re-throw if it's not the PDF MIME type error
+        }
+      }
     }
     
     // Calculate stats
@@ -51,7 +66,7 @@ export const processUploadedFiles = async (files: File[], district: string): Pro
       stats: stats
     };
     
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error processing files:", error);
     throw new Error(`Failed to process files: ${error.message}`);
   }
@@ -119,7 +134,7 @@ const extractSignaturesFromFile = async (
       page_number: pageNumber
     }));
     
-  } catch (error) {
+  } catch (error: any) {
     console.error(`Error extracting signatures from file:`, error);
     throw error;
   }
@@ -223,9 +238,12 @@ const validateSignatures = async (signatures: SignatureValidation[], district: s
         
         let score = 0;
         
-        // Score name match - using type assertion to access properties
-        const voterFirstName = (voter as any).first_name as string;
-        const voterLastName = (voter as any).last_name as string;
+        // Safely access properties with type assertions
+        const voterRecord = voter as any;
+        
+        // Score name match
+        const voterFirstName = voterRecord.first_name as string;
+        const voterLastName = voterRecord.last_name as string;
         
         if (voterFirstName.toLowerCase() === firstName.toLowerCase()) score += 3;
         else if (voterFirstName.toLowerCase().startsWith(firstName.toLowerCase())) score += 2;
@@ -234,8 +252,8 @@ const validateSignatures = async (signatures: SignatureValidation[], district: s
         else if (voterLastName.toLowerCase().startsWith(lastName.toLowerCase())) score += 2;
         
         // Score address match (check house number and street)
-        const voterHouse = (voter as any).house || '';
-        const voterStreetName = (voter as any).street_name || '';
+        const voterHouse = voterRecord.house || '';
+        const voterStreetName = voterRecord.street_name || '';
         const voterAddress = `${voterHouse} ${voterStreetName}`.toLowerCase();
         
         // Extract house number and street from signature address
@@ -249,10 +267,10 @@ const validateSignatures = async (signatures: SignatureValidation[], district: s
           if (voterAddress.includes(streetName.trim().toLowerCase())) score += 2;
         }
         
-        // Check district match using type assertion to access properties
-        const voterAssemblyDistrict = (voter as any).assembly_district;
-        const voterSenateDistrict = (voter as any).state_senate_district;
-        const voterCongressionalDistrict = (voter as any).congressional_district;
+        // Check district match
+        const voterAssemblyDistrict = voterRecord.assembly_district;
+        const voterSenateDistrict = voterRecord.state_senate_district;
+        const voterCongressionalDistrict = voterRecord.congressional_district;
         
         if (districtType === 'AD' && voterAssemblyDistrict === districtNumber) {
           score += 3;
@@ -278,16 +296,16 @@ const validateSignatures = async (signatures: SignatureValidation[], district: s
       // Determine if the match is good enough
       if (bestMatch) {
         // Type assertion to access properties
-        const bestMatchTyped = bestMatch as any;
+        const bestMatchRecord = bestMatch as Record<string, any>;
         
         // Convert district data based on type
         let matchedDistrict = "";
         if (districtType === 'AD') {
-          matchedDistrict = bestMatchTyped.assembly_district;
+          matchedDistrict = bestMatchRecord.assembly_district;
         } else if (districtType === 'SD') {
-          matchedDistrict = bestMatchTyped.state_senate_district;
+          matchedDistrict = bestMatchRecord.state_senate_district;
         } else if (districtType === 'CD') {
-          matchedDistrict = bestMatchTyped.congressional_district;
+          matchedDistrict = bestMatchRecord.congressional_district;
         }
         
         let status: "valid" | "invalid" | "uncertain" = "uncertain";
@@ -311,17 +329,17 @@ const validateSignatures = async (signatures: SignatureValidation[], district: s
         
         // Create a properly typed matched voter object
         const matchedVoter: MatchedVoter = {
-          state_voter_id: bestMatchTyped.state_voter_id,
-          first_name: bestMatchTyped.first_name,
-          last_name: bestMatchTyped.last_name,
-          address: `${bestMatchTyped.house || ''} ${bestMatchTyped.street_name || ''}`,
+          state_voter_id: bestMatchRecord.state_voter_id,
+          first_name: bestMatchRecord.first_name,
+          last_name: bestMatchRecord.last_name,
+          address: `${bestMatchRecord.house || ''} ${bestMatchRecord.street_name || ''}`,
           district: matchedDistrict,
-          residence_city: bestMatchTyped.residence_city,
-          zip_code: bestMatchTyped.zip_code,
-          assembly_district: bestMatchTyped.assembly_district,
-          congressional_district: bestMatchTyped.congressional_district,
-          state_senate_district: bestMatchTyped.state_senate_district,
-          enrolled_party: bestMatchTyped.enrolled_party,
+          residence_city: bestMatchRecord.residence_city,
+          zip_code: bestMatchRecord.zip_code,
+          assembly_district: bestMatchRecord.assembly_district,
+          congressional_district: bestMatchRecord.congressional_district,
+          state_senate_district: bestMatchRecord.state_senate_district,
+          enrolled_party: bestMatchRecord.enrolled_party,
         };
         
         return {
@@ -339,7 +357,7 @@ const validateSignatures = async (signatures: SignatureValidation[], district: s
         reason: "No suitable voter match found"
       };
       
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Error validating signature for ${signature.name}:`, error);
       return {
         ...signature,
