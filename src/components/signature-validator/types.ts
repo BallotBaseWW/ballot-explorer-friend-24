@@ -28,6 +28,7 @@ export interface SignatureValidation {
     height: number;
   };
   page_number?: number;
+  potential_matches?: MatchedVoter[];
 }
 
 export interface ValidationResultStats {

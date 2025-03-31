@@ -141,11 +141,10 @@ const extractSignaturesFromFile = async (
 };
 
 /**
- * Validate signatures against voter records
+ * Validate signatures against voter records with improved fuzzy matching
  */
 const validateSignatures = async (signatures: SignatureValidation[], district: string): Promise<SignatureValidation[]> => {
-  // This is mock functionality - in real implementation, you would query your voter database
-  // We're simulating this for the demo with random validation
+  // This implementation uses a more lenient matching approach
   
   const validatedSignatures = await Promise.all(signatures.map(async (signature) => {
     try {
@@ -159,215 +158,389 @@ const validateSignatures = async (signatures: SignatureValidation[], district: s
         districtNumber = parts[1];
       }
       
-      // Extract and normalize name parts
+      // Better name parsing with error handling
       const nameParts = signature.name.split(' ').filter(p => p.trim().length > 0);
       
-      if (nameParts.length < 2) {
+      if (nameParts.length < 1) {
         return {
           ...signature,
-          status: "invalid" as "valid" | "invalid" | "uncertain", 
-          reason: "Could not parse name correctly"
+          status: "uncertain" as "valid" | "invalid" | "uncertain", 
+          reason: "Could not parse name correctly",
+          potential_matches: []
         };
       }
       
-      const firstName = nameParts[0];
-      const lastName = nameParts[nameParts.length - 1];
+      // Extract first and last name with better handling of middle initials
+      let firstName = nameParts[0];
+      let lastName = nameParts[nameParts.length - 1];
       
-      // Parse address for borough
+      // If there's only one name part, treat it as a last name for searching
+      if (nameParts.length === 1) {
+        lastName = nameParts[0];
+        firstName = "";
+      }
+      
+      // Parse address for borough with improved detection
       const address = signature.address.toLowerCase();
-      let county = "";
+      let county = detectCountyFromAddress(address);
       
-      if (address.includes('staten island') || address.includes('richmond')) {
-        county = 'statenisland';
-      } else if (address.includes('brooklyn') || address.includes('kings')) {
-        county = 'brooklyn';
-      } else if (address.includes('bronx')) {
-        county = 'bronx';
-      } else if (address.includes('queens')) {
-        county = 'queens';
-      } else if (address.includes('manhattan') || address.includes('new york')) {
-        county = 'manhattan';
-      } else {
-        // Can't determine county
+      if (!county) {
         return {
           ...signature,
           status: "uncertain" as "valid" | "invalid" | "uncertain",
-          reason: "Could not determine borough from address"
+          reason: "Could not determine borough from address",
+          potential_matches: []
         };
       }
       
-      // Type assertion for the database table name
+      // Using a more flexible search strategy
       const countyTable = county as "statenisland" | "brooklyn" | "bronx" | "queens" | "manhattan";
+
+      // Create multiple queries with different criteria for better matching
+      let query = supabase.from(countyTable).select('*');
       
-      // Look up the voter
-      const { data: voters, error } = await supabase
-        .from(countyTable)
-        .select()
-        .ilike('first_name', `${firstName}%`)
-        .ilike('last_name', `${lastName}%`)
-        .limit(5);
+      // Very lenient name matching - searching for either first or last name
+      if (lastName && firstName) {
+        // Try to match both names (but not strictly)
+        query = query.or(`last_name.ilike.%${lastName}%,first_name.ilike.%${firstName}%`);
+      } else if (lastName) {
+        // Match only last name if that's all we have
+        query = query.ilike('last_name', `%${lastName}%`);
+      }
+      
+      // Extract address components for flexible matching
+      const addressComponents = extractAddressComponents(address);
+      
+      // If we have a house number, use it to narrow results
+      if (addressComponents.houseNumber) {
+        // We use a loose house number search
+        query = query.eq('house', addressComponents.houseNumber);
+      }
+      
+      // If we have a street name, use it as another filter
+      if (addressComponents.streetName && addressComponents.streetName.length > 3) {
+        // Use partial street name match
+        query = query.ilike('street_name', `%${addressComponents.streetName}%`);
+      }
+      
+      // Limit to a reasonable number of results for potential matches
+      const { data: voters, error } = await query.limit(10);
       
       if (error) {
         console.error(`Database query error for ${signature.name}:`, error);
         return {
           ...signature,
           status: "uncertain" as "valid" | "invalid" | "uncertain",
-          reason: "Database error during validation"
+          reason: "Database error during validation",
+          potential_matches: []
         };
       }
       
       if (!voters || voters.length === 0) {
+        // Try a second query with only last name if the first one failed
+        const fallbackQuery = supabase.from(countyTable)
+          .select('*')
+          .ilike('last_name', `%${lastName}%`)
+          .limit(10);
+          
+        const { data: fallbackVoters, error: fallbackError } = await fallbackQuery;
+        
+        if (fallbackError || !fallbackVoters || fallbackVoters.length === 0) {
+          return {
+            ...signature,
+            status: "uncertain" as "valid" | "invalid" | "uncertain",
+            reason: "No matching voter found",
+            potential_matches: []
+          };
+        }
+        
+        // Convert the fallback voters to potential matches
+        const potentialMatches = fallbackVoters.map(voter => createMatchedVoter(voter));
+        
         return {
           ...signature,
-          status: "invalid" as "valid" | "invalid" | "uncertain",
-          reason: "No matching voter found"
+          status: "uncertain" as "valid" | "invalid" | "uncertain",
+          reason: "Multiple possible voters found - please select the correct one",
+          potential_matches: potentialMatches
         };
       }
       
-      // Find best match using address components
-      let bestMatch = null;
-      let highestScore = 0;
+      // Score and rank the potential matches
+      const scoredMatches = voters.map(voter => {
+        const score = calculateMatchScore(signature, voter, district, districtType, districtNumber);
+        return { voter, score };
+      }).sort((a, b) => b.score - a.score);
       
-      for (const voter of voters) {
-        // Ensure we're working with a properly typed voter record
-        // We know the structure of the voter records from the database
-        // We need to check if these properties exist for TypeScript
-        if (!('first_name' in voter) || !('last_name' in voter)) {
-          continue;
-        }
-        
-        let score = 0;
-        
-        // Safely access properties with type assertions
-        const voterRecord = voter as any;
-        
-        // Score name match
-        const voterFirstName = voterRecord.first_name as string;
-        const voterLastName = voterRecord.last_name as string;
-        
-        if (voterFirstName.toLowerCase() === firstName.toLowerCase()) score += 3;
-        else if (voterFirstName.toLowerCase().startsWith(firstName.toLowerCase())) score += 2;
-        
-        if (voterLastName.toLowerCase() === lastName.toLowerCase()) score += 3;
-        else if (voterLastName.toLowerCase().startsWith(lastName.toLowerCase())) score += 2;
-        
-        // Score address match (check house number and street)
-        const voterHouse = voterRecord.house || '';
-        const voterStreetName = voterRecord.street_name || '';
-        const voterAddress = `${voterHouse} ${voterStreetName}`.toLowerCase();
-        
-        // Extract house number and street from signature address
-        const addressRegex = /(\d+)\s+([a-zA-Z0-9\s]+?)\s*(?:,|$)/i;
-        const addressMatch = address.match(addressRegex);
-        
-        if (addressMatch) {
-          const [_, houseNumber, streetName] = addressMatch;
-          
-          if (voterAddress.includes(houseNumber)) score += 2;
-          if (voterAddress.includes(streetName.trim().toLowerCase())) score += 2;
-        }
-        
-        // Check district match
-        const voterAssemblyDistrict = voterRecord.assembly_district;
-        const voterSenateDistrict = voterRecord.state_senate_district;
-        const voterCongressionalDistrict = voterRecord.congressional_district;
-        
-        if (districtType === 'AD' && voterAssemblyDistrict === districtNumber) {
-          score += 3;
-        } else if (districtType === 'SD' && voterSenateDistrict === districtNumber) {
-          score += 3;
-        } else if (districtType === 'CD' && voterCongressionalDistrict === districtNumber) {
-          score += 3;
-        } else if (district === 'CITYWIDE') {
-          // For citywide, we don't need to check specific district
-          score += 1;
-        } else if (districtType) {
-          // Wrong district
-          score -= 2;
-        }
-        
-        // Keep track of best match
-        if (score > highestScore) {
-          highestScore = score;
-          bestMatch = voter;
-        }
+      // Get the best match and potential alternatives
+      const bestMatch = scoredMatches[0]?.voter;
+      const matchScore = scoredMatches[0]?.score || 0;
+      
+      // Create a list of potential matches for the UI to display
+      const potentialMatches = scoredMatches.map(match => createMatchedVoter(match.voter));
+      
+      // Determine the signature status based on the best match score
+      let status: "valid" | "invalid" | "uncertain" = "uncertain";
+      let reason = "";
+      
+      if (matchScore >= 10) {
+        status = "valid";
+        reason = "Strong voter match found";
+      } else if (matchScore >= 5) {
+        status = "uncertain";
+        reason = "Potential voter match - please verify";
+      } else if (potentialMatches.length > 0) {
+        status = "uncertain";
+        reason = "Multiple possible voters found - please select the correct one";
+      } else {
+        status = "invalid";
+        reason = "No suitable voter match found";
       }
       
-      // Determine if the match is good enough
-      if (bestMatch) {
-        // Type assertion to access properties
-        const bestMatchRecord = bestMatch as Record<string, any>;
+      // Check district match for non-citywide petitions if we have a best match
+      if (status !== "invalid" && bestMatch && districtType && district !== 'CITYWIDE') {
+        const matchedDistrict = getDistrictFromVoter(bestMatch, districtType);
         
-        // Convert district data based on type
-        let matchedDistrict = "";
-        if (districtType === 'AD') {
-          matchedDistrict = bestMatchRecord.assembly_district;
-        } else if (districtType === 'SD') {
-          matchedDistrict = bestMatchRecord.state_senate_district;
-        } else if (districtType === 'CD') {
-          matchedDistrict = bestMatchRecord.congressional_district;
-        }
-        
-        let status: "valid" | "invalid" | "uncertain" = "uncertain";
-        let reason = "";
-        
-        if (highestScore >= 8) {
-          status = "valid";
-        } else if (highestScore >= 4) {
-          status = "uncertain";
-          reason = "Low confidence match";
-        } else {
-          status = "invalid";
-          reason = "Poor match quality";
-        }
-        
-        // Check district match for non-citywide petitions
-        if (status !== "invalid" && districtType && district !== 'CITYWIDE' && matchedDistrict !== districtNumber) {
+        if (matchedDistrict && matchedDistrict !== districtNumber) {
           status = "invalid";
           reason = `Voter is in ${districtType}-${matchedDistrict}, not ${districtType}-${districtNumber}`;
         }
-        
-        // Create a properly typed matched voter object
-        const matchedVoter: MatchedVoter = {
-          state_voter_id: bestMatchRecord.state_voter_id,
-          first_name: bestMatchRecord.first_name,
-          last_name: bestMatchRecord.last_name,
-          address: `${bestMatchRecord.house || ''} ${bestMatchRecord.street_name || ''}`,
-          district: matchedDistrict,
-          residence_city: bestMatchRecord.residence_city,
-          zip_code: bestMatchRecord.zip_code,
-          assembly_district: bestMatchRecord.assembly_district,
-          congressional_district: bestMatchRecord.congressional_district,
-          state_senate_district: bestMatchRecord.state_senate_district,
-          enrolled_party: bestMatchRecord.enrolled_party,
-        };
-        
+      }
+      
+      if (bestMatch) {
         return {
           ...signature,
           status,
           reason,
-          matched_voter: matchedVoter
+          matched_voter: createMatchedVoter(bestMatch),
+          potential_matches: potentialMatches
+        };
+      } else {
+        return {
+          ...signature,
+          status,
+          reason,
+          potential_matches: potentialMatches
         };
       }
-      
-      // No good match found
-      return {
-        ...signature,
-        status: "invalid" as "valid" | "invalid" | "uncertain",
-        reason: "No suitable voter match found"
-      };
       
     } catch (error: any) {
       console.error(`Error validating signature for ${signature.name}:`, error);
       return {
         ...signature,
         status: "uncertain" as "valid" | "invalid" | "uncertain",
-        reason: "Error during validation"
+        reason: "Error during validation: " + error.message,
+        potential_matches: []
       };
     }
   }));
   
   return validatedSignatures;
+};
+
+/**
+ * Helper function to create a MatchedVoter object from database record
+ */
+const createMatchedVoter = (voterRecord: any): MatchedVoter => {
+  return {
+    state_voter_id: voterRecord.state_voter_id,
+    first_name: voterRecord.first_name || '',
+    last_name: voterRecord.last_name || '',
+    address: `${voterRecord.house || ''} ${voterRecord.street_name || ''}`,
+    residence_city: voterRecord.residence_city,
+    zip_code: voterRecord.zip_code,
+    assembly_district: voterRecord.assembly_district,
+    congressional_district: voterRecord.congressional_district,
+    state_senate_district: voterRecord.state_senate_district,
+    enrolled_party: voterRecord.enrolled_party,
+  };
+};
+
+/**
+ * Helper function to detect county from address with improved detection
+ */
+const detectCountyFromAddress = (address: string): string | null => {
+  const lowercaseAddress = address.toLowerCase();
+  
+  // Improved county detection with more variations
+  if (lowercaseAddress.includes('staten island') || 
+      lowercaseAddress.includes('staten is') || 
+      lowercaseAddress.includes('richmond') || 
+      lowercaseAddress.includes('si ny') || 
+      lowercaseAddress.includes('si, ny')) {
+    return 'statenisland';
+  } else if (lowercaseAddress.includes('brooklyn') || 
+            lowercaseAddress.includes('bklyn') || 
+            lowercaseAddress.includes('kings') || 
+            lowercaseAddress.includes('bk ny') || 
+            lowercaseAddress.includes('bk, ny')) {
+    return 'brooklyn';
+  } else if (lowercaseAddress.includes('bronx') || 
+            lowercaseAddress.includes('bx ny') || 
+            lowercaseAddress.includes('bx, ny')) {
+    return 'bronx';
+  } else if (lowercaseAddress.includes('queens') || 
+            lowercaseAddress.includes('qns') || 
+            lowercaseAddress.includes('qn ny') || 
+            lowercaseAddress.includes('qn, ny')) {
+    return 'queens';
+  } else if (lowercaseAddress.includes('manhattan') || 
+            lowercaseAddress.includes('new york, ny') || 
+            lowercaseAddress.includes('new york ny') ||
+            lowercaseAddress.includes('ny ny') ||
+            lowercaseAddress.includes('ny, ny')) {
+    return 'manhattan';
+  }
+  
+  // ZIP code based detection as fallback
+  if (lowercaseAddress.includes('10001') || lowercaseAddress.includes('10002')) {
+    return 'manhattan'; // Manhattan ZIP codes
+  } else if (lowercaseAddress.includes('10301') || lowercaseAddress.includes('10314')) {
+    return 'statenisland'; // Staten Island ZIP codes
+  } else if (lowercaseAddress.includes('11201') || lowercaseAddress.includes('11215')) {
+    return 'brooklyn'; // Brooklyn ZIP codes
+  } else if (lowercaseAddress.includes('10451') || lowercaseAddress.includes('10456')) {
+    return 'bronx'; // Bronx ZIP codes
+  } else if (lowercaseAddress.includes('11354') || lowercaseAddress.includes('11101')) {
+    return 'queens'; // Queens ZIP codes
+  }
+  
+  // Default to null if we can't determine the county
+  return null;
+};
+
+/**
+ * Helper function to extract address components
+ */
+const extractAddressComponents = (address: string) => {
+  const components = {
+    houseNumber: '',
+    streetName: '',
+    zip: ''
+  };
+  
+  // Extract house number
+  const houseMatch = address.match(/^(\d+)\s/);
+  if (houseMatch) {
+    components.houseNumber = houseMatch[1];
+  }
+  
+  // Extract street name - look for common patterns
+  const streetMatch = address.match(/\d+\s+([a-zA-Z0-9\s]+?)\s*(?:,|avenue|ave|street|st|road|rd|boulevard|blvd|drive|dr|lane|ln|place|pl|court|ct)/i);
+  if (streetMatch) {
+    components.streetName = streetMatch[1].trim();
+  }
+  
+  // Extract ZIP code
+  const zipMatch = address.match(/\b(\d{5})\b/);
+  if (zipMatch) {
+    components.zip = zipMatch[1];
+  }
+  
+  return components;
+};
+
+/**
+ * Calculate a match score between a signature and voter record
+ */
+const calculateMatchScore = (
+  signature: SignatureValidation, 
+  voter: any, 
+  district: string,
+  districtType: string,
+  districtNumber: string
+): number => {
+  let score = 0;
+  
+  // Name matching (more lenient)
+  const sigName = signature.name.toLowerCase();
+  const voterName = `${voter.first_name || ''} ${voter.middle || ''} ${voter.last_name || ''}`.toLowerCase();
+  
+  // Check if signature name is contained in voter name or vice versa
+  if (voterName.includes(sigName) || sigName.includes(voterName)) {
+    score += 5;
+  } else {
+    // Check individual name parts
+    const sigParts = sigName.split(' ').filter(p => p.length > 0);
+    const voterParts = voterName.split(' ').filter(p => p.length > 0);
+    
+    // Count matching name parts
+    for (const sigPart of sigParts) {
+      if (sigPart.length < 2) continue; // Skip initials
+      
+      for (const voterPart of voterParts) {
+        if (voterPart.length < 2) continue; // Skip initials
+        
+        // Check for partial match or same first 3 letters
+        if (voterPart.includes(sigPart) || sigPart.includes(voterPart) || 
+            (sigPart.substring(0, 3) === voterPart.substring(0, 3) && sigPart.substring(0, 3).length >= 3)) {
+          score += 2;
+          break;
+        }
+      }
+    }
+  }
+  
+  // First name specific matching
+  if (voter.first_name && signature.name.toLowerCase().includes(voter.first_name.toLowerCase())) {
+    score += 3;
+  }
+  
+  // Last name specific matching
+  if (voter.last_name && signature.name.toLowerCase().includes(voter.last_name.toLowerCase())) {
+    score += 4;
+  }
+  
+  // Address matching
+  const sigAddress = signature.address.toLowerCase();
+  const voterAddress = `${voter.house || ''} ${voter.street_name || ''}, ${voter.residence_city || ''}, ${voter.zip_code || ''}`.toLowerCase();
+  
+  // Address component extraction
+  const addressComponents = extractAddressComponents(sigAddress);
+  
+  // House number match
+  if (addressComponents.houseNumber && voter.house === addressComponents.houseNumber) {
+    score += 4;
+  }
+  
+  // Street name match (more lenient)
+  if (addressComponents.streetName && 
+      voter.street_name && 
+      (voter.street_name.toLowerCase().includes(addressComponents.streetName.toLowerCase()) || 
+       addressComponents.streetName.toLowerCase().includes(voter.street_name.toLowerCase()))) {
+    score += 3;
+  }
+  
+  // ZIP code match
+  if (addressComponents.zip && voter.zip_code === addressComponents.zip) {
+    score += 2;
+  }
+  
+  // District match bonuses
+  if (districtType && districtNumber) {
+    const matchedDistrict = getDistrictFromVoter(voter, districtType);
+    
+    if (matchedDistrict === districtNumber) {
+      score += 3; // Big bonus for correct district
+    }
+  }
+  
+  return score;
+};
+
+/**
+ * Get the appropriate district value from a voter record based on district type
+ */
+const getDistrictFromVoter = (voter: any, districtType: string): string | null => {
+  switch(districtType) {
+    case 'AD':
+      return voter.assembly_district;
+    case 'SD':
+      return voter.state_senate_district;
+    case 'CD':
+      return voter.congressional_district;
+    default:
+      return null;
+  }
 };
 
 /**
