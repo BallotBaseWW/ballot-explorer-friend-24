@@ -23,12 +23,16 @@ serve(async (req) => {
     const formData = await req.formData();
     const file = formData.get('file');
     const pageNumber = formData.get('page_number') || '1';
+    const district = formData.get('district') || '';
+    const petitionType = formData.get('petition_type') || '';
+    const party = formData.get('party') || '';
     
     if (!file || !(file instanceof File)) {
       throw new Error('No file provided or invalid file');
     }
 
     console.log(`Processing file: ${file.name}, size: ${file.size} bytes, type: ${file.type}`);
+    console.log(`Petition context: district=${district}, type=${petitionType}, party=${party}`);
 
     // Check file size
     const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
@@ -40,8 +44,52 @@ serve(async (req) => {
     const arrayBuffer = await file.arrayBuffer();
     const bytes = new Uint8Array(arrayBuffer);
     
-    // Prepare the prompt for OpenAI with more detailed instructions
-    const prompt = `This is a petition page with signatures. Please extract all signatures visible in this document with high accuracy.
+    // Prepare the prompt for OpenAI with more detailed instructions, including district information
+    let districtContext = "";
+    if (district) {
+      districtContext = `This petition is for ${district} district. `;
+      
+      if (district.startsWith("AD-")) {
+        districtContext += `It's for Assembly District ${district.replace("AD-", "")}. `;
+      } else if (district.startsWith("CD-")) {
+        districtContext += `It's for Congressional District ${district.replace("CD-", "")}. `;
+      } else if (district.startsWith("SD-")) {
+        districtContext += `It's for Senate District ${district.replace("SD-", "")}. `;
+      } else if (district.startsWith("CC-")) {
+        districtContext += `It's for City Council District ${district.replace("CC-", "")}. `;
+      } else if (district === "CITYWIDE") {
+        districtContext += `It's a citywide petition covering all five boroughs. `;
+      }
+    }
+    
+    let petitionContext = "";
+    if (petitionType) {
+      if (petitionType === "designating") {
+        petitionContext = `This is a designating petition`;
+      } else if (petitionType === "opportunity") {
+        petitionContext = `This is an opportunity to ballot petition`;
+      } else if (petitionType === "independent") {
+        petitionContext = `This is an independent nominating petition`;
+      }
+      
+      if (party && (petitionType === "designating" || petitionType === "opportunity")) {
+        let partyName = "";
+        switch (party) {
+          case "DEM": partyName = "Democratic"; break;
+          case "REP": partyName = "Republican"; break;
+          case "CON": partyName = "Conservative"; break;
+          case "WOR": partyName = "Working Families"; break;
+          case "IND": partyName = "Independence"; break;
+          default: partyName = party;
+        }
+        
+        petitionContext += ` for the ${partyName} party`;
+      }
+      
+      petitionContext += ". ";
+    }
+    
+    const prompt = `${petitionContext}${districtContext}This is a petition page with signatures. Please extract all signatures visible in this document with high accuracy.
 
 For each signature you find:
 1. Extract the FULL NAME of the signer exactly as written
@@ -55,6 +103,9 @@ Important guidelines:
 - If address includes borough information (Staten Island, Brooklyn, etc.), be sure to include it
 - If you see a street address with a number, always include the house/building number
 - For ZIP codes, include all 5 digits when visible
+- Pay close attention to the borough/county information in addresses
+- Be thorough and extract every signature on the page, even if partially visible
+- Focus on extracting exactly what's written, not interpreting or correcting it
 
 Return the data in the following JSON format:
 {
@@ -98,7 +149,7 @@ Return the data in the following JSON format:
         messages: [
           {
             role: "system",
-            content: "You are an AI assistant specialized in extracting signature information from petition pages with extreme accuracy and thoroughness. Your task is to carefully identify signatures, extract names and addresses completely and accurately, and provide their precise coordinates on the image. Always perform multiple verification passes to ensure accuracy. Always respond with properly formatted JSON matching the requested structure exactly."
+            content: "You are an AI assistant specialized in extracting signature information from petition pages with extreme accuracy and thoroughness. Your expertise includes understanding the political context and requirements for different types of petitions (designating, opportunity to ballot, independent nominating) across various districts in New York. You carefully identify signatures, extract complete names and addresses with proper borough information, and provide precise coordinates on the image. In New York City, pay special attention to the five boroughs (Manhattan, Brooklyn, Queens, Bronx, Staten Island) and their neighborhoods. Always perform multiple verification passes to ensure accuracy. Always respond with properly formatted JSON matching the requested structure exactly."
           },
           {
             role: "user",

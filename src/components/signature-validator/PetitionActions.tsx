@@ -16,12 +16,13 @@ interface PetitionActionsProps {
   district: string;
   currentPage: number;
   onSaveSuccess?: (petitionId: string) => void;
+  petitionMetadata?: any; // Optional metadata from the form
 }
 
-export function PetitionActions({ validationResults, district, currentPage, onSaveSuccess }: PetitionActionsProps) {
+export function PetitionActions({ validationResults, district, currentPage, onSaveSuccess, petitionMetadata }: PetitionActionsProps) {
   const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
-  const [petitionName, setPetitionName] = useState("");
-  const [party, setParty] = useState("");
+  const [petitionName, setPetitionName] = useState(petitionMetadata?.petitionName || "");
+  const [party, setParty] = useState(petitionMetadata?.party || "");
   const [isSaving, setIsSaving] = useState(false);
   const [showAddVoterDialog, setShowAddVoterDialog] = useState(false);
   
@@ -39,13 +40,17 @@ export function PetitionActions({ validationResults, district, currentPage, onSa
     try {
       setIsSaving(true);
       
-      const petitionId = await savePetitionPage({
+      // Include petition metadata if available
+      const petitionData = {
         petitionName,
         district,
         party,
         validationResults,
-        page: currentPage
-      });
+        page: currentPage,
+        metadata: petitionMetadata || {}
+      };
+      
+      const petitionId = await savePetitionPage(petitionData);
       
       toast.success("Petition saved successfully", {
         description: `Saved page ${currentPage} with ${validationResults.signatures.length} signatures`
@@ -101,6 +106,33 @@ export function PetitionActions({ validationResults, district, currentPage, onSa
     });
     
     return mostCommonCounty;
+  };
+  
+  // Display info about petition type
+  const getPetitionTypeDisplay = () => {
+    if (!petitionMetadata) return null;
+    
+    let typeInfo = "";
+    
+    if (petitionMetadata.petitionType === "designating") {
+      typeInfo = "Designating Petition";
+    } else if (petitionMetadata.petitionType === "opportunity") {
+      typeInfo = "Opportunity to Ballot Petition";
+    } else if (petitionMetadata.petitionType === "independent") {
+      typeInfo = "Independent Nominating Petition";
+    }
+    
+    if ((petitionMetadata.petitionType === "designating" || petitionMetadata.petitionType === "opportunity") 
+         && petitionMetadata.party) {
+      const partyName = petitionMetadata.party === "DEM" ? "Democratic" : 
+                        petitionMetadata.party === "REP" ? "Republican" : 
+                        petitionMetadata.party === "CON" ? "Conservative" : 
+                        petitionMetadata.party === "WOR" ? "Working Families" : 
+                        petitionMetadata.party === "IND" ? "Independence" : "Other";
+      typeInfo += ` (${partyName})`;
+    }
+    
+    return typeInfo;
   };
   
   return (
@@ -170,6 +202,9 @@ export function PetitionActions({ validationResults, district, currentPage, onSa
             
             <div className="pt-2">
               <p className="text-sm font-medium">District: {district}</p>
+              {petitionMetadata && getPetitionTypeDisplay() && (
+                <p className="text-sm font-medium">Type: {getPetitionTypeDisplay()}</p>
+              )}
               <p className="text-sm font-medium">
                 Signatures: {validationResults.stats.total} 
                 (Valid: {validationResults.stats.valid}, 

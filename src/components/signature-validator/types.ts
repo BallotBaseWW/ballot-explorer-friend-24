@@ -1,3 +1,4 @@
+
 export interface MatchedVoter {
   state_voter_id: string;
   first_name: string;
@@ -75,6 +76,20 @@ export interface PetitionProgress {
   uncertain_signatures: number;
   total_signatures: number;
   required_signatures: number;
+  metadata?: PetitionMetadata;
+}
+
+export interface PetitionMetadata {
+  petitionName?: string;
+  volumeNumber?: string;
+  petitionType?: "designating" | "opportunity" | "independent";
+  party?: string;
+  coverage?: "district" | "citywide";
+  assemblyDistrict?: string;
+  congressionalDistrict?: string;
+  cityCouncilDistrict?: string;
+  senateDistrict?: string;
+  races?: string[];
 }
 
 export interface SavePetitionRequest {
@@ -83,6 +98,7 @@ export interface SavePetitionRequest {
   party: string;
   validationResults: ValidationResult;
   page: number;
+  metadata?: PetitionMetadata;
 }
 
 export interface PetitionSignatureData {
