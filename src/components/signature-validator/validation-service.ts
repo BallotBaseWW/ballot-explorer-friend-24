@@ -1,8 +1,9 @@
+
 // Replace this file with your validation service implementation
 // This is a placeholder for your custom validation logic
 
 import { supabase } from "@/integrations/supabase/client";
-import { ValidationResult, ValidationResultStats, ExtractedSignature, SignatureValidation } from "./types";
+import { ValidationResult, ValidationResultStats, ExtractedSignature, SignatureValidation, MatchedVoter } from "./types";
 
 /**
  * Process uploaded files for signature validation
@@ -112,7 +113,7 @@ const extractSignaturesFromFile = async (
       id: `${pageNumber}-${index + 1}`,
       name: sig.name,
       address: sig.address,
-      status: "uncertain", // Will be updated in validation
+      status: "uncertain" as "valid" | "invalid" | "uncertain", // Cast to proper union type
       confidence: sig.confidence,
       image_region: sig.image_region,
       page_number: pageNumber
@@ -149,7 +150,7 @@ const validateSignatures = async (signatures: SignatureValidation[], district: s
       if (nameParts.length < 2) {
         return {
           ...signature,
-          status: "invalid",
+          status: "invalid" as "valid" | "invalid" | "uncertain", 
           reason: "Could not parse name correctly"
         };
       }
@@ -175,14 +176,17 @@ const validateSignatures = async (signatures: SignatureValidation[], district: s
         // Can't determine county
         return {
           ...signature,
-          status: "uncertain",
+          status: "uncertain" as "valid" | "invalid" | "uncertain",
           reason: "Could not determine borough from address"
         };
       }
       
+      // Type assertion for the database table name
+      const countyTable = county as "statenisland" | "brooklyn" | "bronx" | "queens" | "manhattan";
+      
       // Look up the voter
       const { data: voters, error } = await supabase
-        .from(county)
+        .from(countyTable)
         .select()
         .ilike('first_name', `${firstName}%`)
         .ilike('last_name', `${lastName}%`)
@@ -192,7 +196,7 @@ const validateSignatures = async (signatures: SignatureValidation[], district: s
         console.error(`Database query error for ${signature.name}:`, error);
         return {
           ...signature,
-          status: "uncertain",
+          status: "uncertain" as "valid" | "invalid" | "uncertain",
           reason: "Database error during validation"
         };
       }
@@ -200,7 +204,7 @@ const validateSignatures = async (signatures: SignatureValidation[], district: s
       if (!voters || voters.length === 0) {
         return {
           ...signature,
-          status: "invalid",
+          status: "invalid" as "valid" | "invalid" | "uncertain",
           reason: "No matching voter found"
         };
       }
@@ -210,17 +214,29 @@ const validateSignatures = async (signatures: SignatureValidation[], district: s
       let highestScore = 0;
       
       for (const voter of voters) {
+        // Ensure we're working with a properly typed voter record
+        // We know the structure of the voter records from the database
+        // We need to check if these properties exist for TypeScript
+        if (!('first_name' in voter) || !('last_name' in voter)) {
+          continue;
+        }
+        
         let score = 0;
         
-        // Score name match
-        if (voter.first_name.toLowerCase() === firstName.toLowerCase()) score += 3;
-        else if (voter.first_name.toLowerCase().startsWith(firstName.toLowerCase())) score += 2;
+        // Score name match - using type assertion to access properties
+        const voterFirstName = (voter as any).first_name as string;
+        const voterLastName = (voter as any).last_name as string;
         
-        if (voter.last_name.toLowerCase() === lastName.toLowerCase()) score += 3;
-        else if (voter.last_name.toLowerCase().startsWith(lastName.toLowerCase())) score += 2;
+        if (voterFirstName.toLowerCase() === firstName.toLowerCase()) score += 3;
+        else if (voterFirstName.toLowerCase().startsWith(firstName.toLowerCase())) score += 2;
+        
+        if (voterLastName.toLowerCase() === lastName.toLowerCase()) score += 3;
+        else if (voterLastName.toLowerCase().startsWith(lastName.toLowerCase())) score += 2;
         
         // Score address match (check house number and street)
-        const voterAddress = `${voter.house || ''} ${voter.street_name || ''}`.toLowerCase();
+        const voterHouse = (voter as any).house || '';
+        const voterStreetName = (voter as any).street_name || '';
+        const voterAddress = `${voterHouse} ${voterStreetName}`.toLowerCase();
         
         // Extract house number and street from signature address
         const addressRegex = /(\d+)\s+([a-zA-Z0-9\s]+?)\s*(?:,|$)/i;
@@ -233,12 +249,16 @@ const validateSignatures = async (signatures: SignatureValidation[], district: s
           if (voterAddress.includes(streetName.trim().toLowerCase())) score += 2;
         }
         
-        // Check district match
-        if (districtType === 'AD' && voter.assembly_district === districtNumber) {
+        // Check district match using type assertion to access properties
+        const voterAssemblyDistrict = (voter as any).assembly_district;
+        const voterSenateDistrict = (voter as any).state_senate_district;
+        const voterCongressionalDistrict = (voter as any).congressional_district;
+        
+        if (districtType === 'AD' && voterAssemblyDistrict === districtNumber) {
           score += 3;
-        } else if (districtType === 'SD' && voter.state_senate_district === districtNumber) {
+        } else if (districtType === 'SD' && voterSenateDistrict === districtNumber) {
           score += 3;
-        } else if (districtType === 'CD' && voter.congressional_district === districtNumber) {
+        } else if (districtType === 'CD' && voterCongressionalDistrict === districtNumber) {
           score += 3;
         } else if (district === 'CITYWIDE') {
           // For citywide, we don't need to check specific district
@@ -257,14 +277,17 @@ const validateSignatures = async (signatures: SignatureValidation[], district: s
       
       // Determine if the match is good enough
       if (bestMatch) {
+        // Type assertion to access properties
+        const bestMatchTyped = bestMatch as any;
+        
         // Convert district data based on type
         let matchedDistrict = "";
         if (districtType === 'AD') {
-          matchedDistrict = bestMatch.assembly_district;
+          matchedDistrict = bestMatchTyped.assembly_district;
         } else if (districtType === 'SD') {
-          matchedDistrict = bestMatch.state_senate_district;
+          matchedDistrict = bestMatchTyped.state_senate_district;
         } else if (districtType === 'CD') {
-          matchedDistrict = bestMatch.congressional_district;
+          matchedDistrict = bestMatchTyped.congressional_district;
         }
         
         let status: "valid" | "invalid" | "uncertain" = "uncertain";
@@ -286,30 +309,33 @@ const validateSignatures = async (signatures: SignatureValidation[], district: s
           reason = `Voter is in ${districtType}-${matchedDistrict}, not ${districtType}-${districtNumber}`;
         }
         
+        // Create a properly typed matched voter object
+        const matchedVoter: MatchedVoter = {
+          state_voter_id: bestMatchTyped.state_voter_id,
+          first_name: bestMatchTyped.first_name,
+          last_name: bestMatchTyped.last_name,
+          address: `${bestMatchTyped.house || ''} ${bestMatchTyped.street_name || ''}`,
+          district: matchedDistrict,
+          residence_city: bestMatchTyped.residence_city,
+          zip_code: bestMatchTyped.zip_code,
+          assembly_district: bestMatchTyped.assembly_district,
+          congressional_district: bestMatchTyped.congressional_district,
+          state_senate_district: bestMatchTyped.state_senate_district,
+          enrolled_party: bestMatchTyped.enrolled_party,
+        };
+        
         return {
           ...signature,
           status,
           reason,
-          matched_voter: {
-            state_voter_id: bestMatch.state_voter_id,
-            first_name: bestMatch.first_name,
-            last_name: bestMatch.last_name,
-            address: `${bestMatch.house || ''} ${bestMatch.street_name || ''}`,
-            district: matchedDistrict,
-            residence_city: bestMatch.residence_city,
-            zip_code: bestMatch.zip_code,
-            assembly_district: bestMatch.assembly_district,
-            congressional_district: bestMatch.congressional_district,
-            state_senate_district: bestMatch.state_senate_district,
-            enrolled_party: bestMatch.enrolled_party,
-          }
+          matched_voter: matchedVoter
         };
       }
       
       // No good match found
       return {
         ...signature,
-        status: "invalid",
+        status: "invalid" as "valid" | "invalid" | "uncertain",
         reason: "No suitable voter match found"
       };
       
@@ -317,7 +343,7 @@ const validateSignatures = async (signatures: SignatureValidation[], district: s
       console.error(`Error validating signature for ${signature.name}:`, error);
       return {
         ...signature,
-        status: "uncertain",
+        status: "uncertain" as "valid" | "invalid" | "uncertain",
         reason: "Error during validation"
       };
     }
