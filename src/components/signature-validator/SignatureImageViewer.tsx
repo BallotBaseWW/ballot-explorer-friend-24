@@ -6,17 +6,19 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
 interface SignatureImageViewerProps {
-  imageUrl: string;
+  imageUrl?: string;
   signatures: SignatureValidation[];
   selectedSignatureId?: string | number | null;
   onSignatureClick?: (signature: SignatureValidation) => void;
+  height?: number;
 }
 
 export function SignatureImageViewer({ 
   imageUrl, 
   signatures, 
   selectedSignatureId = null,
-  onSignatureClick 
+  onSignatureClick,
+  height = 500
 }: SignatureImageViewerProps) {
   const [isLoaded, setIsLoaded] = useState(false);
   const [scale, setScale] = useState(1);
@@ -64,10 +66,19 @@ export function SignatureImageViewer({
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
-      case "valid": return "success";
+      case "valid": return "outline";
       case "invalid": return "destructive";
-      case "uncertain": return "warning";
+      case "uncertain": return "outline";
       default: return "default";
+    }
+  };
+
+  const getStatusBadgeClass = (status: string) => {
+    switch (status) {
+      case "valid": return "bg-green-100 text-green-800 border-green-200";
+      case "invalid": return "";
+      case "uncertain": return "bg-amber-100 text-amber-800 border-amber-200";
+      default: return "";
     }
   };
 
@@ -82,6 +93,9 @@ export function SignatureImageViewer({
       setZoomLevel(prevZoom => prevZoom - 0.25);
     }
   };
+
+  // Handle the case where we get passed a single signature (for backward compatibility)
+  const singleSignature = signatures.length === 1 && signatures[0];
 
   return (
     <div className="space-y-4">
@@ -105,18 +119,28 @@ export function SignatureImageViewer({
       </div>
       
       <div 
-        className="relative border rounded-md overflow-auto max-h-[500px]" 
+        className="relative border rounded-md overflow-auto" 
         ref={containerRef}
-        style={{ maxWidth: '100%' }}
+        style={{ maxWidth: '100%', maxHeight: `${height}px` }}
       >
         <div style={{ transform: `scale(${zoomLevel})`, transformOrigin: 'top left' }}>
-          <img 
-            ref={imageRef}
-            src={imageUrl} 
-            alt="Petition Document" 
-            className="w-full h-auto"
-            onLoad={handleImageLoad}
-          />
+          {imageUrl ? (
+            <img 
+              ref={imageRef}
+              src={imageUrl} 
+              alt="Petition Document" 
+              className="w-full h-auto"
+              onLoad={handleImageLoad}
+            />
+          ) : singleSignature?.image_region ? (
+            <div className="bg-gray-100 flex items-center justify-center p-4" style={{ height: '100px' }}>
+              {singleSignature.name}'s signature
+            </div>
+          ) : (
+            <div className="bg-gray-100 flex items-center justify-center p-4" style={{ height: '100px' }}>
+              No image available
+            </div>
+          )}
           
           {isLoaded && signatures.map((sig) => (
             sig.image_region && (
@@ -145,7 +169,7 @@ export function SignatureImageViewer({
                 >
                   <Badge 
                     variant={getStatusBadgeVariant(sig.status)}
-                    className="flex items-center gap-1 text-xs"
+                    className={`flex items-center gap-1 text-xs ${getStatusBadgeClass(sig.status)}`}
                   >
                     {getStatusIcon(sig.status)}
                     {sig.name}

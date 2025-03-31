@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { getPetitionById, getPetitionSignatures } from "@/components/signature-validator/petition-service";
-import { PetitionProgress, SignatureValidation } from "@/components/signature-validator/types";
+import { PetitionProgress, SignatureValidation, ValidationResult } from "@/components/signature-validator/types";
 import { AppSidebar } from "@/components/AppSidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { Header } from "@/components/Header";
@@ -155,6 +155,18 @@ export default function PetitionDetail() {
   const progressPercent = petition.required_signatures > 0
     ? Math.min(100, Math.round((petition.valid_signatures / petition.required_signatures) * 100))
     : 0;
+  
+  // Create ValidationResult object from signatures and stats
+  const validationResults: ValidationResult = {
+    signatures: signatures,
+    stats: pageStats,
+    petition_info: {
+      title: petition.name,
+      district: petition.district,
+      party: petition.party,
+      required_signatures: petition.required_signatures
+    }
+  };
   
   return (
     <div className="min-h-screen bg-background">
@@ -377,8 +389,7 @@ export default function PetitionDetail() {
                         </div>
                       ) : signatures.length > 0 ? (
                         <ValidationResults 
-                          signatures={signatures} 
-                          stats={pageStats}
+                          validationResults={{signatures, stats: pageStats}}
                           selectedSignatureId={selectedSignatureId}
                           onSignatureSelect={handleSignatureClick}
                         />

@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import { SignatureValidation, ValidationResult } from "./types";
+import { SignatureValidation, ValidationResult, ValidationResultStats, MatchedVoter } from "./types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -19,9 +19,11 @@ import { toast } from "sonner";
 
 interface ValidationResultsProps {
   validationResults: ValidationResult;
-  onSavePetition: () => void;
-  onUpdateSignatureStatus: (signature: SignatureValidation, status: "valid" | "invalid" | "uncertain", reason?: string, matchedVoterId?: string) => void;
-  isSaving: boolean;
+  onSavePetition?: () => void;
+  onUpdateSignatureStatus?: (signature: SignatureValidation, status: "valid" | "invalid" | "uncertain", reason?: string, matchedVoterId?: string) => void;
+  isSaving?: boolean;
+  selectedSignatureId?: number | string | null;
+  onSignatureSelect?: (signature: SignatureValidation) => void;
 }
 
 export const ValidationResults = ({
@@ -29,10 +31,15 @@ export const ValidationResults = ({
   onSavePetition,
   onUpdateSignatureStatus,
   isSaving,
+  selectedSignatureId = null,
+  onSignatureSelect
 }: ValidationResultsProps) => {
-  const [selectedSignatureId, setSelectedSignatureId] = useState<number | string | null>(null);
+  const [selectedSignatureIdInternal, setSelectedSignatureIdInternal] = useState<number | string | null>(selectedSignatureId);
   const [selectedMatchIndex, setSelectedMatchIndex] = useState<number | null>(null);
 
+  // Use the internal state if no external state is provided
+  const effectiveSelectedSignatureId = selectedSignatureId !== null ? selectedSignatureId : selectedSignatureIdInternal;
+  
   const stats = validationResults.stats;
 
   const COLORS = ["#16a34a", "#dc2626", "#f59e0b"];
@@ -46,12 +53,12 @@ export const ValidationResults = ({
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "valid":
-        return <Badge variant="success">Valid</Badge>;
+        return <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200">Valid</Badge>;
       case "invalid":
         return <Badge variant="destructive">Invalid</Badge>;
       case "uncertain":
       default:
-        return <Badge variant="warning">Needs Review</Badge>;
+        return <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-200">Needs Review</Badge>;
     }
   };
 
@@ -67,12 +74,20 @@ export const ValidationResults = ({
     }
   };
 
+  const handleSignatureClick = (signature: SignatureValidation) => {
+    setSelectedSignatureIdInternal(signature.id);
+    setSelectedMatchIndex(null);
+    if (onSignatureSelect) {
+      onSignatureSelect(signature);
+    }
+  };
+
   const selectedSignature = validationResults.signatures.find(
-    (sig) => sig.id === selectedSignatureId
+    (sig) => sig.id === effectiveSelectedSignatureId
   );
 
   const handleSelectStatus = (status: "valid" | "invalid" | "uncertain") => {
-    if (selectedSignature) {
+    if (selectedSignature && onUpdateSignatureStatus) {
       let matchedVoterId;
       
       // If a potential match is selected and status is valid, use that voter's ID
@@ -162,11 +177,13 @@ export const ValidationResults = ({
             </div>
           </div>
 
-          <div className="mt-6">
-            <Button onClick={onSavePetition} disabled={isSaving} className="w-full">
-              {isSaving ? "Saving..." : "Save Petition"}
-            </Button>
-          </div>
+          {onSavePetition && (
+            <div className="mt-6">
+              <Button onClick={onSavePetition} disabled={isSaving} className="w-full">
+                {isSaving ? "Saving..." : "Save Petition"}
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -179,14 +196,11 @@ export const ValidationResults = ({
                 <div
                   key={signature.id}
                   className={`p-3 border-b flex items-center justify-between cursor-pointer hover:bg-gray-50 ${
-                    selectedSignatureId === signature.id
+                    effectiveSelectedSignatureId === signature.id
                       ? "bg-gray-100"
                       : ""
                   }`}
-                  onClick={() => {
-                    setSelectedSignatureId(signature.id);
-                    setSelectedMatchIndex(null);
-                  }}
+                  onClick={() => handleSignatureClick(signature)}
                 >
                   <div>
                     <p className="font-medium">{signature.name}</p>
@@ -313,35 +327,37 @@ export const ValidationResults = ({
                       <div>
                         <p className="text-sm font-medium mb-2">Signature Image:</p>
                         <SignatureImageViewer
-                          signature={selectedSignature}
+                          signatures={[selectedSignature]}
                           height={100}
                         />
                       </div>
                     )}
 
-                    <div className="flex gap-2 pt-4">
-                      <Button
-                        variant="success"
-                        onClick={() => handleSelectStatus("valid")}
-                        className="flex-1"
-                      >
-                        <CheckCircle className="h-4 w-4 mr-2" /> Valid
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        onClick={() => handleSelectStatus("invalid")}
-                        className="flex-1"
-                      >
-                        <XCircle className="h-4 w-4 mr-2" /> Invalid
-                      </Button>
-                      <Button
-                        variant="outline"
-                        onClick={() => handleSelectStatus("uncertain")}
-                        className="flex-1"
-                      >
-                        <HelpCircle className="h-4 w-4 mr-2" /> Uncertain
-                      </Button>
-                    </div>
+                    {onUpdateSignatureStatus && (
+                      <div className="flex gap-2 pt-4">
+                        <Button
+                          variant="outline"
+                          className="flex-1 bg-green-100 hover:bg-green-200 text-green-800 border-green-200"
+                          onClick={() => handleSelectStatus("valid")}
+                        >
+                          <CheckCircle className="h-4 w-4 mr-2" /> Valid
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          onClick={() => handleSelectStatus("invalid")}
+                          className="flex-1"
+                        >
+                          <XCircle className="h-4 w-4 mr-2" /> Invalid
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => handleSelectStatus("uncertain")}
+                          className="flex-1"
+                        >
+                          <HelpCircle className="h-4 w-4 mr-2" /> Uncertain
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
