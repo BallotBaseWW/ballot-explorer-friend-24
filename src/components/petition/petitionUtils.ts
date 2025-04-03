@@ -28,40 +28,27 @@ export const generatePetitionPDF = (petitionData: PetitionData) => {
   
   // Add candidates table
   const startY = 50;
-  const colWidths = [55, 65, 65]; // Adjusted for better proportions
+  const colWidths = [60, 60, 65]; // Adjusted for better proportions
   const rowHeight = 10;
   
   // Table headers
   doc.setFontSize(9);
   doc.setFont("helvetica", "bold");
   
-  // Header row rectangle
+  // Draw the table borders
   doc.setDrawColor(0, 0, 0);
-  doc.setFillColor(240, 240, 240);
   
   // Name header
-  doc.rect(15, startY, colWidths[0], rowHeight, 'FD');
-  doc.setTextColor(80, 80, 80);
+  doc.rect(15, startY, colWidths[0], rowHeight);
   doc.text("Name(s) of Candidate(s)", 17, startY + 6);
   
   // Position header
-  doc.rect(15 + colWidths[0], startY, colWidths[1], rowHeight, 'FD');
-  doc.text("Public Office or Party Position", 17 + colWidths[0], startY + 4);
-  doc.setFontSize(7);
-  doc.setFont("helvetica", "italic");
-  doc.text("(Include district number, if applicable)", 17 + colWidths[0], startY + 8);
+  doc.rect(15 + colWidths[0], startY, colWidths[1], rowHeight);
+  doc.text("Public Office or Party Position", 17 + colWidths[0], startY + 6);
   
   // Address header
-  doc.setFontSize(9);
-  doc.setFont("helvetica", "bold");
-  doc.rect(15 + colWidths[0] + colWidths[1], startY, colWidths[2], rowHeight, 'FD');
-  doc.text("Residence Address", 17 + colWidths[0] + colWidths[1], startY + 4);
-  doc.setFontSize(7);
-  doc.setFont("helvetica", "italic");
-  doc.text("(Also post office address if not identical)", 17 + colWidths[0] + colWidths[1], startY + 8);
-  
-  // Reset text color
-  doc.setTextColor(0, 0, 0);
+  doc.rect(15 + colWidths[0] + colWidths[1], startY, colWidths[2], rowHeight);
+  doc.text("Residence Address", 17 + colWidths[0] + colWidths[1], startY + 6);
   
   // Candidate rows
   doc.setFontSize(9);
@@ -132,37 +119,26 @@ export const generatePetitionPDF = (petitionData: PetitionData) => {
   const signatureColWidths = [20, 60, 60, 45]; // Adjusted for better proportions
   const headerHeight = 10;
   
-  // Table headers with gray background
-  doc.setFillColor(240, 240, 240);
+  // Table headers
   doc.setFont("helvetica", "bold");
-  doc.setTextColor(80, 80, 80);
+  
+  // Draw header row
+  doc.rect(15, currentY, signatureColWidths[0], headerHeight);
+  doc.rect(15 + signatureColWidths[0], currentY, signatureColWidths[1], headerHeight);
+  doc.rect(15 + signatureColWidths[0] + signatureColWidths[1], currentY, signatureColWidths[2], headerHeight);
+  doc.rect(15 + signatureColWidths[0] + signatureColWidths[1] + signatureColWidths[2], currentY, signatureColWidths[3], headerHeight);
   
   // Date header
-  doc.rect(15, currentY, signatureColWidths[0], headerHeight, 'FD');
   doc.text("Date", 17, currentY + 6);
   
   // Name header
-  doc.rect(15 + signatureColWidths[0], currentY, signatureColWidths[1], headerHeight, 'FD');
-  doc.text("Name of Signer", 17 + signatureColWidths[0], currentY + 4);
-  doc.setFontSize(7);
-  doc.setFont("helvetica", "italic");
-  doc.text("(Signature required. Printed name may be added)", 17 + signatureColWidths[0], currentY + 8);
+  doc.text("Name of Signer", 17 + signatureColWidths[0], currentY + 6);
   
   // Residence header
-  doc.setFontSize(9);
-  doc.setFont("helvetica", "bold");
-  doc.rect(15 + signatureColWidths[0] + signatureColWidths[1], currentY, signatureColWidths[2], headerHeight, 'FD');
   doc.text("Residence", 17 + signatureColWidths[0] + signatureColWidths[1], currentY + 6);
   
   // Town/City header
-  doc.rect(15 + signatureColWidths[0] + signatureColWidths[1] + signatureColWidths[2], currentY, signatureColWidths[3], headerHeight, 'FD');
-  doc.text("Enter Town or City", 17 + signatureColWidths[0] + signatureColWidths[1] + signatureColWidths[2], currentY + 4);
-  doc.setFontSize(7);
-  doc.setFont("helvetica", "italic");
-  doc.text("(Except in NYC enter county)", 17 + signatureColWidths[0] + signatureColWidths[1] + signatureColWidths[2], currentY + 8);
-  
-  // Reset text color
-  doc.setTextColor(0, 0, 0);
+  doc.text("Enter Town or City", 17 + signatureColWidths[0] + signatureColWidths[1] + signatureColWidths[2], currentY + 6);
   
   // Signature rows
   currentY += headerHeight;
@@ -182,97 +158,10 @@ export const generatePetitionPDF = (petitionData: PetitionData) => {
     // Line number and date format
     doc.text(`${lineNum}. __/__/20__`, 17, currentY + 6);
     
-    // Printed name line for signature column
-    doc.setFontSize(7);
-    doc.text("Printed Name →", 17 + signatureColWidths[0] + 5, currentY + 12);
-    doc.setFontSize(9);
+    // Printed name
+    doc.text("Printed Name", 17 + signatureColWidths[0] + 20, currentY + 12);
     
     currentY += rowHeight;
-  }
-  
-  // Note about signature lines
-  currentY += 5;
-  doc.setFontSize(8);
-  doc.setFont("helvetica", "italic");
-  doc.text("(You may use fewer or more signature lines - this is only to show format.)", doc.internal.pageSize.width / 2, currentY, { align: "center" });
-  
-  // Verification section (Witness and Notary)
-  currentY += 10;
-  doc.setFontSize(9);
-  doc.setFont("helvetica", "bold");
-  doc.text("Complete ONE of the following", doc.internal.pageSize.width / 2, currentY, { align: "center" });
-  currentY += 10;
-  
-  if (petitionData.showWitness) {
-    doc.text("1. Statement of Witness:", 17, currentY);
-    doc.setFont("helvetica", "normal");
-    currentY += 5;
-    
-    let witnessText = "I (name of witness) _____________________ state: I am a duly qualified voter of the State of New York and am an enrolled voter of the ___________________ Party.";
-    doc.text(witnessText, 17, currentY);
-    currentY += 10;
-    
-    witnessText = "I now reside at (residence address) _____________________.";
-    doc.text(witnessText, 17, currentY);
-    currentY += 10;
-    
-    witnessText = "Each of the individuals whose names are subscribed to this petition sheet containing (fill in number) ___________ signatures, subscribed the same in my presence on the dates above indicated and identified himself or herself to be the individual who signed this sheet.";
-    const witnessLines = doc.splitTextToSize(witnessText, 180);
-    doc.text(witnessLines, 17, currentY);
-    currentY += witnessLines.length * 5 + 5;
-    
-    witnessText = "I understand that this statement will be accepted for all purposes as the equivalent of an affidavit and, if it contains a material false statement, shall subject me to the same penalties as if I had been duly sworn.";
-    const witnessLines2 = doc.splitTextToSize(witnessText, 180);
-    doc.text(witnessLines2, 17, currentY);
-    currentY += witnessLines2.length * 5 + 10;
-    
-    // Signature lines
-    doc.line(17, currentY, 70, currentY);
-    doc.line(90, currentY, 180, currentY);
-    currentY += 5;
-    doc.text("Date", 40, currentY);
-    doc.text("Signature of Witness", 135, currentY);
-    currentY += 10;
-    
-    // Witness identification
-    doc.setFont("helvetica", "bold");
-    doc.text("Witness Identification Information:", 17, currentY);
-    doc.setFont("helvetica", "normal");
-    currentY += 5;
-    
-    const infoText = "The following information for the witness named above must be completed prior to filing with the board of elections in order for this petition to be valid.";
-    const infoLines = doc.splitTextToSize(infoText, 180);
-    doc.text(infoLines, 17, currentY);
-    currentY += infoLines.length * 5 + 10;
-    
-    // Town/county lines
-    doc.line(17, currentY, 90, currentY);
-    doc.line(110, currentY, 180, currentY);
-    currentY += 5;
-    doc.text("Town or City Where Witness Resides", 50, currentY);
-    doc.text("County Where Witness Resides", 145, currentY);
-    currentY += 10;
-  }
-  
-  if (petitionData.showNotary) {
-    if (petitionData.showWitness) {
-      doc.setFont("helvetica", "bold");
-    }
-    doc.text("2. Notary Public or Commissioner of Deeds:", 17, currentY);
-    doc.setFont("helvetica", "normal");
-    currentY += 5;
-    
-    const notaryText = "On the dates above indicated before me personally came each of the voters whose signatures appear on this petition sheet containing (fill in number) ___________ signatures, who signed same in my presence and who, being by me duly sworn, each for himself or herself, said that the foregoing statement made and subscribed by him or her was true.";
-    const notaryLines = doc.splitTextToSize(notaryText, 180);
-    doc.text(notaryLines, 17, currentY);
-    currentY += notaryLines.length * 5 + 10;
-    
-    // Signature lines
-    doc.line(17, currentY, 70, currentY);
-    doc.line(90, currentY, 180, currentY);
-    currentY += 5;
-    doc.text("Date", 40, currentY);
-    doc.text("Signature and Official Title of Officer Administering Oath", 135, currentY);
   }
   
   // Footer
