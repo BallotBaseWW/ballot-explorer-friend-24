@@ -25,16 +25,18 @@ export function PetitionPreview({ petitionData }: { petitionData: PetitionData }
   // Generate signature lines based on signatureCount
   const renderSignatureLines = () => {
     const lines = [];
-    for (let i = 0; i < Math.min(petitionData.signatureCount, 10); i++) {
+    for (let i = 0; i < Math.min(petitionData.signatureCount, 50); i++) {
       lines.push(
         <TableRow key={i}>
-          <TableCell className="border border-black">{i+1}. __/__/20__</TableCell>
-          <TableCell className="border border-black">
+          <TableCell className="border border-black p-2">
+            {i+1}. __/__/20__
+          </TableCell>
+          <TableCell className="border border-black p-2">
             <div className="h-8"></div>
             <div className="text-xs border-t border-dashed pt-1">Printed Name →</div>
           </TableCell>
-          <TableCell className="border border-black"></TableCell>
-          <TableCell className="border border-black"></TableCell>
+          <TableCell className="border border-black p-2"></TableCell>
+          <TableCell className="border border-black p-2"></TableCell>
         </TableRow>
       );
     }
@@ -49,10 +51,12 @@ export function PetitionPreview({ petitionData }: { petitionData: PetitionData }
       </div>
       
       <div className="text-sm leading-relaxed">
-        I, the undersigned, do hereby state that I am a duly enrolled voter of the _________________ Party and entitled to vote at the next primary
-        election of such party, to be held on _________________, 20____; that my place of residence is truly stated opposite my signature hereto,
-        and I do hereby designate the following named person (or persons) as a candidate (or candidates) for the nomination of such party for public office
-        or for election to a party position of such party.
+        I, the undersigned, do hereby state that I am a duly enrolled voter of the 
+        <span className="mx-1 px-2 border-b border-gray-400 inline-block min-w-[150px]">{petitionData.party || "________________"}</span> 
+        Party and entitled to vote at the next primary election of such party, to be held on 
+        <span className="mx-1 px-2 border-b border-gray-400 inline-block min-w-[150px]">{petitionData.electionDate || "________________"}</span>, 
+        20<span className="mx-1 px-1 border-b border-gray-400 inline-block min-w-[30px]">{petitionData.electionYear?.substring(2) || "__"}</span>; 
+        that my place of residence is truly stated opposite my signature hereto, and I do hereby designate the following named person (or persons) as a candidate (or candidates) for the nomination of such party for public office or for election to a party position of such party.
       </div>
       
       {/* Candidates Table */}
@@ -124,15 +128,15 @@ export function PetitionPreview({ petitionData }: { petitionData: PetitionData }
         </TableBody>
       </Table>
       
-      <div className="text-center text-sm italic">
+      <div className="text-center text-xs italic">
         (You may use fewer or more signature lines - this is only to show format.)
       </div>
       
-      <div className="border border-black p-2">
+      <div className="border border-black p-4">
         <div className="text-center font-bold mb-4">Complete ONE of the following</div>
         
         {petitionData.showWitness && (
-          <div className="mb-4">
+          <div className="mb-6">
             <p className="font-bold mb-2">1. Statement of Witness:</p>
             <p className="text-sm mb-2">
               I <span className="italic">(name of witness)</span> _____________________ state: I am a duly qualified voter of the State of New York and
@@ -150,7 +154,7 @@ export function PetitionPreview({ petitionData }: { petitionData: PetitionData }
               statement, shall subject me to the same penalties as if I had been duly sworn.
             </p>
             
-            <div className="flex justify-between mb-2">
+            <div className="flex justify-between mb-4">
               <div className="border-t border-black w-1/4">
                 <div className="text-sm text-center pt-1">Date</div>
               </div>
@@ -198,7 +202,7 @@ export function PetitionPreview({ petitionData }: { petitionData: PetitionData }
       </div>
       
       <div className="flex justify-between text-sm">
-        <div>DP – 01 2018</div>
+        <div>DP – 01.2018</div>
         <div className="italic">(Sample prepared by the State Board of Elections)</div>
         <div>Sheet No. _________</div>
       </div>

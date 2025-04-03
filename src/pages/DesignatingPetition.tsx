@@ -8,6 +8,7 @@ import { PetitionWizard } from "@/components/petition/PetitionWizard";
 import { Button } from "@/components/ui/button";
 import { FileDown, Printer } from "lucide-react";
 import { toast } from "sonner";
+import { generatePetitionPDF } from "@/components/petition/petitionUtils";
 
 export default function DesignatingPetition() {
   const [activeTab, setActiveTab] = useState("form");
@@ -27,9 +28,31 @@ export default function DesignatingPetition() {
   };
 
   const handleDownload = () => {
-    toast.info("Download functionality will be implemented soon", {
-      description: "This feature is currently in development."
-    });
+    if (!petitionData.party) {
+      toast.warning("Please enter a political party name first", {
+        description: "A party name is required for the petition document."
+      });
+      return;
+    }
+    
+    if (petitionData.candidates.length === 0) {
+      toast.warning("Please add at least one candidate", {
+        description: "Candidates are required for the petition document."
+      });
+      return;
+    }
+    
+    try {
+      generatePetitionPDF(petitionData);
+      toast.success("PDF generated successfully", {
+        description: "Your designating petition has been downloaded."
+      });
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      toast.error("Failed to generate PDF", {
+        description: "An error occurred while creating your petition document."
+      });
+    }
   };
 
   return (
@@ -69,7 +92,7 @@ export default function DesignatingPetition() {
                 className="bg-gray-50"
               >
                 <FileDown className="h-4 w-4 mr-2" />
-                Download
+                Download PDF
               </Button>
             </div>
           )}
@@ -104,7 +127,7 @@ export default function DesignatingPetition() {
                 size="sm"
               >
                 <FileDown className="h-4 w-4 mr-2" />
-                Download
+                Download PDF
               </Button>
             </div>
             <div className="p-2 md:p-4 overflow-auto print:p-0">
