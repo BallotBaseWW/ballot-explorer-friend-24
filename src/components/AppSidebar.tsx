@@ -15,7 +15,8 @@ import {
   Menu,
   X,
   LogOut,
-  User
+  User,
+  FileSpreadsheet
 } from "lucide-react";
 import { NavItem } from "@/components/ui/nav-item";
 import { Button } from "@/components/ui/button";
@@ -98,6 +99,7 @@ export function AppSidebar() {
     { to: "/voter-lists", icon: <ListPlus className="h-4 w-4" />, label: "Voter Lists" },
     { to: "/signature-validator", icon: <FileSignature className="h-4 w-4" />, label: "Signature Validator" },
     { to: "/petitions", icon: <ClipboardList className="h-4 w-4" />, label: "My Petitions" },
+    { to: "/designating-petition", icon: <FileSpreadsheet className="h-4 w-4" />, label: "Petition Generator" },
     { to: "/surveys", icon: <ListChecks className="h-4 w-4" />, label: "Surveys" },
     { to: "/resources", icon: <FileText className="h-4 w-4" />, label: "Resources" },
   ];
