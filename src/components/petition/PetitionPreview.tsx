@@ -28,15 +28,15 @@ export function PetitionPreview({ petitionData }: { petitionData: PetitionData }
     for (let i = 0; i < Math.min(petitionData.signatureCount, 50); i++) {
       lines.push(
         <TableRow key={i}>
-          <TableCell className="border border-black p-2">
+          <TableCell className="border border-black p-2 w-[15%]">
             {i+1}. __/__/20__
           </TableCell>
-          <TableCell className="border border-black p-2">
+          <TableCell className="border border-black p-2 w-[35%]">
             <div className="h-8"></div>
             <div className="text-xs border-t border-dashed pt-1">Printed Name →</div>
           </TableCell>
-          <TableCell className="border border-black p-2"></TableCell>
-          <TableCell className="border border-black p-2"></TableCell>
+          <TableCell className="border border-black p-2 w-[35%]"></TableCell>
+          <TableCell className="border border-black p-2 w-[15%]"></TableCell>
         </TableRow>
       );
     }
@@ -46,8 +46,8 @@ export function PetitionPreview({ petitionData }: { petitionData: PetitionData }
   return (
     <div className="space-y-4 p-4 bg-white">
       <div className="text-center">
-        <h1 className="text-2xl font-bold">Designating Petition</h1>
-        <p className="text-sm">Sec. 6-132, Election Law</p>
+        <h1 className="text-2xl font-bold">{petitionData.party ? `${petitionData.party} PARTY DESIGNATING PETITION` : "Designating Petition"}</h1>
+        <p className="text-sm">(Sec. 6-132, Election Law)</p>
       </div>
       
       <div className="text-sm leading-relaxed">
@@ -60,37 +60,41 @@ export function PetitionPreview({ petitionData }: { petitionData: PetitionData }
       </div>
       
       {/* Candidates Table */}
-      <Table className="border-collapse border border-black text-sm">
-        <TableHead>
-          <TableRow>
-            <TableHeader className="border border-black font-bold text-left p-2">Name(s) of Candidate(s)</TableHeader>
-            <TableHeader className="border border-black font-bold text-left p-2">
-              Public Office or Party Position
-              <div className="text-xs font-normal italic">(Include district number, if applicable)</div>
-            </TableHeader>
-            <TableHeader className="border border-black font-bold text-left p-2">
-              Residence Address
-              <div className="text-xs font-normal italic">(Also post office address if not identical)</div>
-            </TableHeader>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {petitionData.candidates.map(candidate => (
-            <TableRow key={candidate.id}>
-              <TableCell className="border border-black p-2">{candidate.name}</TableCell>
-              <TableCell className="border border-black p-2">{candidate.position}</TableCell>
-              <TableCell className="border border-black p-2">{candidate.residence}</TableCell>
-            </TableRow>
-          ))}
-          {petitionData.candidates.length === 0 && (
+      <div className="border border-black">
+        <Table className="border-collapse w-full m-0 p-0">
+          <TableHead>
             <TableRow>
-              <TableCell className="border border-black p-2" colSpan={3}>
-                <div className="text-center text-gray-500 italic py-2">No candidates added yet</div>
-              </TableCell>
+              <TableHeader className="border border-black font-bold text-left p-2 w-[30%] text-gray-600 bg-gray-100">
+                Name(s) of Candidate(s)
+              </TableHeader>
+              <TableHeader className="border border-black font-bold text-left p-2 w-[35%] text-gray-600 bg-gray-100">
+                Public Office or Party Position
+                <div className="text-xs font-normal italic">(Include district number, if applicable)</div>
+              </TableHeader>
+              <TableHeader className="border border-black font-bold text-left p-2 w-[35%] text-gray-600 bg-gray-100">
+                Residence Address
+                <div className="text-xs font-normal italic">(Also post office address if not identical)</div>
+              </TableHeader>
             </TableRow>
-          )}
-        </TableBody>
-      </Table>
+          </TableHead>
+          <TableBody>
+            {petitionData.candidates.map(candidate => (
+              <TableRow key={candidate.id}>
+                <TableCell className="border border-black p-2 font-medium">{candidate.name}</TableCell>
+                <TableCell className="border border-black p-2">{candidate.position}</TableCell>
+                <TableCell className="border border-black p-2">{candidate.residence}</TableCell>
+              </TableRow>
+            ))}
+            {petitionData.candidates.length === 0 && (
+              <TableRow>
+                <TableCell className="border border-black p-2" colSpan={3}>
+                  <div className="text-center text-gray-500 italic py-2">No candidates added yet</div>
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
       
       {/* Committee to Fill Vacancies */}
       <div>
@@ -108,25 +112,31 @@ export function PetitionPreview({ petitionData }: { petitionData: PetitionData }
       </div>
       
       {/* Signature Table */}
-      <Table className="border-collapse border border-black text-sm">
-        <TableHead>
-          <TableRow>
-            <TableHeader className="border border-black font-bold text-left p-2">Date</TableHeader>
-            <TableHeader className="border border-black font-bold text-left p-2">
-              Name of Signer
-              <div className="text-xs font-normal italic">(Signature required. Printed name may be added)</div>
-            </TableHeader>
-            <TableHeader className="border border-black font-bold text-left p-2">Residence</TableHeader>
-            <TableHeader className="border border-black font-bold text-left p-2">
-              Enter Town or City
-              <div className="text-xs font-normal italic">(Except in NYC enter county)</div>
-            </TableHeader>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {renderSignatureLines()}
-        </TableBody>
-      </Table>
+      <div className="border border-black">
+        <Table className="border-collapse w-full m-0 p-0">
+          <TableHead>
+            <TableRow>
+              <TableHeader className="border border-black font-bold text-left p-2 w-[15%] text-gray-600 bg-gray-100">
+                Date
+              </TableHeader>
+              <TableHeader className="border border-black font-bold text-left p-2 w-[35%] text-gray-600 bg-gray-100">
+                Name of Signer
+                <div className="text-xs font-normal italic">(Signature required. Printed name may be added)</div>
+              </TableHeader>
+              <TableHeader className="border border-black font-bold text-left p-2 w-[35%] text-gray-600 bg-gray-100">
+                Residence
+              </TableHeader>
+              <TableHeader className="border border-black font-bold text-left p-2 w-[15%] text-gray-600 bg-gray-100">
+                Enter Town or City
+                <div className="text-xs font-normal italic">(Except in NYC enter county)</div>
+              </TableHeader>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {renderSignatureLines()}
+          </TableBody>
+        </Table>
+      </div>
       
       <div className="text-center text-xs italic">
         (You may use fewer or more signature lines - this is only to show format.)

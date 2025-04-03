@@ -14,9 +14,10 @@ export const generatePetitionPDF = (petitionData: PetitionData) => {
   
   // Add title
   doc.setFontSize(16);
-  doc.text("Designating Petition", doc.internal.pageSize.width / 2, 20, { align: "center" });
+  const title = petitionData.party ? `${petitionData.party} PARTY DESIGNATING PETITION` : "Designating Petition";
+  doc.text(title, doc.internal.pageSize.width / 2, 20, { align: "center" });
   doc.setFontSize(10);
-  doc.text("Sec. 6-132, Election Law", doc.internal.pageSize.width / 2, 26, { align: "center" });
+  doc.text("(Sec. 6-132, Election Law)", doc.internal.pageSize.width / 2, 26, { align: "center" });
   
   // Add intro text
   doc.setFontSize(10);
@@ -27,28 +28,40 @@ export const generatePetitionPDF = (petitionData: PetitionData) => {
   
   // Add candidates table
   const startY = 50;
-  const colWidths = [60, 60, 60];
+  const colWidths = [55, 65, 65]; // Adjusted for better proportions
   const rowHeight = 10;
   
   // Table headers
   doc.setFontSize(9);
   doc.setFont("helvetica", "bold");
-  doc.rect(15, startY, colWidths[0], rowHeight);
+  
+  // Header row rectangle
+  doc.setDrawColor(0, 0, 0);
+  doc.setFillColor(240, 240, 240);
+  
+  // Name header
+  doc.rect(15, startY, colWidths[0], rowHeight, 'FD');
+  doc.setTextColor(80, 80, 80);
   doc.text("Name(s) of Candidate(s)", 17, startY + 6);
   
-  doc.rect(15 + colWidths[0], startY, colWidths[1], rowHeight);
+  // Position header
+  doc.rect(15 + colWidths[0], startY, colWidths[1], rowHeight, 'FD');
   doc.text("Public Office or Party Position", 17 + colWidths[0], startY + 4);
   doc.setFontSize(7);
   doc.setFont("helvetica", "italic");
   doc.text("(Include district number, if applicable)", 17 + colWidths[0], startY + 8);
   
+  // Address header
   doc.setFontSize(9);
   doc.setFont("helvetica", "bold");
-  doc.rect(15 + colWidths[0] + colWidths[1], startY, colWidths[2], rowHeight);
+  doc.rect(15 + colWidths[0] + colWidths[1], startY, colWidths[2], rowHeight, 'FD');
   doc.text("Residence Address", 17 + colWidths[0] + colWidths[1], startY + 4);
   doc.setFontSize(7);
   doc.setFont("helvetica", "italic");
   doc.text("(Also post office address if not identical)", 17 + colWidths[0] + colWidths[1], startY + 8);
+  
+  // Reset text color
+  doc.setTextColor(0, 0, 0);
   
   // Candidate rows
   doc.setFontSize(9);
@@ -73,7 +86,9 @@ export const generatePetitionPDF = (petitionData: PetitionData) => {
       const positionLines = doc.splitTextToSize(candidate.position, colWidths[1] - 4);
       const addressLines = doc.splitTextToSize(candidate.residence, colWidths[2] - 4);
       
+      doc.setFont("helvetica", "bold");
       doc.text(nameLines, 17, currentY + 5);
+      doc.setFont("helvetica", "normal");
       doc.text(positionLines, 17 + colWidths[0], currentY + 5);
       doc.text(addressLines, 17 + colWidths[0] + colWidths[1], currentY + 5);
       
@@ -114,30 +129,40 @@ export const generatePetitionPDF = (petitionData: PetitionData) => {
   
   // Signature table
   currentY += 5;
-  const signatureColWidths = [20, 60, 60, 40];
+  const signatureColWidths = [20, 60, 60, 45]; // Adjusted for better proportions
   const headerHeight = 10;
   
-  // Table headers
+  // Table headers with gray background
+  doc.setFillColor(240, 240, 240);
   doc.setFont("helvetica", "bold");
-  doc.rect(15, currentY, signatureColWidths[0], headerHeight);
+  doc.setTextColor(80, 80, 80);
+  
+  // Date header
+  doc.rect(15, currentY, signatureColWidths[0], headerHeight, 'FD');
   doc.text("Date", 17, currentY + 6);
   
-  doc.rect(15 + signatureColWidths[0], currentY, signatureColWidths[1], headerHeight);
+  // Name header
+  doc.rect(15 + signatureColWidths[0], currentY, signatureColWidths[1], headerHeight, 'FD');
   doc.text("Name of Signer", 17 + signatureColWidths[0], currentY + 4);
   doc.setFontSize(7);
   doc.setFont("helvetica", "italic");
   doc.text("(Signature required. Printed name may be added)", 17 + signatureColWidths[0], currentY + 8);
   
+  // Residence header
   doc.setFontSize(9);
   doc.setFont("helvetica", "bold");
-  doc.rect(15 + signatureColWidths[0] + signatureColWidths[1], currentY, signatureColWidths[2], headerHeight);
+  doc.rect(15 + signatureColWidths[0] + signatureColWidths[1], currentY, signatureColWidths[2], headerHeight, 'FD');
   doc.text("Residence", 17 + signatureColWidths[0] + signatureColWidths[1], currentY + 6);
   
-  doc.rect(15 + signatureColWidths[0] + signatureColWidths[1] + signatureColWidths[2], currentY, signatureColWidths[3], headerHeight);
+  // Town/City header
+  doc.rect(15 + signatureColWidths[0] + signatureColWidths[1] + signatureColWidths[2], currentY, signatureColWidths[3], headerHeight, 'FD');
   doc.text("Enter Town or City", 17 + signatureColWidths[0] + signatureColWidths[1] + signatureColWidths[2], currentY + 4);
   doc.setFontSize(7);
   doc.setFont("helvetica", "italic");
   doc.text("(Except in NYC enter county)", 17 + signatureColWidths[0] + signatureColWidths[1] + signatureColWidths[2], currentY + 8);
+  
+  // Reset text color
+  doc.setTextColor(0, 0, 0);
   
   // Signature rows
   currentY += headerHeight;
